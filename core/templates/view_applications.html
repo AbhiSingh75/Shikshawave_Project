@@ -1,0 +1,673 @@
+{% extends 'core/base_with_header.html' %}
+{% load core_extras %}
+{% load static %}
+
+{% block title %}View Applications | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.6">
+<style>
+    /* ===== VIEW APPLICATIONS — Mobile Responsive Overrides ===== */
+
+    /* Mobile: stack controls into two rows */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 8px 10px;
+            gap: 15px; /* Increased gap to prevent meshup */
+        }
+
+        /* Controls row follows natural flow to prevent overlaps when wrapping */
+        .controls-row {
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 15px;
+            position: relative !important;
+            top: 0 !important;
+            margin-bottom: 5px;
+            height: auto !important;
+        }
+
+        .controls-left, .controls-right {
+            width: 100%;
+        }
+
+        .content-area {
+            margin-top: 5px;
+            border-radius: 8px;
+        }
+
+        /* Table scrolls horizontally */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+
+        table {
+            min-width: 800px; /* Ensure enough width for data density */
+        }
+
+        th, td {
+            padding: 10px 12px;
+            font-size: 0.85rem;
+        }
+
+        .pagination {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: center !important;
+            gap: 10px;
+            padding: 20px 10px;
+        }
+
+        .pagination-controls {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+    }
+
+    /* Extra small phones */
+    @media (max-width: 480px) {
+        .controls-row {
+            padding: 8px 10px;
+        }
+
+        .controls-left h3 {
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            padding: 6px 8px;
+            font-size: 0.73rem;
+        }
+
+        .btn {
+            padding: 7px 10px;
+            font-size: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container force-list-view">
+
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-file-alt"></i> Student Applications</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Total: {{ total_count|default:0 }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" value="{{ search }}" placeholder="Search applications...">
+            </div>
+            <div class="control-buttons">
+                <select name="per_page" id="per-page-selector" class="btn btn-secondary">
+                    <option value="10" {% if per_page|default:10 == 10 %}selected{% endif %}>10 per page</option>
+                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25 per page</option>
+                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50 per page</option>
+                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100 per page</option>
+                </select>
+
+                <button class="btn btn-secondary filter-btn" id="filter-btn">
+                    <i class="fas fa-filter"></i> <span class="btn-label">Filters</span>
+                </button>
+
+                <div class="column-visibility">
+                    <button class="btn btn-secondary column-toggle-btn" id="column-toggle">
+                        <i class="fas fa-columns"></i> <span class="btn-label">Columns</span>
+                    </button>
+                    <div class="column-menu" id="column-menu">
+                        <!-- Column visibility toggles will be generated dynamically -->
+                    </div>
+                </div>
+
+                <div class="export-dropdown-container">
+                    <button class="export-btn" id="exportBtn">
+                        <i class="fas fa-file-export"></i> <span class="btn-label">Export</span>
+                    </button>
+                    <div class="export-menu" id="exportMenu">
+                        <div class="export-menu-header">Download As</div>
+                        <button class="export-item excel" data-format="excel">
+                            <span class="export-icon"><i class="fas fa-file-excel"></i></span>
+                            Excel (.xlsx)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="comma">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Comma ,)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="pipe">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Pipe |)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="tab">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Tab)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter"></i> Filter Applications</h3>
+                <button class="action-btn" id="close-filter-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-body">
+                {% if is_super_admin %}
+                <div class="filter-row full">
+                    <div class="filter-group">
+                        <label for="filter-school"><i class="fas fa-university"></i> School</label>
+                        <select id="filter-school" name="school_id">
+                            <option value="">All Schools</option>
+                            {% for school in school_list %}
+                            <option value="{{ school.SchoolID }}" {% if selected_school_id == school.SchoolID %}selected{% endif %}>{{ school.SchoolName }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-school">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">
+                                    {% if selected_school_id %}
+                                    {% for school in school_list %}
+                                    {% if selected_school_id == school.SchoolID %}
+                                    {{ school.SchoolName }}
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% else %}
+                                    All Schools
+                                    {% endif %}
+                                </span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-school">
+                                <div class="custom-dropdown-option" data-value="">All Schools</div>
+                                {% for school in school_list %}
+                                <div class="custom-dropdown-option" data-value="{{ school.SchoolID }}">{{ school.SchoolName }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="filter-row full">
+                    <div class="filter-group">
+                        <label for="filter-search"><i class="fas fa-search"></i> Search</label>
+                        <input type="text" id="filter-search" value="{{ search }}"
+                            placeholder="Search by code, name, mobile, email" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-class"><i class="fas fa-chalkboard"></i> Class</label>
+                        <select id="filter-class" name="class_id">
+                            <option value="">All Classes</option>
+                            <!-- Class options will be populated by JavaScript -->
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-class">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Classes</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-class">
+                                <div class="custom-dropdown-option" data-value="">All Classes</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-section"><i class="fas fa-users"></i> Section</label>
+                        <select id="filter-section" name="section_id">
+                            <option value="">All Sections</option>
+                            <!-- Section options will be populated by JavaScript -->
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-section">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Sections</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-section">
+                                <div class="custom-dropdown-option" data-value="">All Sections</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                        <select id="filter-gender">
+                            <option value="">All Gender</option>
+                            <option value="Male" {% if gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if gender == 'Female' %}selected{% endif %}>Female</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-gender">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">{% if gender %}{{ gender }}{% else %}All Gender{% endif %}</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Gender</div>
+                                <div class="custom-dropdown-option" data-value="Male">Male</div>
+                                <div class="custom-dropdown-option" data-value="Female">Female</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-category"><i class="fas fa-list"></i> Category</label>
+                        <select id="filter-category">
+                            <option value="">All Categories</option>
+                            <option value="General" {% if category == 'General' %}selected{% endif %}>General</option>
+                            <option value="OBC" {% if category == 'OBC' %}selected{% endif %}>OBC</option>
+                            <option value="SC" {% if category == 'SC' %}selected{% endif %}>SC</option>
+                            <option value="ST" {% if category == 'ST' %}selected{% endif %}>ST</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-category">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">{% if category %}{{ category }}{% else %}All Categories{% endif %}</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Categories</div>
+                                <div class="custom-dropdown-option" data-value="General">General</div>
+                                <div class="custom-dropdown-option" data-value="OBC">OBC</div>
+                                <div class="custom-dropdown-option" data-value="SC">SC</div>
+                                <div class="custom-dropdown-option" data-value="ST">ST</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-status"><i class="fas fa-toggle-on"></i> Status</label>
+                        <select id="filter-status">
+                            <option value="">All Status</option>
+                            <option value="Active" {% if status == 'Active' %}selected{% endif %}>Active</option>
+                            <option value="Deactive" {% if status == 'Deactive' %}selected{% endif %}>Deactive</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-status">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">{% if status %}{{ status }}{% else %}All Status{% endif %}</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Status</div>
+                                <div class="custom-dropdown-option" data-value="Active">Active</div>
+                                <div class="custom-dropdown-option" data-value="Deactive">Deactive</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <!-- Spacer or add another filter here if needed -->
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-from-date"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" id="filter-from-date" value="{{ from_date }}">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-to-date"><i class="fas fa-calendar-check"></i> To Date</label>
+                        <input type="date" id="filter-to-date" value="{{ to_date }}">
+                    </div>
+                </div>
+            </div>
+            <div class="filter-footer">
+                <button class="btn btn-secondary" id="reset-filters">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="table-header">
+            <div class="table-info">
+                Showing {{ start_index }} to {{ end_index }} of {{ total_count }} entries
+            </div>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th data-column="sn">SN</th>
+                        <th data-column="actions">Actions</th>
+                        <th data-column="student-code">Student Code</th>
+                        <th data-column="full-name">Full Name</th>
+                        <th data-column="gender">Gender</th>
+                        <th data-column="date-of-birth">Date of Birth</th>
+                        <th data-column="age">Age</th>
+                        <th data-column="blood-group">Blood Group</th>
+                        <th data-column="category">Category</th>
+                        <th data-column="religion">Religion</th>
+                        <th data-column="nationality">Nationality</th>
+                        <th data-column="aadhaar">Aadhaar</th>
+                        <th data-column="mother-tongue">Mother Tongue</th>
+                        <th data-column="present-address">Present Address</th>
+                        <th data-column="permanent-address">Permanent Address</th>
+                        <th data-column="district">District</th>
+                        <th data-column="state">State</th>
+                        <th data-column="country">Country</th>
+                        <th data-column="parent-mobile">Parent Mobile</th>
+                        <th data-column="alternate-number">Alternate Number</th>
+                        <th data-column="email">Email</th>
+                        <th data-column="father-name">Father Name</th>
+                        <th data-column="father-occupation">Father Occupation</th>
+                        <th data-column="father-qualification">Father Qualification</th>
+                        <th data-column="father-aadhaar">Father Aadhaar</th>
+                        <th data-column="father-mobile">Father Mobile</th>
+                        <th data-column="mother-name">Mother Name</th>
+                        <th data-column="mother-occupation">Mother Occupation</th>
+                        <th data-column="mother-qualification">Mother Qualification</th>
+                        <th data-column="mother-aadhaar">Mother Aadhaar</th>
+                        <th data-column="mother-mobile">Mother Mobile</th>
+                        <th data-column="guardian-name">Guardian Name</th>
+                        <th data-column="guardian-relation">Guardian Relation</th>
+                        <th data-column="guardian-mobile">Guardian Mobile</th>
+                        <th data-column="last-school">Last School</th>
+                        <th data-column="last-class">Last Class</th>
+                        <th data-column="tc-number">TC Number</th>
+                        <th data-column="medium-of-instruction">Medium of Instruction</th>
+                        <th data-column="admission-class">Admission Class</th>
+                        <th data-column="class-name">Class Name</th>
+                        <th data-column="section">Section</th>
+                        <th data-column="section-name">Section Name</th>
+                        <th data-column="stream">Stream</th>
+                        <th data-column="mode-of-admission">Mode of Admission</th>
+                        <th data-column="admission-date">Admission Date</th>
+                        <th data-column="principal-approval">Principal Approval</th>
+                        <th data-column="created-by">Created By</th>
+                        <th data-column="created-by-name">Created By Name</th>
+                        <th data-column="status">Status</th>
+                        <th data-column="school-code">School Code</th>
+                        <th data-column="school-name">School Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in applications %}
+                    <tr>
+                        <td data-column="sn">{{ forloop.counter0|add:start_index }}</td>
+                        <td data-column="actions">
+                            <a href="{% url 'view_application_detail' a.StudentCode|encrypt_id %}" class="btn-view"
+                                title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                        <td data-column="student-code">{{ a.StudentCode|default:"N/A" }}</td>
+                        <td data-column="full-name">{{ a.FullName|default:"N/A" }}</td>
+                        <td data-column="gender">{{ a.Gender|default:"N/A" }}</td>
+                        <td data-column="date-of-birth">{% if a.DateOfBirth %}{{ a.DateOfBirth|date:'Y-m-d' }}{% else %}N/A{% endif %}</td>
+                        <td data-column="age">{{ a.Age|default:"N/A" }}</td>
+                        <td data-column="blood-group">{{ a.BloodGroup|default:"N/A" }}</td>
+                        <td data-column="category">{{ a.Category|default:"N/A" }}</td>
+                        <td data-column="religion">{{ a.Religion|default:"N/A" }}</td>
+                        <td data-column="nationality">{{ a.Nationality|default:"N/A" }}</td>
+                        <td data-column="aadhaar">{{ a.StudentAadhaar|default:"N/A" }}</td>
+                        <td data-column="mother-tongue">{{ a.MotherTongue|default:"N/A" }}</td>
+                        <td data-column="present-address">{{ a.PresentAddress|default:"N/A"|truncatechars:20 }}</td>
+                        <td data-column="permanent-address">{{ a.PermanentAddress|default:"N/A"|truncatechars:20 }}</td>
+                        <td data-column="district">{{ a.District|default:"N/A" }}</td>
+                        <td data-column="state">{{ a.State|default:"N/A" }}</td>
+                        <td data-column="country">{{ a.Country|default:"N/A" }}</td>
+                        <td data-column="parent-mobile">{{ a.ParentMobile|default:"N/A" }}</td>
+                        <td data-column="alternate-number">{{ a.AlternateNumber|default:"N/A" }}</td>
+                        <td data-column="email">{{ a.Email|default:"N/A" }}</td>
+                        <td data-column="father-name">{{ a.FatherName|default:"N/A" }}</td>
+                        <td data-column="father-occupation">{{ a.FatherOccupation|default:"N/A" }}</td>
+                        <td data-column="father-qualification">{{ a.FatherQualification|default:"N/A" }}</td>
+                        <td data-column="father-aadhaar">{{ a.FatherAadhaar|default:"N/A" }}</td>
+                        <td data-column="father-mobile">{{ a.FatherMobile|default:"N/A" }}</td>
+                        <td data-column="mother-name">{{ a.MotherName|default:"N/A" }}</td>
+                        <td data-column="mother-occupation">{{ a.MotherOccupation|default:"N/A" }}</td>
+                        <td data-column="mother-qualification">{{ a.MotherQualification|default:"N/A" }}</td>
+                        <td data-column="mother-aadhaar">{{ a.MotherAadhaar|default:"N/A" }}</td>
+                        <td data-column="mother-mobile">{{ a.MotherMobile|default:"N/A" }}</td>
+                        <td data-column="guardian-name">{{ a.GuardianName|default:"N/A" }}</td>
+                        <td data-column="guardian-relation">{{ a.GuardianRelation|default:"N/A" }}</td>
+                        <td data-column="guardian-mobile">{{ a.GuardianMobile|default:"N/A" }}</td>
+                        <td data-column="last-school">{{ a.LastSchool|default:"N/A" }}</td>
+                        <td data-column="last-class">{{ a.LastClass|default:"N/A" }}</td>
+                        <td data-column="tc-number">{{ a.TCNumber|default:"N/A" }}</td>
+                        <td data-column="medium-of-instruction">{{ a.MediumOfInstruction|default:"N/A" }}</td>
+                        <td data-column="admission-class">{{ a.AdmissionClass|default:"N/A" }}</td>
+                        <td data-column="class-name">{{ a.ClassName|default:"N/A" }}</td>
+                        <td data-column="section">{{ a.Section|default:"N/A" }}</td>
+                        <td data-column="section-name">{{ a.SectionName|default:"N/A" }}</td>
+                        <td data-column="stream">{{ a.Stream|default:"N/A" }}</td>
+                        <td data-column="mode-of-admission">{{ a.ModeOfAdmission|default:"N/A" }}</td>
+                        <td data-column="admission-date">{% if a.AdmissionDate %}{{ a.AdmissionDate|date:'Y-m-d' }}{% else %}N/A{% endif %}</td>
+                        <td data-column="principal-approval">{{ a.PrincipalApproval|default:"N/A" }}</td>
+                        <td data-column="created-by">{{ a.CreatedBy|default:"N/A" }}</td>
+                        <td data-column="created-by-name">{{ a.CreatedBy_Name|default:"N/A" }}</td>
+                        <td data-column="status">
+                            <span
+                                class="status-badge {% if a.Status == 'Active' %}status-active{% else %}status-deactive{% endif %}">
+                                {{ a.Status|default:"N/A" }}
+                            </span>
+                        </td>
+                        <td data-column="school-code">{{ a.SchoolCode|default:"N/A" }}</td>
+                        <td data-column="school-name">{{ a.SchoolName|default:"N/A" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="47" style="text-align:center; padding:20px; color: var(--text-light);">
+                            <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            No applications found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <div class="pagination-controls">
+                {% if page|add:'-1' > 0 %}
+                <button class="pagination-btn" data-page="1">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pagination-btn" data-page="{{ page|add:'-1' }}">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                {% endif %}
+
+                <button class="pagination-btn active" data-page="{{ page }}">{{ page }}</button>
+
+                {% if has_next %}
+                <button class="pagination-btn" data-page="{{ page|add:'1' }}">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Global List Logic -->
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<!-- Filter Modal Utility -->
+<script src="{% static 'js/filter-modal.js' %}"></script>
+<script>
+    const baseUrl = window.location.origin;
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // Initialize class and section dropdowns
+        const initializeClassSectionDropdowns = () => {
+            const classSelect = document.getElementById('filter-class');
+            const sectionSelect = document.getElementById('filter-section');
+            const schoolSelect = document.getElementById('filter-school');
+
+            if (!classSelect || !sectionSelect) {
+                return;
+            }
+
+            // Fetch classes on page load
+            const fetchClasses = async (schoolId) => {
+                try {
+                    let url = `${baseUrl}/api/classes/`;
+                    if (schoolId) {
+                        url += `?school_id=${schoolId}`;
+                    }
+                    console.log('Fetching classes from:', url);
+                    classSelect.classList.add('loading');
+                    classSelect.innerHTML = '<option value="">Loading classes...</option>';
+
+                    const response = await fetch(url, { credentials: 'same-origin' });
+                    console.log('Response status:', response.status);
+
+                    if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+
+                    // Check if we got HTML instead of JSON (auth redirect)
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('text/html')) {
+                        throw new Error('Got HTML response - possible auth redirect. Try refreshing the page.');
+                    }
+
+                    const responseData = await response.json();
+                    const classes = responseData.classes || [];
+                    console.log('Classes received:', classes);
+
+                    classSelect.classList.remove('loading');
+                    classSelect.innerHTML = '<option value="">All Classes</option>';
+
+                    if (classes && classes.length > 0) {
+                        classes.forEach(cls => {
+                            const option = document.createElement('option');
+                            option.value = cls.ClassID;
+                            option.textContent = cls.ClassName;
+                            classSelect.appendChild(option);
+                        });
+                        console.log(`Successfully loaded ${classes.length} classes`);
+                    } else {
+                        console.warn('No classes received from API');
+                        classSelect.innerHTML = '<option value="">No classes available</option>';
+                    }
+
+                    // Set selected value if exists
+                    const currentClassId = '{{ class_id }}';
+                    if (currentClassId) {
+                        classSelect.value = currentClassId;
+                    }
+
+                    // Reset section dropdown
+                    sectionSelect.innerHTML = '<option value="">All Sections</option>';
+                } catch (error) {
+                    console.error('Error fetching classes:', error);
+                    classSelect.classList.remove('loading');
+                    classSelect.innerHTML = '<option value="">Error loading classes</option>';
+                } finally {
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+                }
+            };
+
+            // Fetch sections when class is selected
+            classSelect.addEventListener('change', async function () {
+                sectionSelect.innerHTML = '<option value="">All Sections</option>';
+                sectionSelect.disabled = true;
+
+                const classId = this.value;
+                if (!classId) {
+                    sectionSelect.disabled = false;
+                    return;
+                }
+
+                try {
+                    console.log('Fetching sections for class:', classId);
+                    sectionSelect.classList.add('loading');
+                    const response = await fetch(`${baseUrl}/api/sections/?class_id=${classId}`, { credentials: 'same-origin' });
+                    console.log('Sections response status:', response.status);
+
+                    if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+
+                    const responseData = await response.json();
+                    console.log('Sections received:', responseData);
+                    sectionSelect.classList.remove('loading');
+                    sectionSelect.innerHTML = '<option value="">All Sections</option>';
+
+                    // Handle the API response format
+                    const sections = responseData.sections || [];
+                    sections.forEach(section => {
+                        const option = document.createElement('option');
+                        option.value = section.SectionID;
+                        option.textContent = section.SectionName;
+                        sectionSelect.appendChild(option);
+                    });
+
+                    // Set selected value if exists
+                    const currentSectionId = '{{ section_id }}';
+                    if (currentSectionId) {
+                        sectionSelect.value = currentSectionId;
+                    }
+
+                    sectionSelect.disabled = false;
+                } catch (error) {
+                    console.error('Error fetching sections:', error);
+                    sectionSelect.innerHTML = '<option value="">Failed to load sections</option>';
+                    sectionSelect.disabled = false;
+                } finally {
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+                }
+            });
+
+            // When school dropdown changes, reload classes for the selected school
+            if (schoolSelect) {
+                schoolSelect.addEventListener('change', function () {
+                    const selectedSchoolId = this.value;
+                    fetchClasses(selectedSchoolId);
+                });
+            }
+
+            // Initial load of classes - pass current school if available
+            const initialSchoolId = schoolSelect ? schoolSelect.value : '';
+            fetchClasses(initialSchoolId);
+        };
+
+        // Initialize class and section dropdowns
+        initializeClassSectionDropdowns();
+
+        // Initialize custom dropdowns for the filter panel
+        if (typeof initCustomDropdowns === 'function') {
+            initCustomDropdowns();
+        } else if (window.initCustomDropdowns) {
+            window.initCustomDropdowns();
+        }
+
+        if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt</title>
+    <style>
+        @page { size: A4; margin: 15mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .receipt-container { 
+            max-width: 750px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border: 2px solid #667eea;
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        .header img { max-height: 50px; margin-bottom: 8px; background: white; padding: 5px; border-radius: 5px; }
+        .header h2 { font-size: 20px; margin: 5px 0; }
+        .header h3 { font-size: 12px; font-weight: normal; letter-spacing: 1px; opacity: 0.9; }
+        .success-badge { 
+            background: #27ae60; 
+            color: white; 
+            padding: 5px 15px; 
+            border-radius: 15px; 
+            display: inline-block; 
+            margin-top: 8px; 
+            font-size: 11px; 
+        }
+        .receipt-body { padding: 20px; }
+        .receipt-number { 
+            text-align: center; 
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+            color: white; 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin-bottom: 15px;
+        }
+        .receipt-number h3 { font-size: 14px; }
+        .info-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+        }
+        .info-item { 
+            padding: 10px; 
+            background: #f0f4ff; 
+            border-radius: 6px; 
+            border-left: 3px solid #667eea; 
+        }
+        .info-item label { 
+            display: block; 
+            font-size: 9px; 
+            color: #667eea; 
+            text-transform: uppercase; 
+            font-weight: bold; 
+            margin-bottom: 3px; 
+        }
+        .info-item span { font-size: 12px; color: #333; font-weight: 600; }
+        .fee-section { 
+            background: #f7fafc; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 15px 0; 
+        }
+        .fee-section h4 { 
+            color: #667eea; 
+            margin-bottom: 10px; 
+            font-size: 13px; 
+            text-align: center; 
+        }
+        .fee-table { width: 100%; border-collapse: collapse; }
+        .fee-table th { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 8px; 
+            text-align: left; 
+            font-size: 10px; 
+        }
+        .fee-table th:first-child { border-radius: 6px 0 0 0; }
+        .fee-table th:last-child { border-radius: 0 6px 0 0; }
+        .fee-table td { 
+            padding: 8px; 
+            border-bottom: 1px solid #e2e8f0; 
+            font-size: 10px; 
+        }
+        .fee-table tr:last-child td { border-bottom: none; }
+        .total-row { 
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important; 
+            color: white !important; 
+            font-weight: bold; 
+            font-size: 12px; 
+        }
+        .total-row td { border-bottom: none !important; }
+        .footer { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 12px; 
+            text-align: center; 
+        }
+        .footer p { font-size: 9px; margin: 3px 0; opacity: 0.95; }
+        .footer strong { font-size: 11px; }
+        .no-print { display: none; }
+        @media screen {
+            .no-print { display: block; text-align: left; margin-bottom: 10px; }
+            .btn-print { 
+                background: white; 
+                color: #667eea; 
+                padding: 8px 16px; 
+                border: none; 
+                border-radius: 20px; 
+                cursor: pointer; 
+                margin: 3px; 
+                font-weight: bold; 
+                font-size: 12px; 
+            }
+            .btn-close { background: #e74c3c; color: white; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-print btn-close" onclick="window.close()">✕ Close</button>
+    </div>
+    
+    <div class="receipt-container">
+        <div class="header">
+            {% if payment_receipt.school_logo %}
+            <img src="{{ payment_receipt.school_logo }}" alt="Logo">
+            {% endif %}
+            <h2>{{ payment_receipt.school_name|default:"ShikshaWave" }}</h2>
+            <h3>PAYMENT RECEIPT</h3>
+            <div class="success-badge">✓ Payment Successful</div>
+        </div>
+        
+        <div class="receipt-body">
+            <div class="receipt-number">
+                <h3>📄 Receipt No: {{ payment_receipt.receipt_number }}</h3>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Student Name</label>
+                    <span>{{ payment_receipt.student_name }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Student Code</label>
+                    <span>{{ payment_receipt.student_code }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Payment Date</label>
+                    <span>{{ payment_receipt.payment_date }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Payment Mode</label>
+                    <span>{{ payment_receipt.payment_mode }}</span>
+                </div>
+                {% if payment_receipt.transaction_ref %}
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <label>Transaction Reference</label>
+                    <span>{{ payment_receipt.transaction_ref }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if payment_receipt.fee_breakdown %}
+            <div class="fee-section">
+                <h4>📋 Fee Breakdown</h4>
+                <table class="fee-table">
+                    <thead>
+                        <tr>
+                            <th>Fee Description</th>
+                            <th style="text-align: right;">Amount (₹)</th>
+                            <th style="text-align: right;">Discount</th>
+                            <th style="text-align: right;">Final (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in payment_receipt.fee_breakdown %}
+                        <tr>
+                            <td>{{ fee.fee_name }}</td>
+                            <td style="text-align: right;">₹{{ fee.default_amount|floatformat:0 }}</td>
+                            <td style="text-align: right;">{{ fee.discount_percentage|floatformat:0 }}%</td>
+                            <td style="text-align: right; font-weight: 600;">₹{{ fee.amount|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="3">💰 TOTAL AMOUNT PAID</td>
+                            <td style="text-align: right;">₹{{ payment_receipt.total_amount|floatformat:0 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p><strong>❤️ Thank you for your payment!</strong></p>
+            <p>This is a computer-generated receipt. No signature required.</p>
+            <p>📞 For queries, contact the school office.</p>
+        </div>
+    </div>
+</body>
+</html>

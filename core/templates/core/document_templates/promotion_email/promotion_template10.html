@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: #fffde7;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border: 4px solid #ffcc00;
+            border-radius: 20px;
+            padding: 40px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .confetti-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: repeating-linear-gradient(90deg, #ff0000 0 10%, #00ff00 10% 20%, #0000ff 20% 30%, #ffcc00 30% 40%);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #f44336;
+            font-size: 32px;
+            transform: rotate(-2deg);
+        }
+
+        .content {
+            text-align: center;
+        }
+
+        .bubble {
+            display: inline-block;
+            background: #e3f2fd;
+            border: 3px solid #64b5f6;
+            padding: 15px 30px;
+            border-radius: 50px;
+            margin: 10px;
+            color: #1565c0;
+            font-weight: bold;
+        }
+
+        .big-jump {
+            font-size: 24px;
+            color: #ff9800;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .details {
+            background: #fdf5e6;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px dashed #ffab91;
+            margin-top: 20px;
+        }
+
+        .row {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #795548;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="confetti-overlay"></div>
+        <div class="header">
+            <h1>Yay! You Did It! 🎊</h1>
+        </div>
+        <div class="content">
+            <img src="https://cdn-icons-png.flaticon.com/512/3112/3112946.png" width="80">
+            <p>Big high five to <strong>{{ student_name }}</strong>!</p>
+            <div class="big-jump">One Huge Jump From {{ prev_class }}...</div>
+            <div class="bubble">Straight into {{ new_class }}! 🌟</div>
+
+            <div class="details">
+                <p>Secret Student Details:</p>
+                <div class="row">
+                    <span>New Section:</span> <strong style="color: #4caf50;">{{ new_section }}</strong>
+                </div>
+                <div class="row">
+                    <span>New Roll No:</span> <strong style="color: #2196f3;">{{ roll_no }}</strong>
+                </div>
+                <div class="row">
+                    <span>Learning Year:</span> <strong style="color: #9c27b0;">{{ academic_year }}</strong>
+                </div>
+            </div>
+
+            <p>Get ready for new friends, new books, and new adventures!</p>
+        </div>
+        <div class="footer">
+            <p>With Love,<br>{{ school_name }}</p>
+            <p style="font-size: 12px;">Date: {{ current_date }}</p>
+        </div>
+    </div>
+</body>
+
+</html>

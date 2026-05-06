@@ -1,0 +1,30 @@
+<div class="table-container shadow-accent">
+    <div class="section-header">
+        <div class="section-title-wrapper">
+            <div class="section-icon"><i class="fas fa-info-circle"></i></div>
+            Additional Information
+        </div>
+    </div>
+    <div class="view-mode">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td>Created By</td>
+                    <td>{{ staff.CreatedBy|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Created At</td>
+                    <td>{% if staff.CreatedAt %}{{ staff.CreatedAt|date:"d M, Y H:i" }}{% else %}N/A{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td>
+                        <span class="status-badge {% if staff.Status == 'Active' %}status-active{% else %}status-inactive{% endif %}">
+                            {{ staff.Status|default:"N/A" }}
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

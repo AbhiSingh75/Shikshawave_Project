@@ -1,0 +1,488 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Subject Master | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+    <style>
+        :root {
+            --sw-primary: var(--primary-color);
+            --sw-primary-hover: var(--primary-hover);
+            --sw-primary-light: var(--primary-light);
+            --sw-border: var(--border-color);
+            --sw-bg: var(--card-bg, #ffffff);
+            --sw-text: var(--text-main, #1f2937);
+            --sw-text-muted: var(--text-muted);
+            --sw-height: 40px;
+            --sw-radius: 10px;
+        }
+
+        .dashboard-container {
+            padding: 5px 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* Control Row Container */
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--sw-bg);
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--sw-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            gap: 20px;
+        }
+
+        body.dark-mode .controls-row {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-color: var(--border-color);
+        }
+
+        .sw-table tr:hover { background: var(--sw-primary-light); }
+        .dark-mode .sw-table tr:hover { background: rgba(255, 255, 255, 0.02) !important; }
+
+
+        .controls-left h3 { 
+            margin: 0; 
+            font-size: 1.2rem; 
+            font-weight: 700; 
+            color: var(--sw-text); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .controls-right { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        /* Standardized Form Controls */
+        .sw-form-control {
+            height: var(--sw-height) !important;
+            min-height: var(--sw-height) !important;
+            max-height: var(--sw-height) !important;
+            padding: 0 16px; 
+            border: 1.5px solid var(--sw-border);
+            background: var(--sw-bg); 
+            color: var(--sw-text);
+            border-radius: var(--sw-radius); 
+            font-size: 0.85rem; 
+            font-weight: 600;
+            transition: all 0.2s ease; 
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .sw-form-control:focus {
+            border-color: var(--sw-primary);
+            box-shadow: 0 0 0 3px var(--sw-primary-light);
+        }
+
+        select.sw-form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+            padding-right: 35px;
+            cursor: pointer;
+        }
+
+        .btn-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-standard {
+            height: var(--sw-height); 
+            padding: 0 20px; 
+            border-radius: var(--sw-radius); 
+            font-size: 0.85rem; 
+            font-weight: 700;
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            cursor: pointer; 
+            border: none;
+            background: var(--sw-primary);
+            color: white !important; 
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .btn-standard:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-cancel {
+            height: var(--sw-height); 
+            padding: 0 20px; 
+            border-radius: var(--sw-radius); 
+            font-size: 0.85rem; 
+            font-weight: 700;
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            cursor: pointer; 
+            border: 1px solid var(--sw-border); 
+            background: var(--bg-hover, #f1f5f9); 
+            color: var(--sw-text);
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        /* Table Styling */
+        .sw-table-container {
+            background: var(--sw-bg);
+            border-radius: 16px;
+            border: 1px solid var(--sw-border);
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .sw-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .sw-table thead th { 
+            background: var(--sw-primary);
+            color: #ffffff;
+            text-align: left;
+            padding: 14px 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sw-table tbody td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--sw-border);
+            color: var(--sw-text);
+            font-size: 0.85rem;
+        }
+
+        .action-btn { 
+            width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; 
+            border-radius: 8px; border: 1px solid var(--sw-border); cursor: pointer; transition: all 0.2s;
+        }
+        .edit-btn { color: var(--action-edit, #f59e0b); background: var(--bg-hover, rgba(245, 158, 11, 0.08)); border-color: var(--border-color, rgba(245, 158, 11, 0.2)); }
+        .delete-btn { color: var(--action-delete, #ef4444); background: var(--bg-hover, rgba(239, 68, 68, 0.08)); border-color: var(--border-color, rgba(239, 68, 68, 0.2)); }
+
+        .mobile-view { display: none; }
+
+        @media (max-width: 1024px) {
+            .controls-row { flex-direction: column; align-items: stretch; padding: 16px; }
+            .controls-right { flex-direction: column; align-items: stretch; gap: 12px; }
+            .sw-form-control { width: 100% !important; max-width: none !important; }
+            .btn-group { width: 100%; }
+            .btn-group button { flex: 1; justify-content: center; }
+            .sw-table-container { display: none; }
+            .mobile-view { display: flex; flex-direction: column; gap: 12px; }
+            .m-card {
+                background: var(--sw-bg); border-radius: 12px; border: 1px solid var(--sw-border);
+                padding: 16px; border-left: 5px solid var(--sw-primary);
+            }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Hide global toast for subject master to avoid double messages with the new Pop Design */
+    .toast-subject_master,
+    [class*="toast-subject_master"] {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-book" style="color: var(--sw-primary);"></i> 
+                Subject Master
+                <span class="count-badge">{{ subjects|length|default:"0" }}</span>
+            </h3>
+        </div>
+        <div class="controls-right">
+            {% if is_super_admin %}
+            <select id="school_selector" onchange="loadSubjectsForSchool()" class="sw-form-control" style="width: 220px;">
+                <option value="">-- Select School --</option>
+                {% for s in schools %}
+                <option value="{{ s.EncSchoolID }}" {% if s.SchoolID|slugify == selected_school_id_raw %}selected{% endif %}>{{ s.DisplayName }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            
+            <select id="class_filter" onchange="filterByClass()" class="sw-form-control" style="width: 150px;">
+                <option value="">-- Class --</option>
+                {% for cl in classes %}
+                {% with cl_id=cl.ID|default:cl.ClassID|slugify %}
+                <option value="{{ cl.EncClassID }}" {% if cl_id == selected_class_id %}selected{% endif %}>{{ cl.ClassName }}</option>
+                {% endwith %}
+                {% endfor %}
+            </select>
+
+            <div class="btn-group">
+                <button type="button" class="btn-cancel" onclick="resetFilters()">
+                    <i class="fas fa-redo-alt"></i> Reset
+                </button>
+                <button type="button" class="btn-standard" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add Subject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="subjectsData">
+        {% if subjects %}
+            <div class="sw-table-container">
+                <table class="sw-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px; text-align: center;">#</th>
+                            <th>Subject Name</th>
+                            <th>Code</th>
+                            <th>Class</th>
+                            <th>Description</th>
+                            <th style="width: 100px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subj in subjects %}
+                        <tr>
+                            <td style="text-align: center; color: var(--sw-text-muted);">{{ forloop.counter }}</td>
+                            <td><div style="font-weight: 700;">{{ subj.SubjectName }}</div></td>
+                            <td><span class="count-badge" style="background: var(--bg-hover, #f1f5f9); color: var(--sw-primary);">{{ subj.SubjectCode|default:"-" }}</span></td>
+                            <td>{{ subj.ClassName|default:"All" }}</td>
+                            <td style="color: var(--sw-text-muted); font-size: 0.8rem;">{{ subj.Description|default:"-"|truncatechars:50 }}</td>
+                            <td style="text-align: right;">
+                                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                    <button class="action-btn edit-btn" 
+                                            data-id="{{ subj.EncSubjectID }}" 
+                                            data-name="{{ subj.SubjectName|escapejs }}"
+                                            data-code="{{ subj.SubjectCode|default:''|escapejs }}"
+                                            data-cid="{{ subj.EncClassID|default:'' }}"
+                                            data-desc="{{ subj.Description|default:''|escapejs }}"
+                                            onclick="openEditFromBtn(this)">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" 
+                                            data-id="{{ subj.EncSubjectID }}" 
+                                            data-name="{{ subj.SubjectName|escapejs }}"
+                                            onclick="confirmDeleteFromBtn(this)">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mobile-view">
+                {% for subj in subjects %}
+                <div class="m-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="font-weight: 700; color: var(--sw-text);">{{ subj.SubjectName }}</div>
+                            <div style="font-size: 0.8rem; color: var(--sw-text-muted); margin-top: 4px;">{{ subj.ClassName|default:"All Classes" }}</div>
+                        </div>
+                        <span class="count-badge" style="background: var(--bg-hover, #f1f5f9); color: var(--sw-primary);">{{ subj.SubjectCode|default:"-" }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+                        <button class="action-btn edit-btn" 
+                                data-id="{{ subj.EncSubjectID }}" 
+                                data-name="{{ subj.SubjectName|escapejs }}"
+                                data-code="{{ subj.SubjectCode|default:''|escapejs }}"
+                                data-cid="{{ subj.EncClassID|default:'' }}"
+                                data-desc="{{ subj.Description|default:''|escapejs }}"
+                                onclick="openEditFromBtn(this)">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                        <button class="action-btn delete-btn" 
+                                data-id="{{ subj.EncSubjectID }}" 
+                                data-name="{{ subj.SubjectName|escapejs }}"
+                                onclick="confirmDeleteFromBtn(this)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 50px; background: var(--sw-bg); border-radius: 16px; border: 1px solid var(--sw-border);">
+                <i class="fas fa-book-open" style="font-size: 2rem; color: var(--sw-border); margin-bottom: 15px;"></i>
+                <p style="color: var(--sw-text-muted);">No subjects found for current selection.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="subjectModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <h4 id="mTitle" style="margin: 0;">Add Subject</h4>
+            <span style="font-size: 1.5rem; cursor: pointer;" onclick="document.getElementById('subjectModal').classList.remove('show')">&times;</span>
+        </div>
+        <form id="sForm" method="POST" action="{% url 'subject_save' %}">
+            {% csrf_token %}
+            <input type="hidden" name="subject_id" id="sid">
+            <input type="hidden" name="filter_class_id" value="{{ selected_class_id }}">
+            {% if is_super_admin %}<input type="hidden" name="school_id" id="msid">{% endif %}
+            
+            <div style="padding: 24px;">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px;">Subject Name</label>
+                    <input type="text" name="subject_name" id="sname" class="sw-form-control" style="width: 100%;" required>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px;">Code</label>
+                    <input type="text" name="subject_code" id="scode" class="sw-form-control" style="width: 100%;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px;">Class</label>
+                    <select name="class_id" id="scid" class="sw-form-control" style="width: 100%;">
+                        <option value="">All Classes</option>
+                        {% for cl in classes %}<option value="{{ cl.EncClassID }}">{{ cl.ClassName }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px;">Description</label>
+                    <textarea name="description" id="sdesc" class="sw-form-control" rows="2" style="width: 100%; height: auto !important; max-height: none !important;"></textarea>
+                </div>
+            </div>
+            
+            <div style="padding: 16px 24px; background: var(--bg-hover, #f8fafc); border-top: 1px solid var(--sw-border); display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" class="btn-cancel" onclick="document.getElementById('subjectModal').classList.remove('show')">Cancel</button>
+                <button type="submit" class="btn-standard">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function resetFilters() { window.location.href = window.location.pathname; }
+
+function filterByClass() {
+    const c = document.getElementById('class_filter').value;
+    const s = document.getElementById('school_selector')?.value || '';
+    window.location.href = `?class_id=${c}${s ? '&school_id=' + s : ''}`;
+}
+
+function openAddModal() {
+    {% if is_super_admin %}
+    const sEl = document.getElementById('school_selector');
+    const s = sEl ? sEl.value : '';
+    if(!s) { Swal.fire('Error', 'Please select a school first', 'error'); return; }
+    document.getElementById('msid').value = s;
+    {% endif %}
+    document.getElementById('mTitle').innerText = 'Add Subject';
+    document.getElementById('sid').value = '';
+    document.getElementById('sname').value = '';
+    document.getElementById('scode').value = '';
+    document.getElementById('scid').value = '';
+    document.getElementById('sdesc').value = '';
+    document.getElementById('subjectModal').classList.add('show');
+}
+
+function openEditFromBtn(btn) {
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    const code = btn.getAttribute('data-code');
+    const cid = btn.getAttribute('data-cid');
+    const desc = btn.getAttribute('data-desc');
+    
+    {% if is_super_admin %}
+    const sEl = document.getElementById('school_selector');
+    if(sEl) document.getElementById('msid').value = sEl.value;
+    {% endif %}
+    
+    document.getElementById('mTitle').innerText = 'Edit Subject';
+    document.getElementById('sid').value = id;
+    document.getElementById('sname').value = name;
+    document.getElementById('scode').value = code;
+    document.getElementById('scid').value = cid;
+    document.getElementById('sdesc').value = desc;
+    document.getElementById('subjectModal').classList.add('show');
+}
+
+function confirmDeleteFromBtn(btn) {
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    
+    Swal.fire({ 
+        title: 'Delete Subject?', 
+        text: name, 
+        icon: 'warning', 
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444' 
+    }).then(r => {
+        if(r.isConfirmed) {
+            const b = {};
+            {% if is_super_admin %}
+            const sEl = document.getElementById('school_selector');
+            if(sEl) b.school_id = sEl.value;
+            {% endif %}
+            fetch(`/master-data/subject/delete/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+                body: JSON.stringify(b)
+            }).then(res => res.json()).then(d => { if(d.success) location.reload(); });
+        }
+    });
+}
+
+    {% if is_super_admin %}
+    function loadSubjectsForSchool() {
+        const s = document.getElementById('school_selector').value;
+        if(!s) return;
+        fetch('/master-data/subject/load/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'school_id=' + encodeURIComponent(s)
+        }).then(r => r.json()).then(d => {
+            if(d.status === 'SUCCESS') {
+                let h = '<option value="">-- Class --</option>';
+                d.classes.forEach(c => h += `<option value="${c.EncClassID}">${c.ClassName}</option>`);
+                document.getElementById('class_filter').innerHTML = h;
+            }
+        });
+    }
+    {% endif %}
+
+    // ── GLOBAL MESSAGE POPUP HANDLER ──
+    // Automatically converts standard Django messages into ShikshaWave premium popups
+    document.addEventListener('DOMContentLoaded', function() {
+        const messagesEl = document.getElementById('django-messages');
+        if (messagesEl && window.ShikshaWave) {
+            try {
+                const messages = JSON.parse(messagesEl.textContent);
+                messages.forEach(m => {
+                    const type = m.tags.includes('error') ? 'error' : 
+                               (m.tags.includes('warning') ? 'warning' : 'success');
+                    
+                    const title = type.charAt(0).toUpperCase() + type.slice(1);
+                    
+                    if (type === 'success') {
+                        ShikshaWave.Dialog.success(title, m.content);
+                    } else {
+                        ShikshaWave.Dialog.error(title, m.content);
+                    }
+                });
+            } catch (e) {
+                console.error('Error in message popup logic:', e);
+            }
+        }
+    });
+
+</script>
+{% endblock %}

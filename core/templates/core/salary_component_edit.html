@@ -1,0 +1,277 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Edit Salary Component | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --error-color: #ef4444;
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #6b7280;
+        --light-gray: #f3f4f6;
+        --border-color: #e5e7eb;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --text-light: #d1d5db;
+        --light-gray: #374151;
+        --border-color: #4b5563;
+        --input-bg: #2d3748;
+    }
+
+    .form-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .page-header {
+        background: var(--card-bg);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 8px;
+    }
+
+    .form-card {
+        background: var(--card-bg);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .current-info {
+        background: var(--light-gray);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .current-info h4 {
+        margin: 0 0 10px 0;
+        color: var(--text-color);
+        font-size: 14px;
+    }
+
+    .current-info p {
+        margin: 4px 0;
+        color: var(--text-light);
+        font-size: 12px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-group label.required::after {
+        content: " *";
+        color: var(--error-color);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 14px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: var(--light-gray);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-color);
+    }
+
+    .form-help {
+        font-size: 12px;
+        color: var(--text-light);
+        margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0 15px;
+        }
+
+        .page-header {
+            padding-bottom: 20px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="page-header">
+        <h1>Edit Salary Component</h1>
+        <p>Update salary component information</p>
+    </div>
+
+    <div class="form-card">
+        <div class="current-info">
+            <h4>Current Component Information</h4>
+            <p><strong>Name:</strong> {{ component.ComponentName }}</p>
+            <p><strong>Type:</strong> {{ component.ComponentType }}</p>
+            <p><strong>Status:</strong> {% if not component.IsDeleted %}Active{% else %}Inactive{% endif %}</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="component_name" class="required">Component Name</label>
+                <input type="text" 
+                       id="component_name" 
+                       name="component_name" 
+                       class="form-control" 
+                       placeholder="e.g., Basic Salary, HRA, PF"
+                       value="{{ component.ComponentName }}"
+                       required
+                       maxlength="100">
+                <div class="form-help">Descriptive name for salary component</div>
+            </div>
+
+            <div class="form-group">
+                <label for="component_type" class="required">Component Type</label>
+                <select id="component_type" name="component_type" class="form-control" required>
+                    <option value="">Select Type</option>
+                    <option value="Earning" {% if component.ComponentType == 'Earning' %}selected{% endif %}>Earning</option>
+                    <option value="Deduction" {% if component.ComponentType == 'Deduction' %}selected{% endif %}>Deduction</option>
+                </select>
+                <div class="form-help">Choose whether this is an earning or deduction</div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'salary_component_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Update Component
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const componentNameInput = document.getElementById('component_name');
+    const componentTypeSelect = document.getElementById('component_type');
+
+    // Real-time validation
+    if (componentNameInput) {
+        componentNameInput.addEventListener('input', function() {
+            if (this.value.trim().length === 0) {
+                this.setCustomValidity('Component name is required');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+
+    // Form submission
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const componentName = componentNameInput ? componentNameInput.value.trim() : '';
+            const componentType = componentTypeSelect ? componentTypeSelect.value : '';
+
+            if (!componentName) {
+                e.preventDefault();
+                alert('Please enter a component name');
+                if (componentNameInput) componentNameInput.focus();
+                return;
+            }
+
+            if (!componentType) {
+                e.preventDefault();
+                alert('Please select a component type');
+                if (componentTypeSelect) componentTypeSelect.focus();
+                return;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+<!-- Attendance Details Modal -->
+{% if user.profile_id == 2 %}
+<div id="attendanceModal" class="stats-modal">
+    <div class="stats-modal-container sw-elite-modal-container">
+        <!-- Modal Header -->
+        <div class="stats-modal-header">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="header-text">
+                    <h2>Attendance Analysis</h2>
+                    <p>Track and analyze student attendance</p>
+                </div>
+            </div>
+            <button onclick="closeAttendanceModal()" class="modal-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="stats-modal-content">
+            <!-- Filters Card -->
+            <div class="stats-card">
+                <div class="sw-elite-filter-row">
+                    <div class="sw-elite-filter-group">
+                        <label>From Date</label>
+                        <input type="date" id="attendanceFromDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>To Date</label>
+                        <input type="date" id="attendanceToDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Class</label>
+                        <select id="attendanceClass" class="filter-input">
+                            <option value="">All Classes</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Section</label>
+                        <select id="attendanceSection" class="filter-input">
+                            <option value="">All Sections</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-action-group">
+                        <button onclick="applyAttendanceFilters()" class="btn-apply" style="flex: 1; height: 100%;">
+                            <i class="fas fa-search"></i> Apply
+                        </button>
+                        <button onclick="resetAttendanceFilters()" class="btn-reset" style="flex: 1; height: 100%;">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Pulse (Actionable Insights) -->
+            <div class="sw-elite-pulse-row">
+                <div class="sw-pulse-spotlight pulse-attendance-compliance">
+                    <span class="pulse-label">75% Board Compliance</span>
+                    <div class="pulse-value" id="pulseAttendanceCompliance">0%</div>
+                    <div class="pulse-trend trend-up">
+                        <i class="fas fa-check-double"></i> Board Eligible
+                    </div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-admission-velocity">
+                    <span class="pulse-label">Attendance Stability</span>
+                    <div class="pulse-value" id="pulseAttendanceStability">0%</div>
+                    <div class="pulse-trend trend-neutral">vs Last 7 Days</div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-risk-alert">
+                    <span class="pulse-label">Critical Alerts</span>
+                    <div class="pulse-value" id="pulseAttendanceRisk">0</div>
+                    <div class="pulse-trend trend-down">At-Risk Students</div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="stats-card">
+                <div class="sw-elite-stats-grid">
+                    <div class="sw-elite-stat-card compact stat-primary">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Average Attendance</p>
+                                <h2 class="stat-value" id="attendanceAvg">0%</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-percent stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-male">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Present (Today)</p>
+                                <h2 class="stat-value" id="attendancePresent">0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-check-circle stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-female">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Absent (Today)</p>
+                                <h2 class="stat-value" id="attendanceAbsent">0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-times-circle stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Trend Card -->
+            <div class="stats-card">
+                <h3>Attendance Trend <span id="attendanceTrendPeriod"></span></h3>
+                <canvas id="attendanceTrendChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #ffffff; color: #111827; margin: 0; padding: 40px 20px; }
+        .wrapper { max-width: 540px; margin: 0 auto; border: 1.5px solid #f3f4f6; border-radius: 24px; padding: 45px; }
+        .logo { margin-bottom: 35px; text-align: left; }
+        .logo img { height: 40px; }
+        .school-badge { display: inline-block; background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 25px; }
+        h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 20px; color: #111827; }
+        p { color: #4b5563; font-size: 16px; line-height: 1.6; }
+        .otp-box { background: #f9fafb; border-radius: 16px; padding: 30px; text-align: center; margin: 30px 0; border: 1px solid #f3f4f6; }
+        .otp-code { font-family: "SF Mono", "Segoe UI Mono", monospace; font-size: 42px; font-weight: 700; color: #000000; letter-spacing: 5px; }
+        .security-footer { border-top: 1px solid #f3f4f6; margin-top: 40px; padding-top: 25px; display: flex; flex-wrap: wrap; gap: 20px; }
+        .meta-group { flex: 1; min-width: 140px; }
+        .meta-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .meta-val { font-size: 13px; font-weight: 600; color: #374151; }
+        .alert-pill { background: #fee2e2; color: #dc2626; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="logo">
+            {% if school_logo %}<img src="{{ school_logo }}" alt="Logo">{% endif %}
+        </div>
+        <span class="school-badge">{{ school_name }}</span>
+        
+        {% if code == 'LOGIN_OTP' or code == 'PASSWORD_RESET_OTP' %}
+            <h2>Security Verification</h2>
+            <p>Hi {{ user_name }}, use the code below to complete your action. This code expires in {{ valid_minutes }} minutes.</p>
+            <div class="otp-box"><div class="otp-code">{{ otp }}</div></div>
+        {% elif code == 'ACCOUNT_BLOCKED' %}
+            <div class="alert-pill">Account Suspended</div>
+            <h2>Security Lockdown</h2>
+            <p>Hi {{ user_name }}, your account has been blocked for 24 hours. Multiple incorrect sign-in attempts were detected.</p>
+        {% elif code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+            <div class="alert-pill">Password Updated</div>
+            <h2>Password Changed</h2>
+            <p>Hi {{ user_name }}, your credentials were updated recently. Ensure this was performed by you.</p>
+        {% endif %}
+
+        <div class="security-footer">
+            <div class="meta-group"><span class="meta-label">IP ADDRESS</span><span class="meta-val">{{ ip_address }}</span></div>
+            <div class="meta-group"><span class="meta-label">DEVICE</span><span class="meta-val">{{ browser }}</span></div>
+            <div class="meta-group"><span class="meta-label">PROFILE</span><span class="meta-val">{{ profile | default:"Authorized User" }}</span></div>
+        </div>
+        <div style="margin-top: 30px; font-size: 12px; color: #9ca3af;">
+            ShikshaWave Security | This is an automated message.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}My Documents{% endblock %}
+
+{% block content %}
+<div class="main-container" style="padding: 20px; background: var(--secondary-color); min-height: calc(100vh - 80px);">
+    <!-- Page Header -->
+    <div class="page-header" style="background: var(--secondary-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 2px solid var(--primary-color); border-left: 4px solid var(--primary-color);">
+        <div class="header-row" style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+            <h1 class="page-title" style="font-size: 1.2rem; font-weight: 600; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <i class="fas fa-file-alt" style="font-size: 1.2rem; color: var(--primary-color);"></i>
+                {% if user.profile_id in '2,3' %}All Documents{% else %}My Documents{% endif %}
+            </h1>
+        </div>
+    </div>
+    
+    <div style="background: var(--secondary-color); border-radius: 8px; padding: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color); overflow: hidden;">
+        <h2 style="font-size: 18px; font-weight: 600; color: var(--text-color); margin: 0; padding: 12px 15px; background: var(--light-gray); border-bottom: 1px solid var(--border-color);">Certificate List</h2>
+        
+        {% if documents %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                <thead>
+                    <tr style="background: #004aad;">
+                        <th style="color: white; padding: 12px; text-align: left; font-weight: 600; font-size: 14px;">Certificate No</th>
+                        <th style="color: white; padding: 12px; text-align: left; font-weight: 600; font-size: 14px;">Certificate Type</th>
+                        {% if user.profile_id in '2,3' %}
+                        <th style="color: white; padding: 12px; text-align: left; font-weight: 600; font-size: 14px;">Student</th>
+                        <th style="color: white; padding: 12px; text-align: left; font-weight: 600; font-size: 14px;">Class</th>
+                        {% endif %}
+                        <th style="color: white; padding: 12px; text-align: left; font-weight: 600; font-size: 14px;">Issue Date</th>
+                        <th style="color: white; padding: 12px; text-align: left; font-weight: 600; font-size: 14px;">Status</th>
+                        <th style="color: white; padding: 12px; text-align: left; font-weight: 600; font-size: 14px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px; color: var(--text-color); font-size: 14px;">{{ doc.CertificateNumber }}</td>
+                        <td style="padding: 12px; color: var(--text-color); font-size: 14px;">{{ doc.CertificateType }}</td>
+                        {% if user.profile_id in '2,3' %}
+                        <td style="padding: 12px; color: var(--text-color); font-size: 14px;">{{ doc.FullName }}</td>
+                        <td style="padding: 12px; color: var(--text-color); font-size: 14px;">{{ doc.ClassName }} {{ doc.SectionName }}</td>
+                        {% endif %}
+                        <td style="padding: 12px; color: var(--text-color); font-size: 14px;">{{ doc.IssueDate|date:"d M Y" }}</td>
+                        <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #c6f6d5; color: #22543d;">{{ doc.Status }}</span></td>
+                        <td style="padding: 12px;">
+                            <a href="{% url 'download_certificate' doc.Certificate_ID %}" style="padding: 6px 12px; background: var(--primary-color); color: white; border-radius: 6px; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: var(--text-light);">
+            <i class="fas fa-file-alt" style="font-size: 48px; margin-bottom: 16px;"></i>
+            <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-color);">No Documents Found</h3>
+            <p>No documents have been generated yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

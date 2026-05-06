@@ -1,0 +1,32 @@
+Testing with: SA=1, SchoolAdmin=2, Support=17
+
+--- Test 1: Super Admin Create Ticket ---
+Status: 200
+Response: {"status": "success", "ticket_id": 8, "ticket_number": "TKT202511000008", "message": "Ticket created successfully"}
+Created Ticket: TKT202511000008
+
+--- Test 2: School Admin Create Ticket ---
+Status: 200
+Response: {"status": "success", "ticket_id": 9, "ticket_number": "TKT202511000009", "message": "Ticket created successfully"}
+
+--- Test 3: School Admin Assign (Should Fail) ---
+Status: 403
+Error response saved to error_response.html
+Preview: {"status": "error", "message": "Access denied"}
+
+--- Test 4: Super Admin Assign ---
+Status: 200
+Response: {"status": "success", "message": "Ticket assigned successfully"}
+
+--- Test 5: Support Exec Status Change (In Progress) ---
+Status: 200
+Response: {"status": "success", "message": "Status updated successfully"}
+
+--- Test 6: Support Exec Close (Should Fail) ---
+Status: 400
+Error response saved to error_response.html
+Preview: {"status": "error", "message": "Invalid status transition or access denied."}
+
+--- Test 7: Super Admin Close ---
+Status: 200
+Response: {"status": "success", "message": "Status updated successfully"}

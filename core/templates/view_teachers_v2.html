@@ -1,0 +1,1093 @@
+﻿{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Staff List | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #004aad;
+        --primary-hover: #4338ca;
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #6b7280;
+        --light-gray: #f3f4f6;
+        --border-color: #e5e7eb;
+        --error-color: #ef4444;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --transition-speed: 0.3s;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --header-height: 80px;
+        --controls-height: 70px;
+    }
+
+    body.dark-mode {
+        --primary-color: #6366f1;
+        --primary-hover: #818cf8;
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --text-light: #d1d5db;
+        --light-gray: #374151;
+        --border-color: #4b5563;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        gap: 10px;
+    }
+
+    /* Controls Row - Exact match from user_list.html */
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        position: sticky;
+        top: var(--header-height);
+        z-index: 99;
+        height: var(--controls-height);
+        margin-top: 10px;
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--secondary-color);
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .controls-left h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-color);
+    }
+
+    .summary-box {
+        background: var(--light-gray);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        display: flex;
+        gap: 8px;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .summary-item:not(:last-child):after {
+        content: "|";
+        margin-left: 8px;
+        color: var(--text-light);
+    }
+
+    .controls-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .search-container {
+        position: relative;
+    }
+
+    .search-container input {
+        padding: 10px 12px 10px 40px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--secondary-color);
+        color: var(--text-color);
+        width: 250px;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .search-container input:focus {
+        display: block;
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+
+    .search-container i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+    }
+
+    .btn {
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border-color);
+        background: white;
+        color: var(--text-color);
+        transition: all 0.2s;
+    }
+
+    .btn:hover {
+        background: var(--light-gray);
+    }
+
+    /* Green Export/Add Button Style */
+    .download-btn {
+        background: var(--success-color);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.3s;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .download-btn:hover {
+        background: #0da271;
+        color: white;
+    }
+
+    /* Export Dropdown Styles */
+    .export-dropdown-container {
+        position: relative;
+    }
+
+    .export-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: none;
+        z-index: 1000;
+        min-width: 150px;
+        padding: 8px;
+    }
+
+    body.dark-mode .export-menu {
+        background: var(--secondary-color);
+    }
+
+    .export-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        color: var(--text-color);
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background 0.2s;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .export-item:hover {
+        background: var(--light-gray);
+    }
+
+    .content-area {
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        border: 2px solid var(--border-color);
+        overflow: hidden;
+        margin-top: 5px;
+    }
+
+    body.dark-mode .content-area {
+        background: var(--secondary-color);
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    th,
+    td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    th {
+        background: var(--primary-color) !important;
+        color: white !important;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    tr:hover {
+        background: var(--light-gray);
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.2s;
+        text-decoration: none;
+        color: var(--text-light);
+    }
+
+    .action-btn:hover {
+        color: var(--primary-color);
+        transform: scale(1.1);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-top: 1px solid var(--border-color);
+        background: var(--light-gray);
+    }
+
+    .pagination-btn {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        background: white;
+        color: var(--text-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Filter Modal */
+    .filter-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .filter-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 85vh;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-mode .filter-content {
+        background: var(--secondary-color);
+    }
+
+    .filter-header {
+        padding: 20px 24px;
+        background: linear-gradient(135deg, #004aad 0%, #7c3aed 100%);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .filter-body {
+        padding: 24px;
+        overflow-y: auto;
+        max-height: calc(85vh - 140px);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-group label {
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        background: var(--secondary-color);
+        color: var(--text-color);
+    }
+
+    .filter-footer {
+        padding: 16px 24px;
+        background: var(--light-gray);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 12px;
+    }
+
+    .filter-footer .btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* Mobile Card View */
+    .user-cards {
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 0;
+    }
+
+    .user-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    body.dark-mode .user-card {
+        background: var(--secondary-color);
+    }
+
+    .user-card-header {
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: rgba(79, 70, 229, 0.05);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .user-card-details {
+        padding: 15px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .user-card-detail {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .user-card-detail .detail-label {
+        color: var(--text-light);
+        font-weight: 500;
+    }
+
+    .user-card-detail .detail-value {
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .user-card-actions {
+        padding: 12px 15px;
+        background: var(--light-gray);
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .controls-row {
+            flex-direction: column;
+            height: auto;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .controls-right,
+        .search-container,
+        .search-container input {
+            width: 100%;
+        }
+
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+
+        .table-container {
+            display: none !important;
+        }
+
+        .user-cards {
+            display: flex !important;
+        }
+
+        .content-area {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Staff List</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-users"></i>
+                    <span>Total: <strong>{{ total_count|default:0 }}</strong></span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" value="{{ search }}" placeholder="Search staff...">
+            </div>
+
+            <button class="btn" id="filter-btn">
+                <i class="fas fa-filter"></i> Filters
+            </button>
+
+            <!-- Export Button -->
+            <div class="export-dropdown-container">
+                <button class="download-btn" onclick="toggleExport()">
+                    <i class="fas fa-file-export"></i> Export
+                </button>
+                <div class="export-menu" id="export-menu">
+                    <div class="export-item" onclick="exportData('excel')">
+                        <i class="fas fa-file-excel" style="color:#10b981;"></i> Excel
+                    </div>
+                    <div class="export-item" onclick="exportData('csv')">
+                        <i class="fas fa-file-csv" style="color:#3b82f6;"></i> CSV
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter"></i> Filter Staff</h3>
+                <button type="button" id="close-filter"
+                    style="background:none; border:none; cursor:pointer; color:white;">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+
+            <div class="filter-body">
+                <form id="filter-form">
+                    {% if is_super_admin %}
+                    <div class="filter-group" style="margin-bottom: 16px;">
+                        <label>School</label>
+                        <select name="school_id" id="filter-school">
+                            <option value="">All Schools</option>
+                            {% for s in schools %}
+                            <option value="{{ s.SchoolID }}" {% if selected_school_id|stringformat:"s" == s.SchoolID|stringformat:"s" %}selected{% endif %}>
+                                {{ s.SchoolName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Employee Name</label>
+                            <input type="text" name="employee_name" value="{{ employee_name }}"
+                                placeholder="Search by Name">
+                        </div>
+                        <div class="filter-group">
+                            <label>Employee Code</label>
+                            <input type="text" name="employee_code" value="{{ employee_code }}"
+                                placeholder="Search by Code">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Mobile No</label>
+                            <input type="text" name="mobile_no" value="{{ mobile_no }}" placeholder="Search by Mobile">
+                        </div>
+                        <div class="filter-group">
+                            <label>Email</label>
+                            <input type="email" name="email" value="{{ email }}" placeholder="Search by Email">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Designation</label>
+                            <input type="text" name="profile_name" value="{{ profile_name }}"
+                                placeholder="e.g. Teacher">
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select name="status">
+                                <option value="">All</option>
+                                <option value="Active" {% if selected_school_id|stringformat:"s" == s.SchoolID|stringformat:"s" %}selected{% endif %}>Active</option>
+                                <option value="Inactive" {% if selected_school_id|stringformat:"s" == s.SchoolID|stringformat:"s" %}selected{% endif %}>Inactive
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Gender</label>
+                            <select name="gender">
+                                <option value="">All</option>
+                                <option value="Male" {% if selected_school_id|stringformat:"s" == s.SchoolID|stringformat:"s" %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if selected_school_id|stringformat:"s" == s.SchoolID|stringformat:"s" %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if selected_school_id|stringformat:"s" == s.SchoolID|stringformat:"s" %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Religion</label>
+                            <input type="text" name="religion" value="{{ religion }}" placeholder="Search by Religion">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>National ID</label>
+                            <input type="text" name="national_id" value="{{ national_id }}" placeholder="Aadhaar/PAN">
+                        </div>
+                        <div class="filter-group">
+                            <!-- Spacer or another field if needed -->
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Country</label>
+                            <select name="country" id="filter-country" data-selected="{{ country }}">
+                                <option value="">Select Country</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>State</label>
+                            <select name="state" id="filter-state" data-selected="{{ state }}">
+                                <option value="">Select State</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>District</label>
+                            <select name="district" id="filter-district" data-selected="{{ district }}">
+                                <option value="">Select District</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Pincode</label>
+                            <input type="text" name="pincode" value="{{ pincode }}" placeholder="Search by Pincode">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Joining From</label>
+                            <input type="date" name="from_date" value="{{ from_date }}">
+                        </div>
+                        <div class="filter-group">
+                            <label>Joining To</label>
+                            <input type="date" name="to_date" value="{{ to_date }}">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="filter-footer">
+                <button type="button" class="btn" id="reset-filters">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-filters"
+                    style="background:#f59e0b; color:#1f2937; border:none;">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <!-- Desktop Table View -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                        <th>Date of Joining</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in teachers %}
+                    <tr>
+                        <td>{{ forloop.counter0|add:start_index }}</td>
+                        <td>{{ t.EmployeeCode }}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                {% if t.PhotoBase64 %}
+                                <img src="data:image/jpeg;base64,{{ t.PhotoBase64 }}" alt="Photo"
+                                    style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                                {% else %}
+                                <div
+                                    style="width:32px; height:32px; border-radius:50%; background:var(--primary-color); color:white; display:flex; align-items:center; justify-content:center; font-size:12px;">
+                                    {{ t.EmployeeName|slice:":1" }}
+                                </div>
+                                {% endif %}
+                                {{ t.EmployeeName }}
+                            </div>
+                        </td>
+                        <td>{{ t.ProfileName }}</td>
+                        <td>{{ t.MobileNo }}</td>
+                        <td>{{ t.Email }}</td>
+                        <td>{{ t.DateOfJoiningFormatted }}</td>
+                        <td>
+                            {% if t.Status == 'Active' %}
+                            <span class="status-badge status-active">Active</span>
+                            {% else %}
+                            <span class="status-badge status-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'staff_detail' t.EmployeeCode|encrypt_id %}" class="action-btn"
+                                title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px;">
+                            <div style="color: var(--text-light);">
+                                <i class="fas fa-users-slash" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <div>No staff members found</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="user-cards">
+            {% for t in teachers %}
+            <div class="user-card">
+                <div class="user-card-header">
+                    {% if t.PhotoBase64 %}
+                    <img src="data:image/jpeg;base64,{{ t.PhotoBase64 }}" alt="Photo"
+                        style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
+                    {% else %}
+                    <div
+                        style="width:50px; height:50px; border-radius:50%; background:var(--primary-color); color:white; display:flex; align-items:center; justify-content:center; font-size:18px;">
+                        {{ t.EmployeeName|slice:":1" }}
+                    </div>
+                    {% endif %}
+                    <div>
+                        <div style="font-weight: 600;">{{ t.EmployeeName }}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-light);">{{ t.EmployeeCode }}</div>
+                    </div>
+                </div>
+
+                <div class="user-card-details">
+                    <div class="user-card-detail">
+                        <span class="detail-label">Designation</span>
+                        <span class="detail-value">{{ t.ProfileName }}</span>
+                    </div>
+                    <div class="user-card-detail">
+                        <span class="detail-label">Mobile</span>
+                        <span class="detail-value">{{ t.MobileNo }}</span>
+                    </div>
+                    <div class="user-card-detail">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">{{ t.Email }}</span>
+                    </div>
+                    <div class="user-card-detail">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value">
+                            {% if t.Status == 'Active' %}
+                            <span class="status-badge status-active">Active</span>
+                            {% else %}
+                            <span class="status-badge status-inactive">Inactive</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="user-card-actions">
+                    <a href="{% url 'staff_detail' t.EmployeeCode|encrypt_id %}" class="action-btn"
+                        style="display:flex; align-items:center; gap:5px;">
+                        <i class="fas fa-eye"></i> View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <span style="font-size:0.9rem; color:var(--text-light);">
+                Showing {{ start_index }} to {{ end_index }} of {{ total_count }} entries
+            </span>
+            <div style="display:flex; gap:5px;">
+                {% if has_prev %}
+                <button class="pagination-btn" data-page="{{ page|add:'-1' }}" onclick="changePage(this.dataset.page)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                {% endif %}
+
+                {% for p in pagination_range %}
+                <button class="pagination-btn {% if p == page %}active-page{% endif %}" data-page="{{ p }}"
+                    onclick="changePage(this.dataset.page)" {% if p == page %}style = "background:var(--primary-color); color:white; border-color:var(--primary-color);" {% endif %}>
+                    {{ p }}
+                </button>
+                {% endfor %}
+
+                {% if has_next %}
+                <button class="pagination-btn" data-page="{{ page|add:'1' }}" onclick="changePage(this.dataset.page)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled><i class="fas fa-chevron-right"></i></button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+// Export functions
+window.toggleExport = function() {
+const menu = document.getElementById('export-menu');
+if (menu) {
+menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+}
+
+// Close export menu when clicking outside
+document.addEventListener('click', function(e) {
+const container = document.querySelector('.export-dropdown-container');
+const menu = document.getElementById('export-menu');
+if (container && !container.contains(e.target) && menu) {
+menu.style.display = 'none';
+}
+});
+
+window.exportData = function(format) {
+const params = new URLSearchParams(window.location.search);
+params.set('format', format);
+window.location.href = "{% url 'export_teachers' %}?" + params.toString();
+const menu = document.getElementById('export-menu');
+if (menu) menu.style.display = 'none';
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+// Search functionality
+const searchInput = document.getElementById('search-input');
+let searchTimeout;
+
+// Helper to change page while preserving filters
+window.changePage = function(page) {
+const params = new URLSearchParams(window.location.search);
+params.set('page', page);
+window.location.search = params.toString();
+};
+
+if (searchInput) {
+searchInput.addEventListener('input', function () {
+clearTimeout(searchTimeout);
+searchTimeout = setTimeout(() => {
+const params = new URLSearchParams(window.location.search);
+params.set('search', this.value);
+params.set('page', 1);
+window.location.search = params.toString();
+}, 500);
+});
+}
+
+// Filter Modal
+const filterModal = document.getElementById('filter-modal');
+const filterBtn = document.getElementById('filter-btn');
+const closeFilter = document.getElementById('close-filter');
+const resetFilters = document.getElementById('reset-filters');
+const applyFilters = document.getElementById('apply-filters');
+const filterForm = document.getElementById('filter-form');
+
+if (filterBtn && filterModal) {
+filterBtn.addEventListener('click', () => {
+filterModal.style.display = 'flex';
+});
+}
+
+if (closeFilter && filterModal) {
+closeFilter.addEventListener('click', () => {
+filterModal.style.display = 'none';
+});
+}
+
+if (filterModal) {
+window.addEventListener('click', (e) => {
+if (e.target === filterModal) filterModal.style.display = 'none';
+});
+}
+
+if (resetFilters) {
+resetFilters.addEventListener('click', () => {
+window.location.href = window.location.pathname;
+});
+}
+
+if (applyFilters && filterForm) {
+applyFilters.addEventListener('click', () => {
+const formData = new FormData(filterForm);
+const params = new URLSearchParams(window.location.search);
+
+for (let [key, value] of formData.entries()) {
+if (value) {
+params.set(key, value);
+} else {
+params.delete(key);
+}
+}
+params.set('page', 1);
+window.location.search = params.toString();
+});
+}
+
+// Location Dropdown Logic
+const countrySelect = document.getElementById('filter-country');
+const stateSelect = document.getElementById('filter-state');
+const districtSelect = document.getElementById('filter-district');
+
+if (countrySelect && stateSelect && districtSelect) {
+
+// Load Countries
+async function loadCountries() {
+try {
+const response = await fetch('/api/geo/countries/');
+const data = await response.json();
+
+// Clear existing (except first)
+while (countrySelect.options.length > 1) {
+countrySelect.remove(1);
+}
+
+const selectedCountry = countrySelect.dataset.selected;
+
+data.forEach(country => {
+const option = document.createElement('option');
+option.value = country.name; // Use Name for value
+option.textContent = country.name;
+option.dataset.id = country.id; // Store ID for API calls
+countrySelect.appendChild(option);
+
+if (selectedCountry && selectedCountry === country.name) {
+option.selected = true;
+}
+});
+
+// Trigger state load if country is selected
+if (countrySelect.value) {
+const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+if (selectedOption.dataset.id) {
+loadStates(selectedOption.dataset.id);
+}
+}
+
+} catch (error) {
+console.error('Error loading countries:', error);
+}
+}
+
+// Load States
+async function loadStates(countryId) {
+try {
+const response = await fetch(`/api/geo/states/?country_id=${countryId}`);
+const data = await response.json();
+
+stateSelect.innerHTML = '<option value="">Select State</option>';
+districtSelect.innerHTML = '<option value="">Select District</option>'; // Clear district too
+
+const selectedState = stateSelect.dataset.selected;
+
+data.forEach(state => {
+const option = document.createElement('option');
+option.value = state.name;
+option.textContent = state.name;
+option.dataset.id = state.id;
+stateSelect.appendChild(option);
+
+if (selectedState && selectedState === state.name) {
+option.selected = true;
+}
+});
+
+// Trigger district load if state is selected
+if (stateSelect.value) {
+const selectedOption = stateSelect.options[stateSelect.selectedIndex];
+if (selectedOption.dataset.id) {
+loadDistricts(selectedOption.dataset.id);
+}
+}
+
+} catch (error) {
+console.error('Error loading states:', error);
+}
+}
+
+// Load Districts
+async function loadDistricts(stateId) {
+try {
+const response = await fetch(`/api/geo/districts/?state_id=${stateId}`);
+const data = await response.json();
+
+districtSelect.innerHTML = '<option value="">Select District</option>';
+
+const selectedDistrict = districtSelect.dataset.selected;
+
+data.forEach(district => {
+const option = document.createElement('option');
+option.value = district.name;
+option.textContent = district.name;
+districtSelect.appendChild(option);
+
+if (selectedDistrict && selectedDistrict === district.name) {
+option.selected = true;
+}
+});
+
+} catch (error) {
+console.error('Error loading districts:', error);
+}
+}
+
+// Event Listeners
+countrySelect.addEventListener('change', function() {
+const selectedOption = this.options[this.selectedIndex];
+const countryId = selectedOption.dataset.id;
+
+if (countryId) {
+loadStates(countryId);
+} else {
+stateSelect.innerHTML = '<option value="">Select State</option>';
+districtSelect.innerHTML = '<option value="">Select District</option>';
+}
+});
+
+stateSelect.addEventListener('change', function() {
+const selectedOption = this.options[this.selectedIndex];
+const stateId = selectedOption.dataset.id;
+
+if (stateId) {
+loadDistricts(stateId);
+} else {
+districtSelect.innerHTML = '<option value="">Select District</option>';
+}
+});
+
+// Initial Load
+loadCountries();
+}
+});
+
+</script>
+{% endblock %}

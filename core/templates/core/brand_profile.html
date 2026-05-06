@@ -1,0 +1,591 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Brand Profile | ShikshaWave Elite{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --sw-card-radius: 20px;
+        --sw-input-h: 40px;
+        --sw-accent-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    }
+
+    .brand-elite-wrapper {
+        padding: 10px 0;
+        max-width: 1400px;
+        margin: 0 auto;
+        animation: sw-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes sw-fade-up {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Standardized Control Row */
+    .sw-controls-row {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 12px 20px;
+        border-radius: 14px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        backdrop-filter: blur(10px);
+    }
+
+    .sw-controls-left { display: flex; align-items: center; gap: 15px; }
+    .sw-controls-left h3 {
+        margin: 0;
+        font-weight: 800;
+        font-size: 1.15rem;
+        color: var(--text-main);
+        letter-spacing: -0.01em;
+    }
+
+    .sw-controls-right { display: flex; align-items: center; gap: 12px; }
+
+    /* Unified Form Architecture */
+    .form-card {
+        background: var(--card-bg);
+        border-radius: var(--sw-card-radius);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        backdrop-filter: blur(16px);
+    }
+
+    /* Identity Banner - Single Part Transition */
+    .identity-banner {
+        background: var(--bg-hover);
+        padding: 30px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    body.dark-mode .identity-banner {
+        background: rgba(var(--primary-rgb), 0.05);
+    }
+
+    .banner-logo-zone {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        background: var(--card-bg);
+        border-radius: 24px;
+        border: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+
+    .banner-logo-zone:hover {
+        border-color: var(--primary-color);
+        transform: scale(1.02);
+    }
+
+    .banner-logo-zone img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 10px;
+    }
+
+    .logo-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .banner-logo-zone:hover .logo-overlay { opacity: 1; }
+
+    .banner-info {
+        flex: 1;
+    }
+
+    .banner-info h2 {
+        margin: 0;
+        font-weight: 850;
+        font-size: 1.75rem;
+        color: var(--text-main);
+        letter-spacing: -0.02em;
+    }
+
+    .banner-info p {
+        margin: 5px 0 15px;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .banner-stats {
+        display: flex;
+        gap: 20px;
+    }
+
+    .banner-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-muted);
+    }
+
+    .banner-stat-item i {
+        color: var(--primary-color);
+    }
+
+    .form-body {
+        padding: 30px;
+    }
+
+    /* Section Refinement */
+    .section-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 40px 0 24px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-divider:first-child { margin-top: 0; }
+
+    .section-title {
+        font-size: 0.8rem;
+        font-weight: 850;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    .section-icon {
+        width: 34px;
+        height: 34px;
+        background: rgba(var(--primary-rgb), 0.1);
+        color: var(--primary-color);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+    }
+
+    /* Elite Grid - Enhanced to 3 Columns */
+    .elite-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .sw-group { margin-bottom: 20px; }
+
+    .sw-label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .sw-input, .sw-textarea {
+        width: 100%;
+        background: var(--bg-hover);
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0 16px;
+        font-size: 0.9rem;
+        font-weight: 650;
+        color: var(--text-main);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        height: var(--sw-input-h);
+    }
+
+    .sw-textarea {
+        height: auto !important;
+        min-height: 80px;
+        padding: 12px 16px;
+        resize: none;
+    }
+
+    .sw-input:focus, .sw-textarea:focus {
+        background: var(--card-bg);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.12);
+        outline: none;
+    }
+
+    .btn-elite-save {
+        background: var(--primary-color);
+        color: white !important;
+        border: none;
+        padding: 0 24px;
+        height: 42px;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.25);
+    }
+
+    .btn-elite-save:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.4);
+    }
+
+    /* Signature Vault Uploader */
+    .signature-vault-zone {
+        position: relative;
+        width: 100%;
+        height: 120px;
+        background: var(--bg-hover);
+        border: 2px dashed var(--border-color);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+    .signature-vault-zone:hover {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-rgb), 0.05);
+    }
+
+    .signature-vault-zone img {
+        height: 80%;
+        width: 100%;
+        object-fit: contain;
+        filter: grayscale(1) contrast(1.2);
+        opacity: 0.8;
+    }
+
+    .signature-vault-zone.has-signature img {
+        filter: none;
+        opacity: 1;
+    }
+
+    .signature-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--primary-color);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.6rem;
+        font-weight: 850;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.3);
+        z-index: 2;
+    }
+
+    .signature-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .identity-banner { flex-direction: column; text-align: center; }
+        .banner-stats { justify-content: center; flex-wrap: wrap; }
+        .elite-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+        .elite-grid { grid-template-columns: 1fr; }
+        .sw-controls-row { flex-direction: column; align-items: flex-start; }
+        .sw-controls-right { width: 100%; }
+        .btn-elite-save { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="brand-elite-wrapper">
+    <form id="brandProfileForm" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Standardized Global Control Row -->
+        <div class="sw-controls-row">
+            <div class="sw-controls-left">
+                <i class="fas fa-fingerprint fa-lg" style="color: var(--primary-color);"></i>
+                <h3>Organization Identity Architect</h3>
+            </div>
+            <div class="sw-controls-right">
+                <button type="submit" class="btn-elite-save">
+                    <i class="fas fa-sync"></i>
+                    COMMIT PROFILE CHANGES
+                </button>
+            </div>
+        </div>
+        
+        <div class="form-card">
+            <!-- Unified Identity Banner -->
+            <div class="identity-banner">
+                <div class="banner-logo-zone" title="Click to Change Logo">
+                    <img id="logo-preview" src="{{ brand_profile.get_brand_logo }}" alt="Brand Logo">
+                    <label class="logo-overlay">
+                        <i class="fas fa-camera fa-lg"></i>
+                        <span style="font-size: 0.6rem; font-weight: 850; margin-top: 5px;">CHANGE</span>
+                        <input type="file" name="brand_logo" hidden onchange="previewLogo(this)">
+                    </label>
+                </div>
+                
+                <div class="banner-info">
+                    <h2>{{ brand_profile.brand_name|default:"Organization Name" }}</h2>
+                    <p>{{ brand_profile.tagline|default:"Empowering through technology" }}</p>
+                    
+                    <div class="banner-stats">
+                        <div class="banner-stat-item">
+                            <i class="fas fa-id-card"></i>
+                            <span>GST: {{ brand_profile.gstin|default:"NA" }}</span>
+                        </div>
+                        <div class="banner-stat-item">
+                            <i class="fas fa-phone"></i>
+                            <span>{{ brand_profile.phone|default:"NA" }}</span>
+                        </div>
+                        <div class="banner-stat-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ brand_profile.email|default:"NA" }}</span>
+                        </div>
+                        <div class="banner-stat-item">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Sync: {{ brand_profile.updated_at|date:"d M Y"|default:"New" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-body">
+                <!-- Section: Integrity Details -->
+                <div class="section-divider">
+                    <div class="section-icon"><i class="fas fa-university"></i></div>
+                    <span class="section-title">Integrity Details</span>
+                </div>
+                <div class="elite-grid">
+                    <div class="sw-group">
+                        <label class="sw-label">Legal Organization Name</label>
+                        <input type="text" name="brand_name" value="{{ brand_profile.brand_name }}" class="sw-input" required placeholder="Entity Legal Name">
+                    </div>
+                    <div class="sw-group" style="grid-column: span 2;">
+                        <label class="sw-label">Entity Tagline (Header/Footer Branding)</label>
+                        <input type="text" name="tagline" value="{{ brand_profile.tagline|default:'' }}" class="sw-input" placeholder="Professional Tagline / Motto">
+                    </div>
+                </div>
+
+                <!-- Section: Compliance & Tax -->
+                <div class="section-divider">
+                    <div class="section-icon"><i class="fas fa-stamp"></i></div>
+                    <span class="section-title">Compliance & Verification</span>
+                </div>
+                <div class="elite-grid">
+                    <div class="sw-group">
+                        <label class="sw-label">GSTIN / Tax ID</label>
+                        <input type="text" name="gstin" value="{{ brand_profile.gstin|default:'' }}" class="sw-input" placeholder="e.g. 09AAAAA0000A1Z5">
+                    </div>
+                    <div class="sw-group">
+                        <label class="sw-label">PAN Identifier</label>
+                        <input type="text" name="pan" value="{{ brand_profile.pan|default:'' }}" class="sw-input" placeholder="Income Tax Identifier">
+                    </div>
+                    <div class="sw-group">
+                        <label class="sw-label">Authorized Signatory Name</label>
+                        <input type="text" name="authorized_signatory" value="{{ brand_profile.authorized_signatory|default:'' }}" class="sw-input" placeholder="Name of Principal/Director">
+                    </div>
+                </div>
+
+                <div class="elite-grid" style="margin-top: 40px;">
+                    <!-- Section: Communication Hub -->
+                    <div style="grid-column: span 2;">
+                        <div class="section-divider">
+                            <div class="section-icon"><i class="fas fa-globe"></i></div>
+                            <span class="section-title">Communication Hub</span>
+                        </div>
+                        <div class="elite-grid" style="grid-template-columns: repeat(2, 1fr);">
+                            <div class="sw-group">
+                                <label class="sw-label">Corporate Email Address</label>
+                                <input type="email" name="email" value="{{ brand_profile.email|default:'' }}" class="sw-input" placeholder="contact@shikshawave.in">
+                            </div>
+                            <div class="sw-group">
+                                <label class="sw-label">Helpline Number</label>
+                                <input type="text" name="phone" value="{{ brand_profile.phone|default:'' }}" class="sw-input" placeholder="+91 00000 00000">
+                            </div>
+                            <div class="sw-group" style="grid-column: span 2;">
+                                <label class="sw-label">Official Portal URL</label>
+                                <input type="text" name="website" value="{{ brand_profile.website|default:'' }}" class="sw-input" placeholder="https://www.shikshawave.in">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Section: Digital Authorization Vault -->
+                    <div>
+                        <div class="section-divider">
+                            <div class="section-icon"><i class="fas fa-pen-nib"></i></div>
+                            <span class="section-title">Authorization Vault</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="sw-group">
+                                <label class="sw-label">Digital signature image</label>
+                                <div class="signature-vault-zone {% if brand_profile.authorized_signature %}has-signature{% endif %}" onclick="document.getElementById('sig-upload').click()">
+                                    {% if brand_profile.authorized_signature %}
+                                        <div class="signature-badge"><i class="fas fa-check-circle"></i> CERTIFIED</div>
+                                        <img id="sig-preview" src="{{ brand_profile.get_authorized_signature }}" alt="Digital Signature">
+                                    {% else %}
+                                        <div class="signature-placeholder" id="sig-placeholder">
+                                            <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                                            <span>UPLOAD SIGNATURE</span>
+                                        </div>
+                                        <img id="sig-preview" src="" style="display: none;">
+                                    {% endif %}
+                                    <input type="file" id="sig-upload" name="sig_upload" hidden onchange="previewSignature(this)">
+                                </div>
+                            </div>
+
+                            <div class="sw-group">
+                                <label class="sw-label">Organization Stamp Image</label>
+                                <div class="signature-vault-zone {% if brand_profile.organization_stamp %}has-signature{% endif %}" onclick="document.getElementById('stamp-upload').click()">
+                                    {% if brand_profile.organization_stamp %}
+                                        <div class="signature-badge" style="background: var(--warning);"><i class="fas fa-certificate"></i> OFFICIAL STAMP</div>
+                                        <img id="stamp-preview" src="{{ brand_profile.get_organization_stamp }}" alt="Organization Stamp">
+                                    {% else %}
+                                        <div class="signature-placeholder" id="stamp-placeholder">
+                                            <i class="fas fa-stamp fa-2x"></i>
+                                            <span>UPLOAD STAMP</span>
+                                        </div>
+                                        <img id="stamp-preview" src="" style="display: none;">
+                                    {% endif %}
+                                    <input type="file" id="stamp-upload" name="org_stamp_upload" hidden onchange="previewStamp(this)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Geo-Location -->
+                <div class="section-divider">
+                    <div class="section-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <span class="section-title">Institutional Location</span>
+                </div>
+                <div class="elite-grid">
+                    <div class="sw-group">
+                        <label class="sw-label">Registered State / Region</label>
+                        <input type="text" name="state" value="{{ brand_profile.state|default:'' }}" class="sw-input" placeholder="e.g. Bihar">
+                    </div>
+                    <div class="sw-group">
+                        <label class="sw-label">State Code</label>
+                        <input type="text" name="state_code" value="{{ brand_profile.state_code|default:'' }}" class="sw-input" placeholder="e.g. 10">
+                    </div>
+                    <div class="sw-group" style="grid-column: span 3;">
+                        <label class="sw-label">Full Registered Office Address</label>
+                        <textarea name="address" class="sw-textarea" placeholder="Complete Street Address for Invoice Footer...">{{ brand_profile.address|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function previewLogo(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('logo-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewSignature(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            const preview = document.getElementById('sig-preview');
+            const placeholder = document.getElementById('sig-placeholder');
+            const zone = document.querySelector('.signature-vault-zone');
+
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+                zone.classList.add('has-signature');
+                
+                // Add certified badge if not exists
+                if (!zone.querySelector('.signature-badge')) {
+                    const badge = document.createElement('div');
+                    badge.className = 'signature-badge';
+                    badge.innerHTML = '<i class="fas fa-check-circle"></i> CERTIFIED';
+                    zone.appendChild(badge);
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewStamp(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            const preview = document.getElementById('stamp-preview');
+            const placeholder = document.getElementById('stamp-placeholder');
+            const zone = input.closest('.signature-vault-zone');
+
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+                zone.classList.add('has-signature');
+                
+                if (!zone.querySelector('.signature-badge')) {
+                    const badge = document.createElement('div');
+                    badge.className = 'signature-badge';
+                    badge.style.background = 'var(--warning)';
+                    badge.innerHTML = '<i class="fas fa-certificate"></i> OFFICIAL STAMP';
+                    zone.appendChild(badge);
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Standardized Elite Synchronization Feedback
+    document.getElementById('brandProfileForm').addEventListener('submit', function(e) {
+        const btn = this.querySelector('.btn-elite-save');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> SYNCING ARCHITECTURE...';
+        }
+    });
+</script>
+{% endblock %}

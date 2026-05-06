@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #ffffff; color: #1e293b; margin: 0; padding: 15px 5px; }
+        .wrapper { max-width: 580px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); }
+        .logo { margin-bottom: 20px; text-align: left; }
+        .logo img { height: 35px; }
+        .school-badge { display: inline-block; background: #f0fdf4; color: #166534; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-bottom: 12px; border: 1px solid transparent; }
+        .brand-badge { display: inline-block; background: #eff6ff; color: #1976D2; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-bottom: 12px; margin-right: 6px; }
+        
+        h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 15px; color: #1e293b; }
+        p { color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 20px; }
+        
+        .otp-box { background: #f8fafc; border-radius: 12px; padding: 25px; text-align: center; margin: 25px 0; border: 1px solid #e2e8f0; }
+        .otp-code { font-family: "SF Mono", "Segoe UI Mono", monospace; font-size: 36px; font-weight: 800; color: #1976D2; letter-spacing: 4px; }
+        
+        .security-footer { border-top: 1px solid #f1f5f9; margin-top: 30px; padding-top: 20px; display: flex; flex-wrap: wrap; gap: 15px; }
+        .meta-group { flex: 1; min-width: 120px; }
+        .meta-label { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px; letter-spacing: 0.5px; }
+        .meta-val { font-size: 12px; font-weight: 600; color: #334155; word-break: break-all; overflow-wrap: break-word; }
+        
+        .alert-pillar { border-left: 4px solid #1976D2; padding-left: 20px; margin: 30px 0; }
+        .alert-pillar.danger { border-left-color: #dc2626; }
+        .alert-pillar.success { border-left-color: #4CAF50; }
+        
+        .instruction { font-size: 13px; color: #64748b; margin-top: 12px; }
+        .footer-tag { margin-top: 30px; font-size: 11px; color: #94a3b8; text-align: center; }
+        .accent-text { color: #1976D2; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="logo">
+            <div style="font-weight: 900; color: #1976D2; font-size: 26px; letter-spacing: 0.5px; text-transform: uppercase;">{{ school_name }}</div>
+        </div>
+        
+        <div class="brand-badge">Security Service</div>
+        <span class="school-badge">{{ school_name | default:"Institutional Security" }}</span>
+        
+        {% if code == 'LOGIN_OTP' or code == 'PASSWORD_RESET_OTP' %}
+            <h2>{{ header_title|default:"Identity Authorization" }}</h2>
+            <p>Verification is required for your ShikshaWave account. Use the unique code below to proceed. <strong>Do not share this code.</strong></p>
+            <div class="otp-box"><div class="otp-code">{{ otp }}</div></div>
+            <p class="instruction">Expires in {{ valid_minutes | default:15 }} minutes. Generated for your session on {{ timestamp }}.</p>
+            
+        {% elif code == 'ACCOUNT_BLOCKED' %}
+            <div class="alert-pillar danger">
+                <h2>{{ header_title|default:"Security Lockdown" }}</h2>
+                <p>Your account access has been restricted for 24 hours due to multiple failed authentication attempts. Access restriction is an automated defense layer.</p>
+            </div>
+            <strong>Next Steps:</strong>
+            <p>To restore your account immediately, please reach out to the <strong>{{ school_name }}</strong> administration for manual identity validation.</p>
+            
+        {% elif code == 'PASSWORD_CHANGED' or code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+            <div class="alert-pillar success">
+                <h2>{{ header_title|default:"Credentials Refreshed" }}</h2>
+                <p>Identity update successful. Your password was updated recently. You can now use your new credentials to access the platform.</p>
+            </div>
+            <p class="instruction" style="color: #dc2626;"><strong>Security Alert:</strong> If you did not update your password, your account may be under threat. Contact IT Support immediately.</p>
+            
+        {% elif code == 'NEW_LOGIN_ALERT' %}
+            <div class="alert-pillar">
+                <h2>{{ header_title|default:"New Device Access" }}</h2>
+                <p>We detected a successful login from a previously unrecognized device or location. Please review the audit log below.</p>
+            </div>
+            <div style="background: #1976D2; color: #ffffff; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: 700; text-decoration: none; margin-bottom: 20px;">Review Activity</div>
+            <p class="instruction">If this was you, please ignore this notice. New devices are automatically added to your trusted fleet.</p>
+        {% endif %}
+
+        <div class="security-footer">
+            <div class="meta-group"><span class="meta-label">IDENTITY</span><span class="meta-val">{{ login_id | default:user_name }}</span></div>
+            <div class="meta-group"><span class="meta-label">IP ADDRESS</span><span class="meta-val">{{ ip_address }}</span></div>
+            <div class="meta-group"><span class="meta-label">PLATFORM</span><span class="meta-val">{{ browser }}</span></div>
+        </div>
+        
+        <div class="footer-tag">
+            &copy; 2026 <strong>ShikshaWave</strong>. Future of Education.
+        </div>
+    </div>
+</body>
+</html>

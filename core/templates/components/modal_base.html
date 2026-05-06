@@ -1,0 +1,20 @@
+<div id="{% block modal_id %}defaultModal{% endblock %}" class="sw-modal-container">
+    <div class="sw-modal {% block modal_additional_class %}{% endblock %}">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="{% block modal_icon %}fas fa-info-circle{% endblock %}"></i>
+                <h2>{% block modal_title %}Modal Title{% endblock %}</h2>
+            </div>
+            <button class="sw-modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body">
+            {% block modal_body %}{% endblock %}
+        </div>
+        {% block modal_extra %}{% endblock %}
+        <div class="sw-modal-footer">
+            {% block modal_footer %}{% endblock %}
+        </div>
+    </div>
+</div>

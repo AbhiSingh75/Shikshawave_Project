@@ -1,0 +1,176 @@
+<!-- Expense Details Modal -->
+{% if user.profile_id == 2 %}
+<div id="expenseModal" class="stats-modal">
+    <div class="stats-modal-container sw-elite-modal-container">
+        <!-- Modal Header -->
+        <div class="stats-modal-header">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="header-text">
+                    <h2>Expense Statistics</h2>
+                    <p>View and analyze salary expense data</p>
+                </div>
+            </div>
+            <button onclick="closeExpenseModal()" class="modal-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="stats-modal-content">
+            <!-- Filters Card -->
+            <div class="stats-card">
+                <div class="sw-elite-filter-row">
+                    <div class="sw-elite-filter-group">
+                        <label>From Month</label>
+                        <input type="month" id="expenseFromDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>To Month</label>
+                        <input type="month" id="expenseToDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Employment Type</label>
+                        <select id="expenseEmploymentType" class="filter-input">
+                            <option value="">All Types</option>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Guest">Guest</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-action-group">
+                        <button onclick="applyExpenseFilters()" class="btn-apply" style="flex: 1; height: 100%;">
+                            <i class="fas fa-search"></i> Apply
+                        </button>
+                        <button onclick="resetExpenseFilters()" class="btn-reset" style="flex: 1; height: 100%;">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Pulse (Actionable Insights) -->
+            <div class="sw-elite-pulse-row">
+                <div class="sw-pulse-spotlight pulse-attendance-compliance">
+                    <span class="pulse-label">Salary Payout Progress</span>
+                    <div class="pulse-value" id="pulseExpenseCompliance">0%</div>
+                    <div class="pulse-trend trend-up">
+                        <i class="fas fa-file-invoice"></i> Disbursement Status
+                    </div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-admission-velocity">
+                    <span class="pulse-label">Avg Operational Cost</span>
+                    <div class="pulse-value" id="pulseOperationalCost">₹0</div>
+                    <div class="pulse-trend trend-neutral">Per Employee</div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-risk-alert">
+                    <span class="pulse-label">Financial Liability</span>
+                    <div class="pulse-value" id="pulseFinancialLiability">₹0</div>
+                    <div class="pulse-trend trend-down">Pending Payouts</div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="stats-card">
+                <div class="sw-elite-stats-grid">
+                    <div class="sw-elite-stat-card compact stat-primary">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Total Expense</p>
+                                <h2 class="stat-value" id="expenseTotalExpense">₹0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-money-bill-wave stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-male">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Total Paid</p>
+                                <h2 class="stat-value" id="expenseTotalPaid">₹0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-check-circle stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-female">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Total Pending</p>
+                                <h2 class="stat-value" id="expenseTotalPending">₹0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-clock stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-permanent">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Permanent</p>
+                                <h2 class="stat-value" id="expensePermanent">₹0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-user-check stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-contract">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Contract</p>
+                                <h2 class="stat-value" id="expenseContract">₹0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-file-contract stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-guest">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Guest</p>
+                                <h2 class="stat-value" id="expenseGuest">₹0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-user-clock stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-primary">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Paid Employees</p>
+                                <h2 class="stat-value" id="expensePaidEmployees">0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-users stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-inactive">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Unpaid Employees</p>
+                                <h2 class="stat-value" id="expenseUnpaidEmployees">0</h2>
+                            </div>
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-user-times stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Trend Card -->
+            <div class="stats-card">
+                <h3>Expense Trend <span id="expenseTrendPeriod"></span></h3>
+                <canvas id="expenseTrendChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

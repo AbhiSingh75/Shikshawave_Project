@@ -1,0 +1,677 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Payment Account Setup | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+    <style>
+        /* Force Global Layout Parity */
+        .dashboard-container { width: 100% !important; padding: 10px 15px 30px 15px !important; display: flex; flex-direction: column; gap: 20px; box-sizing: border-box; }
+        
+        .controls-row { 
+            width: 100% !important; margin-bottom: 20px !important; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 10px 18px !important; 
+            position: sticky; top: 0; z-index: 1001; background: var(--card-bg); 
+            border-radius: 12px; border: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            overflow: visible !important;
+        }
+
+        /* Compact Premium Table Design */
+        .table-responsive {
+            background: var(--card-bg, white); border-radius: 12px; border: 1px solid var(--border-color);
+            overflow-x: auto !important; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .shikshawave-table { width: 100%; border-collapse: collapse; table-layout: auto; min-width: 0 !important; }
+        .shikshawave-table thead th {
+            background: var(--primary-color) !important; color: white !important;
+            padding: 12px 15px; font-weight: 700; font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 0.5px; text-align: center;
+            white-space: nowrap; border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Multi-Column Sticky Group - Elite Grid */
+        .sticky-0 { position: sticky !important; left: 0; z-index: 100 !important; background: var(--card-bg) !important; border-right: none !important; box-shadow: 5px 0 10px -5px rgba(0,0,0,0.05); }
+        .sticky-1 { position: sticky !important; left: 100px; z-index: 100 !important; background: var(--card-bg) !important; border-right: none !important; }
+        .sticky-2 { position: sticky !important; left: 160px; z-index: 100 !important; background: var(--card-bg) !important; border-right: 1.5px solid var(--border-color) !important; box-shadow: 10px 0 20px -10px rgba(0,0,0,0.1); }
+
+        .shikshawave-table thead th.sticky-0, 
+        .shikshawave-table thead th.sticky-1, 
+        .shikshawave-table thead th.sticky-2 { 
+            z-index: 101 !important; background: var(--primary-color) !important; color: white !important; 
+        }
+
+        /* Standard Text Color & Compact Padding */
+        .shikshawave-table tbody td {
+            padding: 8px 12px; border-bottom: 1px solid var(--border-color);
+            font-size: 0.85rem; color: var(--text-color, #1e293b) !important;
+            vertical-align: middle; background: var(--card-bg, white);
+            border-right: 1px solid var(--border-color);
+            white-space: nowrap !important;
+        }
+        .shikshawave-table tbody tr:hover td { background: var(--bg-hover, #f8fafc) !important; }
+
+        .controls-left { flex-shrink: 0; display: flex; align-items: center; gap: 10px; }
+        .controls-right { flex: 1; display: flex; align-items: center; gap: 10px; justify-content: flex-end; min-width: 0; }
+
+        /* Action Buttons */
+        .action-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .sw-btn-action {
+            width: 30px; height: 30px; border-radius: 8px; border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+        }
+        .btn-edit { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .btn-edit:hover { background: #f59e0b; color: white; transform: translateY(-2px); }
+        .btn-del { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .btn-del:hover { background: #ef4444; color: white; transform: translateY(-2px); }
+        .btn-view { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+        .btn-view:hover { background: #6366f1; color: white; transform: translateY(-2px); }
+
+        /* Method Pills */
+        .method-pill { padding: 4px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+        .pill-bank { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); }
+        .pill-upi { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.2); }
+        .pill-gateway { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 12px; border-radius: 50px; font-size: 0.7rem; 
+            font-weight: 800; display: inline-flex; align-items: center; gap: 5px;
+            text-transform: uppercase; border: 1px solid transparent;
+        }
+        .badge-active { background: #ecfdf5; color: #10b981; border: 1px solid #10b98140; }
+        .badge-inactive { background: #fef2f2; color: #ef4444; border: 1px solid #ef444440; }
+        .badge-default { background: var(--primary-light); color: var(--primary-color); border: 1px solid var(--primary-color); }
+
+        /* Custom Dropdown Alignment */
+        .custom-dropdown { flex-shrink: 0; min-width: 200px; max-width: 250px; position: relative; }
+        .custom-dropdown-toggle { 
+            width: 100%; height: 44px; border: 1px solid rgba(128, 128, 128, 0.3);
+            border-radius: 10px; font-size: 0.85rem; background: var(--card-bg, white); 
+            color: var(--text-color); padding: 0 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;
+            white-space: nowrap; overflow: hidden;
+        }
+
+        .selected-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+
+        .custom-dropdown-menu {
+            position: absolute; top: 100%; right: 0; width: 100%; min-width: 240px; 
+            background: var(--card-bg, white); border: 1px solid var(--border-color); 
+            border-radius: 12px; margin-top: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: none; z-index: 1005; overflow: hidden;
+        }
+        .fields-section { display: none; }
+        .fields-section.active { display: block !important; animation: swFadeIn 0.3s; }
+        @keyframes swFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .custom-dropdown.active .custom-dropdown-menu { display: block; animation: slideDown 0.2s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-primary { 
+            display: inline-flex; align-items: center; gap: 8px; height: 44px; 
+            padding: 0 20px; border-radius: 10px; background: var(--primary-color); 
+            color: white !important; font-weight: 700; font-size: 0.9rem; border: none; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .search-wrapper { position: relative; flex: 1; max-width: 300px; }
+        .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; }
+        .search-input {
+            width: 100%; height: 44px; background: var(--bg-hover); border: 1px solid rgba(128, 128, 128, 0.3);
+            padding: 0 12px 0 35px; border-radius: 10px; font-size: 0.85rem; color: var(--text-color);
+            transition: all 0.3s;
+        }
+
+        .search-input:focus { border-color: var(--primary-color); background: var(--card-bg); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
+
+        .qr-thumb { 
+            width: 44px; height: 44px; border-radius: 8px; border: 1px solid var(--border-color); 
+            background: white; cursor: pointer; transition: 0.3s; object-fit: contain;
+            display: block; margin: 0 auto;
+        }
+        .qr-thumb:hover { transform: scale(1.1); border-color: var(--primary-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+
+        .method-selector { display: flex; background: var(--bg-hover); padding: 6px; border-radius: 14px; margin-bottom: 25px; border: 1px solid var(--border-color); gap: 5px; }
+        .method-btn { 
+            flex: 1; padding: 10px; border-radius: 10px; cursor: pointer; border: none; 
+            background: transparent; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .back-link { 
+            width: 34px; height: 34px; border-radius: 10px; background: var(--bg-hover);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-color); transition: all 0.3s; 
+            border: 1px solid rgba(128, 128, 128, 0.3); text-decoration: none;
+        }
+        .back-link:hover { background: var(--primary-color); color: white !important; transform: translateX(-3px); border-color: var(--primary-color); }
+
+
+        .method-btn:hover { background: rgba(0,0,0,0.03); color: var(--primary-color); }
+        .method-btn.active { 
+            background: var(--primary-color) !important; color: white !important; 
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3); 
+            transform: scale(1.02);
+        }
+        .dropdown-option { 
+            padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; 
+            gap: 10px; font-size: 0.85rem; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; 
+        }
+        .sw-compact-view { margin-top: 80px !important; }
+
+
+
+        .sw-modal-container { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.6); display: none; z-index: 9999; 
+            align-items: center; justify-content: center; backdrop-filter: blur(4px);
+        }
+        .sw-modal { 
+            background: var(--card-bg, white); width: 100%; max-width: 600px; border-radius: 16px; 
+            overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            margin-top: 80px; margin-bottom: 20px;
+        }
+        .sw-modal-header { padding: 18px 24px; background: var(--primary-color); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .sw-modal-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
+        .sw-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg-hover); }
+
+        .sw-form-group { margin-bottom: 20px; }
+        .sw-form-label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.85rem; color: var(--primary-color); text-transform: uppercase; letter-spacing: 0.5px; }
+        .sw-form-control { 
+            width: 100%; height: 44px !important; border: 1px solid rgba(128, 128, 128, 0.4); 
+            border-radius: 10px; background: var(--card-bg, white); color: var(--text-color); 
+            padding: 0 15px; font-size: 0.9rem; font-weight: 600; 
+        }
+
+        .sw-form-control:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
+
+        @media (max-width: 768px) {
+            .dashboard-container { padding: 10px !important; }
+            .controls-row { 
+                flex-direction: column !important; gap: 15px !important; 
+                padding: 15px !important; align-items: stretch !important; 
+                position: static !important; width: auto !important; margin: 10px !important;
+            }
+            .controls-left { justify-content: center; margin-bottom: 5px; }
+            .controls-right { 
+                flex-direction: column !important; gap: 10px !important; 
+                align-items: stretch !important; display: flex !important; width: 100% !important;
+            }
+            .custom-dropdown, .search-wrapper, .btn-primary { 
+                width: 100% !important; max-width: none !important; min-width: 0 !important; 
+                display: block !important;
+            }
+            .custom-dropdown-toggle { width: 100% !important; justify-content: center; }
+            .vertical-divider { display: none !important; }
+            
+            .sticky-0, .sticky-1, .sticky-2 { position: static !important; box-shadow: none !important; }
+        }
+
+    </style>
+{% endblock %}
+
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Global Control Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <a href="{% url 'menu_data_list' %}" class="back-link" title="Back to Master Data">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <h3 class="page-title">
+                <i class="fas fa-credit-card" style="color: var(--primary-color);"></i> 
+                <span>Payment Account Setup</span>
+            </h3>
+        </div>
+
+        
+        <div class="controls-right">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="tableSearch" placeholder="Search accounts..." onkeyup="filterAccountTable()">
+            </div>
+
+            {% if is_super_admin %}
+            <div class="custom-dropdown" id="schoolDropdown">
+                <div class="custom-dropdown-toggle">
+                    <i class="fas fa-school" style="color: var(--primary-color); opacity: 0.8;"></i>
+                    <span class="selected-value">
+                        {% if show_default %}{{ current_school_name|default:"ShikshaWave Default" }}{% else %}{{ current_school_name|default:"Select School" }}{% endif %}
+                    </span>
+                    <i class="fas fa-chevron-down ms-auto" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                </div>
+                <div class="custom-dropdown-menu">
+                    <div class="dropdown-search" style="padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--bg-hover);">
+                        <i class="fas fa-search" style="color: var(--text-muted); margin-right: 8px;"></i>
+                        <input type="text" placeholder="Search schools..." onkeyup="filterDropdown(this)" style="border: none; background: transparent; outline: none; font-size: 0.85rem; width: 100%;">
+                    </div>
+                    <div class="dropdown-options" style="max-height: 250px; overflow-y: auto; padding: 5px;">
+                        <div class="dropdown-option {% if show_default %}selected{% endif %}" onclick="handleDropdownSelect('default')" style="padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.85rem;">
+                            <i class="fas fa-globe"></i> ShikshaWave Default
+                        </div>
+                        {% for school in schools %}
+                        <div class="dropdown-option {% if selected_school_id_raw|slugify == school.SchoolID|slugify %}selected{% endif %}" onclick="handleDropdownSelect('{{ school.EncSchoolID }}')" style="padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.85rem;">
+                            <i class="fas fa-building"></i> {{ school.DisplayName }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+
+            <div class="vertical-divider" style="height: 24px; width: 1px; background: var(--border-color); margin: 0 4px; flex-shrink: 0;"></div>
+
+            <button type="button" class="btn btn-primary" id="addAccountBtn" title="Add New Account">
+                <i class="fas fa-plus-circle"></i>
+                <span class="btn-text">Add Account</span>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Main Table -->
+    <div class="table-responsive">
+        <table class="shikshawave-table" id="accountTable">
+            <thead>
+                <tr>
+                    <th style="width: 1%;">SN</th>
+                    <th style="width: 1%;">Actions</th>
+                    <th>Institution</th>
+                    <th style="text-align: left;">Holder Name</th>
+                    <th>Bank / Provider</th>
+                    <th style="width: 1%;">Method</th>
+                    <th style="width: 1%;">Inst. Code</th>
+                    <th>Account No</th>
+                    <th>IFSC</th>
+                    <th>UPI ID (VPA)</th>
+                    <th>Gateway Creds</th>
+                    <th>Webhook</th>
+                    <th style="width: 1%;">Default</th>
+                    <th style="width: 1%;">Status</th>
+                    <th style="width: 1%;">QR</th>
+                </tr>
+
+
+            </thead>
+            <tbody>
+
+                    {% for acc in accounts %}
+                    <tr class="account-row">
+                        <td style="text-align: center; font-weight: 800; opacity: 0.8;">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="action-row">
+                                <button class="sw-btn-action btn-edit" onclick="handleEditButtonClick('{{ acc.PaymentId }}')" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="sw-btn-action btn-del" onclick="deleteAccount('{{ acc.EncPaymentID }}')" title="Delete"><i class="fas fa-trash"></i></button>
+                                {% if acc.UPIQRCodeBinary %}
+                                <button class="sw-btn-action btn-view" onclick="viewQRCode('{{ acc.UPIQRCodeBinary }}')" title="View QR Code"><i class="fas fa-qrcode"></i></button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--primary-color);">{{ acc.SchoolName|default:"System Default" }}</div>
+                            <div style="font-size: 0.75rem; opacity: 0.7;">{{ acc.SchoolCode|default:"CODE-000" }}</div>
+                        </td>
+
+                        <td>
+                            <div style="font-weight: 700;">{{ acc.AccountHolderName|default:"-" }}</div>
+                        </td>
+                        <td>{{ acc.AccountName|default:acc.GatewayName|default:"-" }}</td>
+                        <td style="text-align: center;">
+                            <span class="method-pill {% if acc.PaymentMethod == 'BANK' %}pill-bank{% elif acc.PaymentMethod == 'UPI' %}pill-upi{% else %}pill-gateway{% endif %}">
+                                {{ acc.PaymentMethod }}
+                            </span>
+                        </td>
+                        <td style="text-align: center; font-family: monospace;">{{ acc.SchoolCode|default:"-" }}</td>
+                        <td style="font-family: monospace; font-weight: 700;">{{ acc.AccountNumber|default:"-" }}</td>
+                        <td style="font-family: monospace; opacity: 0.8;">{{ acc.IFSCCode|default:"-" }}</td>
+                        <td>{{ acc.UPIId|default:"-" }}</td>
+                        <td>
+                            <div style="font-size: 0.7rem; font-family: monospace; opacity: 0.7;">K: {{ acc.GatewayKey|truncatechars:10|default:"-" }}</div>
+                            <div style="font-size: 0.7rem; font-family: monospace; opacity: 0.7;">S: {{ acc.GatewaySecret|truncatechars:10|default:"-" }}</div>
+                        </td>
+                        <td title="{{ acc.WebhookUrl }}">
+                            <div style="font-size: 0.7rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">{{ acc.WebhookUrl|default:"-" }}</div>
+                        </td>
+                        <td style="text-align: center;">
+                            {% if acc.IsDefault %}<span class="status-badge badge-default"><i class="fas fa-star"></i></span>{% else %}-{% endif %}
+                        </td>
+
+                        <td style="text-align: center;">
+                            {% if acc.IsActive %}<span class="status-badge badge-active"><i class="fas fa-check-circle"></i> ACTIVE</span>
+                            {% else %}<span class="status-badge badge-inactive"><i class="fas fa-times-circle"></i> INACTIVE</span>{% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            {% if acc.UPIQRCodeBinary %}
+                                <img src="{{ acc.UPIQRCodeBinary }}" class="qr-thumb" alt="QR" onclick="viewQRCode('{{ acc.UPIQRCodeBinary }}')">
+                            {% else %}-{% endif %}
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="19" style="text-align: center; padding: 60px; opacity: 0.5;">
+                            <i class="fas fa-credit-card" style="font-size: 3rem; margin-bottom: 20px; display: block;"></i>
+                            <p>No payment accounts configured yet.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="paymentModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <h2 id="modalTitle" style="font-size: 1.15rem; margin: 0; font-weight: 700;">
+                <i class="fas fa-plus-circle me-2"></i><span id="modalActionText">Add</span> Payment Account
+            </h2>
+            <button onclick="closePaymentModal()" style="background:transparent; border:none; color:white; cursor:pointer; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="paymentForm">
+            {% csrf_token %}
+            <input type="hidden" name="enc_id" id="acc_enc_id">
+            <div class="sw-modal-body">
+                {% if is_super_admin %}
+                <div class="sw-form-group">
+                    <label class="sw-form-label">School Assignment <span style="color:red;">*</span></label>
+                    <select name="school_id" id="school_id" class="sw-form-control">
+                        <option value="default">ShikshaWave System Default</option>
+                        {% for s in schools %}
+                        <option value="{{ s.EncSchoolID }}">{{ s.DisplayName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <label class="sw-form-label">Payment Method</label>
+                <div class="method-selector">
+                    <button type="button" class="method-btn active" data-method="BANK" onclick="switchMethod('BANK')">BANK / NEFT</button>
+                    <button type="button" class="method-btn" data-method="UPI" onclick="switchMethod('UPI')">UPI / QR</button>
+                    <button type="button" class="method-btn" data-method="GATEWAY" onclick="switchMethod('GATEWAY')">GATEWAY</button>
+                </div>
+
+                <input type="hidden" name="payment_method" id="acc_method" value="BANK">
+
+                <div id="section_BANK" class="fields-section active">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Account Holder Name</label>
+                        <input type="text" name="holder_name" id="acc_holder_name" class="sw-form-control" placeholder="Full name as per bank records">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="sw-form-group">
+                            <label class="sw-form-label">Account Number</label>
+                            <input type="text" name="account_number" id="acc_account_number" class="sw-form-control">
+                        </div>
+                        <div class="sw-form-group">
+                            <label class="sw-form-label">IFSC Code</label>
+                            <input type="text" name="ifsc_code" id="acc_ifsc_code" class="sw-form-control" placeholder="SBIN000XXXX">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="sw-form-group">
+                            <label class="sw-form-label">Bank Name</label>
+                            <input type="text" name="account_name" id="acc_account_name" class="sw-form-control">
+                        </div>
+                        <div class="sw-form-group">
+                            <label class="sw-form-label">Branch Name</label>
+                            <input type="text" name="branch_name" id="acc_branch_name" class="sw-form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="section_UPI" class="fields-section">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">UPI ID (VPA)</label>
+                        <input type="text" name="upi_id" id="acc_upi_id" class="sw-form-control" placeholder="merchant@upi">
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Reference QR Image</label>
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <input type="file" name="upi_qr_file" id="acc_qr_file" accept="image/*" class="sw-form-control" onchange="previewQR(this)">
+                            </div>
+                            <div id="qr_preview_box" style="width: 120px; height: 120px; border: 2px dashed var(--border-color); border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; background: var(--bg-hover);">
+                                <img id="qr_preview_img" src="" alt="QR Preview" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
+                                <span id="qr_preview_placeholder" style="font-size: 0.7rem; color: var(--text-muted); text-align: center; padding: 10px;">No file selected</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="section_GATEWAY" class="fields-section">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Gateway Provider</label>
+                        <select name="gateway_name" id="acc_gateway_name" class="sw-form-control">
+                            <option value="Razorpay">Razorpay</option>
+                            <option value="Cashfree">Cashfree</option>
+                            <option value="Stripe">Stripe</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">API Key / Product ID</label>
+                        <input type="text" name="gateway_key" id="acc_gate_key" class="sw-form-control">
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Secret Key / Token</label>
+                        <input type="password" name="gateway_secret" id="acc_gate_secret" class="sw-form-control">
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Webhook URL</label>
+                        <input type="text" name="webhook_url" id="acc_webhook" class="sw-form-control">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 20px; margin-top: 10px; background: var(--bg-hover); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;">
+                        <input type="checkbox" name="is_default" id="acc_is_default" style="width: 18px; height: 18px;"> 
+                        <span style="font-weight: 700; font-size: 0.85rem;">Set as Default</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;">
+                        <input type="checkbox" name="is_active" id="acc_is_active" checked style="width: 18px; height: 18px;"> 
+                        <span style="font-weight: 700; font-size: 0.85rem;">Account Active</span>
+                    </label>
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closePaymentModal()" style="background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 25px;">Save Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function switchMethod(method) {
+        document.getElementById('acc_method').value = method;
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-method') === method));
+        document.querySelectorAll('.fields-section').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById('section_' + method);
+        if (target) target.classList.add('active');
+    }
+
+    function openPaymentModal() {
+        document.getElementById('paymentForm').reset();
+        document.getElementById('acc_enc_id').value = '';
+        document.getElementById('modalActionText').textContent = 'Add';
+        document.getElementById('qr_preview_img').style.display = 'none';
+        document.getElementById('qr_preview_placeholder').style.display = 'block';
+        switchMethod('BANK');
+        const modal = document.getElementById('paymentModal');
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+    }
+
+    function closePaymentModal() {
+        const modal = document.getElementById('paymentModal');
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+    }
+
+    function previewQR(input) {
+        const preview = document.getElementById('qr_preview_img');
+        const placeholder = document.getElementById('qr_preview_placeholder');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function handleDropdownSelect(val) {
+        const url = new URL(window.location.href);
+        url.search = '';
+        if (val === 'default') url.searchParams.set('show_default', '1');
+        else if (val) url.searchParams.set('sid', val);
+        window.location.href = url.href;
+    }
+
+    function filterDropdown(input) {
+        const filter = input.value.toLowerCase();
+        const opts = input.closest('.custom-dropdown-menu').querySelectorAll('.dropdown-option');
+        opts.forEach(o => o.style.display = o.textContent.toLowerCase().includes(filter) ? 'flex' : 'none');
+    }
+
+    document.querySelectorAll('.custom-dropdown-toggle').forEach(t => {
+        t.addEventListener('click', (e) => {
+            const p = t.closest('.custom-dropdown');
+            document.querySelectorAll('.custom-dropdown').forEach(d => { if(d !== p) d.classList.remove('active'); });
+            p.classList.toggle('active');
+            e.stopPropagation();
+        });
+    });
+
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-dropdown')) {
+            document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('active'));
+        }
+        if (e.target.classList.contains('sw-modal-container')) closePaymentModal();
+    });
+
+    function handleEditButtonClick(id) {
+        const data = JSON.parse(document.getElementById('accounts-data').textContent);
+        const acc = data.find(a => String(a.PaymentId) === String(id));
+        if (acc) editAccount(acc.EncPaymentID, acc);
+    }
+
+    function editAccount(encId, config) {
+        document.getElementById('acc_enc_id').value = encId;
+        document.getElementById('modalActionText').textContent = 'Edit';
+        if (document.getElementById('school_id')) document.getElementById('school_id').value = config.SchoolId ? encId : 'default'; 
+        switchMethod(config.PaymentMethod);
+        
+        const mapping = {
+            'acc_account_name': 'AccountName', 'acc_account_number': 'AccountNumber',
+            'acc_ifsc_code': 'IFSCCode', 'acc_branch_name': 'BranchName',
+            'acc_holder_name': 'AccountHolderName', 'acc_upi_id': 'UPIId',
+            'acc_gateway_name': 'GatewayName', 'acc_gate_key': 'GatewayKey', 
+            'acc_gate_secret': 'GatewaySecret', 'acc_webhook': 'WebhookUrl'
+        };
+        for (const [id, key] of Object.entries(mapping)) {
+            const el = document.getElementById(id);
+            if (el) el.value = config[key] || '';
+        }
+        document.getElementById('acc_is_default').checked = config.IsDefault;
+        document.getElementById('acc_is_active').checked = config.IsActive;
+        if (config.UPIQRCodeBinary) {
+            document.getElementById('qr_preview_img').src = config.UPIQRCodeBinary;
+            document.getElementById('qr_preview_img').style.display = 'block';
+            document.getElementById('qr_preview_placeholder').style.display = 'none';
+        }
+        const modal = document.getElementById('paymentModal');
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+    }
+
+    document.getElementById('paymentForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        formData.set('is_default', document.getElementById('acc_is_default').checked);
+        formData.set('is_active', document.getElementById('acc_is_active').checked);
+        try {
+            const resp = await fetch('{% url "payment_account_save" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
+            });
+            const res = await resp.json();
+            if (res.status === 'SUCCESS') {
+                closePaymentModal();
+                Swal.fire('Success!', res.message, 'success').then(() => window.location.reload());
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Update failed', 'error');
+        }
+    };
+
+    function deleteAccount(encId) {
+        Swal.fire({
+            title: 'Delete configuration?',
+            text: "This action cannot be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const resp = await fetch('{% url "payment_account_delete" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ enc_id: encId })
+                });
+                const res = await resp.json();
+                if (res.status === 'SUCCESS') Swal.fire('Deleted!', res.message, 'success').then(() => window.location.reload());
+            }
+        });
+    }
+
+    function viewQRCode(dataUri) {
+        Swal.fire({
+            title: 'Payment QR Code',
+            imageUrl: dataUri,
+            imageWidth: 260,
+            imageHeight: 260,
+            imageAlt: 'QR Code',
+            confirmButtonText: 'Close',
+            confirmButtonColor: 'var(--primary-color)',
+            width: '320px',
+            padding: '1rem',
+            customClass: {
+                popup: 'sw-compact-view'
+            }
+        });
+    }
+
+
+
+    function filterAccountTable() {
+        const input = document.getElementById('tableSearch');
+        const filter = input.value.toUpperCase();
+        const rows = document.querySelectorAll('.account-row');
+        
+        rows.forEach(row => {
+            const text = row.innerText.toUpperCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+        });
+    }
+
+    const addBtn = document.getElementById('addAccountBtn');
+    if (addBtn) addBtn.addEventListener('click', openPaymentModal);
+</script>
+
+{% if accounts %}{{ accounts|json_script:"accounts-data" }}{% endif %}
+{% endblock %}

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-top: 6px solid #004a99;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .header {
+            padding: 40px 40px 20px;
+        }
+
+        .logo {
+            color: #004a99;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            padding: 0 40px 40px;
+            color: #444;
+            line-height: 1.6;
+        }
+
+        .title {
+            color: #333;
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+
+        .data-table th {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 12px;
+            border: 1px solid #e9ecef;
+            color: #666;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border: 1px solid #e9ecef;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .footer {
+            background: #004a99;
+            padding: 30px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notif-badge {
+            display: inline-block;
+            background: #e6f0fa;
+            color: #004a99;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{ school_name }}</div>
+            <div class="notif-badge">OFFICIAL ACADEMIC NOTICE</div>
+            <h2 class="title">Notification of Promotion</h2>
+        </div>
+        <div class="content">
+            <p>To the parents/guardian of {{ student_name }},</p>
+            <p>This is to formally confirm that your ward has completed the requirements for the current academic term
+                and is promoted to the next grade.</p>
+
+            <table class="data-table">
+                <tr>
+                    <th>Academic Session</th>
+                    <td>{{ academic_year }}</td>
+                </tr>
+                <tr>
+                    <th>Promoted From</th>
+                    <td>{{ prev_class }} - {{ prev_section }}</td>
+                </tr>
+                <tr>
+                    <th>Promoted To</th>
+                    <td>{{ new_class }} - {{ new_section }}</td>
+                </tr>
+                <tr>
+                    <th>Allotted Roll No.</th>
+                    <td>{{ roll_no }}</td>
+                </tr>
+                <tr>
+                    <th>Effective Date</th>
+                    <td>{{ current_date }}</td>
+                </tr>
+            </table>
+
+            <p style="margin-top: 30px;">Please ensure all necessary re-enrollment procedures are completed by the
+                deadline. We look forward to another successful year.</p>
+        </div>
+        <div class="footer">
+            <span>© {{ school_name }}</span>
+            <span style="opacity: 0.8; font-size: 12px;">Powered by ShikshaWave</span>
+        </div>
+    </div>
+</body>
+
+</html>

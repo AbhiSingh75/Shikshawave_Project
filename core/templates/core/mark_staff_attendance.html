@@ -1,0 +1,780 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Staff Attendance{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #64748b;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --bg-hover: #f8fafc;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --secondary-color: #111827;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+        --bg-hover: #374151;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    /* Page specific overrides for Attendance */
+    .controls-row {
+        margin-bottom: 20px !important;
+    }
+
+    .custom-dropdown {
+        min-width: 200px;
+        max-width: 300px;
+    }
+
+    .attendance-table tbody tr:hover {
+        background: rgba(var(--primary-rgb), 0.03) !important;
+    }
+
+    .attendance-table th {
+        background: var(--primary-color) !important;
+        color: white !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 12px 15px !important;
+    }
+
+    .attendance-table td:first-child {
+        font-weight: 700;
+        color: var(--text-light);
+        text-align: center;
+    }
+
+    /* Attendance Box & Status Styles */
+    .attendance-boxes {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .attendance-box {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: transparent;
+        color: var(--text-color);
+    }
+
+    .attendance-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .attendance-box {
+        border: 1.5px solid var(--border-color) !important;
+    }
+
+    /* Enhanced status-specific borders for dark mode scanability */
+    body.dark-mode .attendance-box.present { border-color: var(--success-color) !important; color: var(--success-color) !important; }
+    body.dark-mode .attendance-box.absent { border-color: var(--error-color) !important; color: var(--error-color) !important; }
+    body.dark-mode .attendance-box.late { border-color: var(--warning-color) !important; color: var(--warning-color) !important; }
+    body.dark-mode .attendance-box.leave { border-color: var(--primary-color) !important; color: var(--primary-color) !important; }
+    
+    body.dark-mode .attendance-box.present.active,
+    body.dark-mode .attendance-box.absent.active,
+    body.dark-mode .attendance-box.late.active,
+    body.dark-mode .attendance-box.leave.active { color: white !important; border-color: transparent !important; }
+
+    .attendance-box.present.active, .attendance-box.present[style*="opacity: 1"] {
+        border-color: var(--success-color) !important;
+        color: var(--success-color) !important;
+        background: var(--success-light) !important;
+        box-shadow: 0 0 0 1px var(--success-color);
+    }
+
+    .attendance-box.absent.active, .attendance-box.absent[style*="opacity: 1"] {
+        border-color: var(--error-color) !important;
+        color: var(--error-color) !important;
+        background: var(--error-light) !important;
+        box-shadow: 0 0 0 1px var(--error-color);
+    }
+
+    .attendance-box.late.active, .attendance-box.late[style*="opacity: 1"] {
+        border-color: var(--warning-color) !important;
+        color: var(--warning-color) !important;
+        background: var(--warning-light) !important;
+        box-shadow: 0 0 0 1px var(--warning-color);
+    }
+
+    .attendance-box.leave.active, .attendance-box.leave[style*="opacity: 1"] {
+        border-color: var(--primary-color) !important;
+        color: var(--primary-color) !important;
+        background: var(--primary-light) !important;
+        box-shadow: 0 0 0 1px var(--primary-color);
+    }
+
+    /* Subdued inactive colors for better scanability */
+    .attendance-box.present { color: var(--success-color); background: transparent; border-color: var(--success-light); }
+    .attendance-box.absent { color: var(--error-color); background: transparent; border-color: var(--error-light); }
+    .attendance-box.late { color: var(--warning-color); background: transparent; border-color: var(--warning-light); }
+    .attendance-box.leave { color: var(--primary-color); background: transparent; border-color: var(--primary-light); }
+
+    .attendance-box {
+        line-height: normal !important;
+        text-indent: 0 !important;
+        border-width: 1.5px !important;
+    }
+
+    .attendance-box.active[data-status="present"] { background: var(--success-color) !important; color: white !important; border-color: var(--success-color) !important; box-shadow: 0 0 8px var(--success-light); }
+    .attendance-box.active[data-status="absent"] { background: var(--error-color) !important; color: white !important; border-color: var(--error-color) !important; box-shadow: 0 0 8px var(--error-light); }
+    .attendance-box.late.active { background: var(--warning-color) !important; color: white !important; border-color: var(--warning-color) !important; box-shadow: 0 0 8px var(--warning-light); }
+    .attendance-box.leave.active { background: var(--primary-color) !important; color: white !important; border-color: var(--primary-color) !important; box-shadow: 0 0 8px var(--primary-light); }
+
+    .attendance-table td {
+        padding: 10px 15px !important;
+        vertical-align: middle;
+    }
+
+    .staff-info-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .staff-avatar {
+        display: none; /* Hide for more compact view */
+    }
+
+    .staff-details h4 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    /* Insights and Actions */
+    .quick-insights {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        padding: 1.25rem;
+        background: var(--bg-hover);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    body.dark-mode .quick-insights {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .insight-card {
+        padding: 1.25rem;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        box-shadow: var(--card-shadow);
+        transition: transform 0.3s ease;
+    }
+
+    .insight-card:hover { transform: translateY(-3px); }
+
+    .insight-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .insight-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-light);
+        text-transform: uppercase;
+    }
+
+    .insight-card.present { border-bottom: 4px solid var(--success-color); color: var(--success-color); }
+    .insight-card.absent { border-bottom: 4px solid var(--error-color); color: var(--error-color); }
+    .insight-card.late { border-bottom: 4px solid var(--warning-color); color: var(--warning-color); }
+    .insight-card.leave { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
+
+    body.dark-mode .insight-card {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border-color) !important;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        padding: 15px 20px;
+        background: rgba(var(--light-gray), 0.5);
+    }
+
+    .quick-action-btn {
+        flex: 1;
+        min-width: 140px;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+    body.dark-mode .quick-action-btn {
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .mark-present-btn { border-color: var(--success-color) !important; color: var(--success-color) !important; }
+    .mark-absent-btn { border-color: var(--error-color) !important; color: var(--error-color) !important; }
+    .mark-late-btn { border-color: var(--warning-color) !important; color: var(--warning-color) !important; }
+    .mark-leave-btn { border-color: var(--primary-color) !important; color: var(--primary-color) !important; }
+
+    .mark-present-btn:hover { background: var(--success-color) !important; color: white !important; }
+    .mark-absent-btn:hover { background: var(--error-color) !important; color: white !important; }
+    .mark-late-btn:hover { background: var(--warning-color) !important; color: white !important; }
+    .mark-leave-btn:hover { background: var(--primary-color) !important; color: white !important; }
+
+    .staff-details-text {
+        margin: 0;
+        color: var(--text-light);
+        font-size: 0.8rem;
+        margin-top: 2px;
+        font-weight: 400;
+        display: block;
+    }
+
+    /* Standardized Control Row Elements */
+    .control-buttons .form-input, 
+    .control-buttons .custom-dropdown-toggle,
+    .control-buttons .btn-load {
+        height: 44px !important;
+        border-radius: 12px !important;
+        font-size: 0.9rem !important;
+    }
+
+    .control-buttons .form-input {
+        padding: 0 15px !important;
+        width: 160px; /* Default desktop width */
+    }
+
+    body.dark-mode .control-buttons .form-input,
+    body.dark-mode .control-buttons .custom-dropdown-toggle {
+        border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: var(--text-color) !important;
+        color-scheme: dark !important;
+    }
+
+    .search-btn {
+        width: 42px !important;
+        height: 42px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px !important;
+    }
+
+    @media (max-width: 768px) {
+        .quick-insights { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; padding: 1rem; }
+        .quick-actions { padding: 10px; }
+        .quick-action-btn { min-width: calc(50% - 5px); }
+        
+        .control-buttons {
+            display: grid !important;
+            grid-template-columns: 1fr;
+            width: 100%;
+        }
+        
+        .control-buttons .custom-dropdown,
+        .control-buttons .custom-dropdown-toggle,
+        .control-buttons .form-input,
+        .control-buttons .date-input-wrapper,
+        .control-buttons .btn-load {
+            width: 100% !important;
+            max-width: none !important;
+            display: flex !important; /* Ensure visibility */
+        }
+
+        .control-buttons .custom-dropdown {
+            display: block !important; /* Force block for grid/flex layout */
+        }
+
+        /* Enable full column visibility with horizontal scroll */
+        .attendance-table th,
+        .attendance-table td {
+            display: table-cell !important;
+        }
+
+        .section-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 5px !important;
+        }
+
+        #staff-container,
+        .content-area,
+        .table-container {
+            display: flex !important;
+            flex-direction: column !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 200px !important;
+            padding: 0 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    {% csrf_token %}
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Mark Staff Attendance</h3>
+        </div>
+        <div class="controls-right">
+            <div class="control-buttons">
+                <!-- School Selection -->
+                {% if profile_name == 'Super Admin' or profile_name == 'Support Executive' %}
+                <div class="custom-dropdown" data-target="school_id">
+                    <select id="school_id" name="school_id" style="display:none;">
+                        <option value="">-- Select School --</option>
+                    </select>
+                    <div class="custom-dropdown-toggle">
+                        <span class="custom-dropdown-text">-- Select School --</span>
+                        <span class="custom-dropdown-arrow">▼</span>
+                    </div>
+                    <div class="custom-dropdown-menu">
+                        <div class="custom-dropdown-option" data-value="">-- Select School --</div>
+                        <!-- Options will be populated via AJAX -->
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Date Selection -->
+                <div class="date-input-wrapper" style="position: relative; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; color: var(--text-light); pointer-events: none;"></i>
+                    <input type="date" id="attendance-date" class="form-input" value="{{ attendance_date }}" style="padding-left: 35px !important;">
+                </div>
+
+                <!-- Load Button -->
+                <button class="btn btn-success btn-load" onclick="loadStaff()" title="Load Staff List">
+                    <i class="fas fa-sync-alt"></i> <span>Load Staff</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="profile-name" value="{{ profile_name }}">
+
+    <div class="content-area" id="staff-container" style="display:flex; align-items:center; justify-content:center; min-height:300px;">
+        <div class="empty-state" style="text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px;">
+            <i class="fas fa-user-tie" style="font-size:3rem; color:var(--primary-color); opacity:0.4; margin-bottom:16px;"></i>
+            <h3 style="margin:0 0 8px; color:var(--text-color);">No Staff Loaded</h3>
+            <p style="color:var(--text-light); font-size:0.9rem;">Please click <strong>Load Staff</strong> to begin</p>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date if not set
+        const dateInput = document.getElementById('attendance-date');
+        if (dateInput && !dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+
+        // Load schools from Global API
+        const schoolSelect = document.getElementById('school_id');
+        const selectedId = "{{ selected_school_id|default:'' }}";
+        
+        if (schoolSelect) {
+            fetch('/api/school-dropdown/')
+                .then(response => response.json())
+                .then(res => {
+                    if (res.status === 'SUCCESS') {
+                        // Clear existing options except default
+                        schoolSelect.innerHTML = '<option value="">-- Select School --</option>';
+                        
+                        const menu = document.querySelector('.custom-dropdown[data-target="school_id"] .custom-dropdown-menu');
+                        if (menu) menu.innerHTML = '<div class="custom-dropdown-option" data-value="">-- Select School --</div>';
+
+                        res.data.forEach(school => {
+                            const option = document.createElement('option');
+                            option.value = school.id; // Encrypted ID
+                            option.textContent = school.name;
+                            
+                            // Check if this school is selected (matching by raw_id or id)
+                            if (String(school.raw_id) === String(selectedId) || String(school.id) === String(selectedId)) {
+                                option.selected = true;
+                            }
+                            schoolSelect.appendChild(option);
+                        });
+                        
+                        // Re-initialize or refresh custom dropdowns
+                        if (window.refreshCustomDropdowns) {
+                            window.refreshCustomDropdowns();
+                        } else if (window.initCustomDropdowns) {
+                            window.initCustomDropdowns();
+                        } else if (window.initializeCustomDropdowns) {
+                            window.initializeCustomDropdowns();
+                        }
+                    }
+                })
+                .catch(err => console.error('Error loading school list:', err));
+        }
+    });
+
+    function loadStaff() {
+        const date = document.getElementById('attendance-date').value;
+        const schoolDropdown = document.getElementById('school_id');
+
+        if (!date) {
+            alert('Please select a date');
+            return;
+        }
+
+        // Standard validation: Super Admin must select a school if not already loaded in context
+        if (document.getElementById('profile-name').value === 'Super Admin' && (!schoolDropdown || !schoolDropdown.value)) {
+            alert('Please select a school first');
+            return;
+        }
+
+        document.getElementById('staff-container').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3>Loading staff...</h3>
+            </div>
+        `;
+
+        const formData = new FormData();
+        formData.append('date', date);
+        if (schoolDropdown && schoolDropdown.value) {
+            formData.append('school_id', schoolDropdown.value);
+        }
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            formData.append('csrfmiddlewaretoken', csrfToken.value);
+        }
+
+        fetch('/attendance/mark-employee/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    displayStaff(data.staff, date);
+                } else {
+                    document.getElementById('staff-container').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error</h3>
+                    <p>${data.message || 'Failed to load staff'}</p>
+                </div>
+            `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('staff-container').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error</h3>
+                <p>Network error</p>
+            </div>
+        `;
+            });
+    }
+
+    function displayStaff(staff, date) {
+        document.getElementById('staff-container').style.display = 'flex';
+
+        if (!staff || staff.length === 0) {
+            document.getElementById('staff-container').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-user-tie"></i>
+                <h3>No Staff Found</h3>
+            </div>
+        `;
+            return;
+        }
+
+        let html = `
+        <div class="staff-section">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h3 style="margin:0; font-size: 1.1rem;"><i class="fas fa-users"></i> Staff List (${staff.length} members)</h3>
+                    <span style="color: var(--text-light); font-size: 0.9rem;">Date: ${date}</span>
+                </div>
+                <div style="color: var(--warning-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-info-circle"></i> 
+                    <span>${document.getElementById('profile-name').value === 'School Admin' ?
+                'Your attendance will be auto-approved' :
+                'Your attendance will require School Admin approval'}</span>
+                </div>
+            </div>
+            
+            <div class="quick-insights">
+                <div class="insight-card present">
+                    <div class="insight-number" id="present-count">0</div>
+                    <div class="insight-label">Present</div>
+                </div>
+                <div class="insight-card absent">
+                    <div class="insight-number" id="absent-count">0</div>
+                    <div class="insight-label">Absent</div>
+                </div>
+                <div class="insight-card late">
+                    <div class="insight-number" id="late-count">0</div>
+                    <div class="insight-label">Late</div>
+                </div>
+                <div class="insight-card leave">
+                    <div class="insight-number" id="leave-count">0</div>
+                    <div class="insight-label">Leave</div>
+                </div>
+            </div>
+            
+            <div class="quick-actions" style="display: flex; gap: 10px; padding: 15px 20px; background: rgba(var(--light-gray), 0.5); flex-wrap: wrap;">
+                <button class="quick-action-btn mark-present-btn" onclick="markAllStaff('present')">
+                    <i class="fas fa-check"></i> Mark All Present
+                </button>
+                <button class="quick-action-btn mark-absent-btn" onclick="markAllStaff('absent')">
+                    <i class="fas fa-times"></i> Mark All Absent
+                </button>
+                <button class="quick-action-btn mark-late-btn" onclick="markAllStaff('late')">
+                    <i class="fas fa-clock"></i> Mark All Late
+                </button>
+                <button class="quick-action-btn mark-leave-btn" onclick="markAllStaff('leave')">
+                    <i class="fas fa-calendar"></i> Mark All Leave
+                </button>
+            </div>
+            
+            <div class="table-container" style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">SN</th>
+                            <th>Staff Member</th>
+                            <th style="text-align: center; width: 220px;">Attendance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+        staff.forEach((member, index) => {
+            html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>
+                    <div class="staff-info-cell">
+                        <div class="staff-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="staff-details" style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                            <h4 style="margin: 0;">${member.EmployeeName.includes(' - ') ? member.EmployeeName.split(' - ')[1] : member.EmployeeName}</h4>
+                            <span class="staff-details-text" style="font-size: 0.75rem; color: var(--text-light); white-space: nowrap;">(${member.EmployeeCode}) | ${member.Role}</span>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <div class="attendance-boxes">
+                        <div class="attendance-box present" onclick="markAttendance(${member.EmployeeID}, 'present')" data-status="present">P</div>
+                        <div class="attendance-box absent" onclick="markAttendance(${member.EmployeeID}, 'absent')" data-status="absent">A</div>
+                        <div class="attendance-box late" onclick="markAttendance(${member.EmployeeID}, 'late')" data-status="late">L</div>
+                        <div class="attendance-box leave" onclick="markAttendance(${member.EmployeeID}, 'leave')" data-status="leave">LV</div>
+                    </div>
+                </td>
+            </tr>
+        `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: center; padding-bottom: 20px;">
+                <button class="btn btn-primary" onclick="saveAttendance()">
+                    <i class="fas fa-save"></i> Save Attendance
+                </button>
+            </div>
+        </div>
+    `;
+
+        document.getElementById('staff-container').innerHTML = html;
+    }
+
+    function markAttendance(staffId, status) {
+        if (!window.attendanceData) {
+            window.attendanceData = {};
+        }
+        window.attendanceData[staffId] = status;
+
+        const tableRow = event.target.closest('tr');
+        if (tableRow) {
+            const allBoxes = tableRow.querySelectorAll('.attendance-box');
+            allBoxes.forEach(box => {
+                box.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        updateInsights();
+    }
+
+    function markAllStaff(status) {
+        if (!window.attendanceData) {
+            window.attendanceData = {};
+        }
+
+        const tableRows = document.querySelectorAll('.attendance-table tbody tr');
+
+        tableRows.forEach(row => {
+            const staffId = row.querySelector('.attendance-box').getAttribute('onclick').match(/\d+/)[0];
+            window.attendanceData[staffId] = status;
+
+            const allBoxes = row.querySelectorAll('.attendance-box');
+            allBoxes.forEach(box => {
+                box.classList.remove('active');
+            });
+
+            const targetBox = row.querySelector(`[data-status="${status}"]`);
+            if (targetBox) {
+                targetBox.classList.add('active');
+            }
+        });
+
+        updateInsights();
+    }
+
+    function updateInsights() {
+        if (!window.attendanceData) {
+            window.attendanceData = {};
+        }
+
+        const counts = {
+            present: 0,
+            absent: 0,
+            late: 0,
+            leave: 0
+        };
+
+        Object.values(window.attendanceData).forEach(status => {
+            if (counts.hasOwnProperty(status)) {
+                counts[status]++;
+            }
+        });
+
+        document.getElementById('present-count').textContent = counts.present;
+        document.getElementById('absent-count').textContent = counts.absent;
+        document.getElementById('late-count').textContent = counts.late;
+        document.getElementById('leave-count').textContent = counts.leave;
+    }
+
+    function saveAttendance() {
+        if (!window.attendanceData || Object.keys(window.attendanceData).length === 0) {
+            alert('Please mark attendance for at least one staff member');
+            return;
+        }
+
+        const date = document.getElementById('attendance-date').value;
+        const profileName = document.getElementById('profile-name').value;
+
+        const formData = new FormData();
+        formData.append('date', date);
+        formData.append('attendance_data', JSON.stringify(window.attendanceData));
+        const schoolDropdown = document.getElementById('school_id');
+        if (schoolDropdown && schoolDropdown.value) {
+            formData.append('school_id', schoolDropdown.value);
+        }
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            formData.append('csrfmiddlewaretoken', csrfToken.value);
+        }
+
+        fetch('/attendance/mark-employee/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    const isAdmin = (profileName === 'School Admin' || profileName === 'Super Admin');
+                    const titleText  = isAdmin ? 'Attendance Saved!' : 'Attendance Submitted!';
+                    const mainMsg    = data.message || 'Attendance saved successfully!';
+                    const extraMsg   = isAdmin ? '' :
+                        '<br><span style="font-size:0.85rem;color:var(--warning-color);font-weight:600;">' +
+                        '<i class="fas fa-clock"></i> Pending approval from School Admin</span>';
+
+                    Swal.fire({
+                        icon: isAdmin ? 'success' : 'info',
+                        title: titleText,
+                        html: mainMsg + extraMsg,
+                        confirmButtonText: 'OK',
+                        timer: isAdmin ? 2000 : undefined,
+                        timerProgressBar: isAdmin
+                    }).then(() => {
+                        window.attendanceData = {};
+                        loadStaff();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Error saving attendance',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Network Error',
+                    text: 'Could not reach the server. Please try again.',
+                    confirmButtonText: 'OK'
+                });
+            });
+    }
+
+</script>
+{% endblock %}

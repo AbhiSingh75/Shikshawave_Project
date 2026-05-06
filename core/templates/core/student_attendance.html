@@ -1,0 +1,1083 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Mark Student Attendance{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #64748b;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --bg-hover: #f8fafc;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --secondary-color: #111827;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+        --bg-hover: #374151;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    /* Mark Attendance Specific Styles */
+    .controls-row {
+        margin-bottom: 20px;
+    }
+    
+    .status-capsule {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .attendance-stats-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .attendance-stat-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: var(--card-shadow);
+        border-bottom: 4px solid var(--primary-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transition: transform 0.3s ease;
+        min-width: 0; /* Allow shrinking */
+    }
+
+    body.dark-mode .attendance-stat-card {
+        background: var(--card-bg);
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 4px solid var(--primary-color);
+    }
+
+    .attendance-stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+    .attendance-stat-card.present { border-bottom-color: var(--success-color); }
+    .attendance-stat-card.absent { border-bottom-color: var(--error-color); }
+    .attendance-stat-card.late { border-bottom-color: var(--warning-color); }
+    .attendance-stat-card.holiday { border-bottom-color: var(--primary-color); }
+
+    .attendance-stat-card.present .attendance-stat-value { color: var(--success-color); }
+    .attendance-stat-card.absent .attendance-stat-value { color: var(--error-color); }
+    .attendance-stat-card.late .attendance-stat-value { color: var(--warning-color); }
+    .attendance-stat-card.holiday .attendance-stat-value { color: var(--primary-color); }
+
+    .attendance-stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    .attendance-stat-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-light);
+        text-transform: uppercase;
+        margin-top: 0.25rem;
+    }
+
+    .mark-all-controls {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .mark-all-controls .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .attendance-table-container {
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .attendance-table th {
+        background: var(--bg-hover);
+        padding: 12px 15px;
+        text-align: left;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-light);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .attendance-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        vertical-align: middle;
+        color: var(--text-main);
+    }
+
+    .attendance-btns {
+        display: flex;
+        gap: 4px;
+    }
+
+    .att-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        font-weight: 700;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .att-btn:hover { background: var(--bg-hover); transform: scale(1.05); }
+    
+    .att-btn {
+        line-height: normal !important;
+        text-indent: 0 !important;
+        border-width: 1.5px !important;
+    }
+
+    .att-btn[data-status="P"].active { background: var(--success-color); border-color: var(--success-color); color: white !important; box-shadow: 0 0 8px var(--success-light); }
+    .att-btn[data-status="A"].active { background: var(--error-color); border-color: var(--error-color); color: white !important; box-shadow: 0 0 8px var(--error-light); }
+    .att-btn[data-status="L"].active { background: var(--warning-color); border-color: var(--warning-color); color: white !important; box-shadow: 0 0 8px var(--warning-light); }
+    .att-btn[data-status="H"].active { background: var(--primary-color); border-color: var(--primary-color); color: white !important; box-shadow: 0 0 8px var(--primary-light); }
+
+    body.dark-mode .att-btn { 
+        border-color: rgba(255, 255, 255, 0.25); 
+        color: var(--text-main); 
+        background: rgba(255, 255, 255, 0.05);
+    }
+    body.dark-mode .att-btn[data-status="P"] { border-color: var(--success-color) !important; color: var(--success-color) !important; }
+    body.dark-mode .att-btn[data-status="A"] { border-color: var(--error-color) !important; color: var(--error-color) !important; }
+    body.dark-mode .att-btn[data-status="L"] { border-color: var(--warning-color) !important; color: var(--warning-color) !important; }
+    body.dark-mode .att-btn[data-status="H"] { border-color: var(--primary-color) !important; color: var(--primary-color) !important; }
+    
+    body.dark-mode .att-btn[data-status="P"].active,
+    body.dark-mode .att-btn[data-status="A"].active,
+    body.dark-mode .att-btn[data-status="L"].active,
+    body.dark-mode .att-btn[data-status="H"].active { color: white !important; border-color: transparent !important; }
+    
+    body.dark-mode .att-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.4); }
+
+    /* Mark All button status colors (light mode) */
+    .mark-all-controls .btn-outline-success { color: var(--success-color) !important; border-color: var(--success-color) !important; background: transparent !important; }
+    .mark-all-controls .btn-outline-danger { color: var(--error-color) !important; border-color: var(--error-color) !important; background: transparent !important; }
+    .mark-all-controls .btn-outline-warning { color: var(--warning-color) !important; border-color: var(--warning-color) !important; background: transparent !important; }
+    .mark-all-controls .btn-outline-info { color: var(--primary-color) !important; border-color: var(--primary-color) !important; background: transparent !important; }
+
+    /* Hover effects for Mark All buttons */
+    .mark-all-controls .btn-outline-success:hover { background: var(--success-color) !important; color: white !important; }
+    .mark-all-controls .btn-outline-danger:hover { background: var(--error-color) !important; color: white !important; }
+    .mark-all-controls .btn-outline-warning:hover { background: var(--warning-color) !important; color: white !important; }
+    .mark-all-controls .btn-outline-info:hover { background: var(--primary-color) !important; color: white !important; }
+
+    /* Fix Mark All button backgrounds in dark mode */
+    body.dark-mode .mark-all-controls .btn-outline-success,
+    body.dark-mode .mark-all-controls .btn-outline-danger,
+    body.dark-mode .mark-all-controls .btn-outline-warning,
+    body.dark-mode .mark-all-controls .btn-outline-info {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: inherit !important;
+    }
+    
+    body.dark-mode .mark-all-controls .btn-outline-success { border-color: var(--success-color) !important; color: var(--success-color) !important; }
+    body.dark-mode .mark-all-controls .btn-outline-danger { border-color: var(--error-color) !important; color: var(--error-color) !important; }
+    body.dark-mode .mark-all-controls .btn-outline-warning { border-color: var(--warning-color) !important; color: var(--warning-color) !important; }
+    body.dark-mode .mark-all-controls .btn-outline-info { border-color: var(--primary-color) !important; color: var(--primary-color) !important; }
+
+    @media (max-width: 1024px) {
+        .attendance-stats-row { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    }
+
+    @media (max-width: 768px) {
+        .attendance-stats-row { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .attendance-stats-row .attendance-stat-card:first-child { grid-column: span 2; } /* Total on top */
+        
+        /* List layout: Keep table header visible and rows horizontal */
+        .attendance-table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -10px; /* Bleed to edges on very small screens */
+            padding: 0 10px;
+        }
+
+        .attendance-table {
+            min-width: 650px; /* Ensures enough space for all columns in a row */
+        }
+
+        .attendance-table th, .attendance-table td {
+            white-space: nowrap;
+            padding: 10px 8px;
+        }
+        .attendance-btns { justify-content: flex-end; }
+        
+        .content-area {
+            display: flex !important; /* Force visibility on mobile, overriding global list styles */
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .controls-row {
+            margin-top: 0 !important; /* Remove excessive top margin on mobile */
+            padding: 15px !important;
+        }
+
+        .mark-all-controls {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+        }
+
+        /* Maximize space on mobile by reducing outer padding */
+        .sw-main-content {
+            padding: 12px !important;
+        }
+        
+        .dashboard-container {
+            padding: 0 !important;
+        }
+    }
+    
+    .attendance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 2rem;
+        width: 100%;
+        color: var(--text-light);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+        color: var(--primary-color);
+    }
+
+    .empty-state h3 {
+        margin: 0 0 0.5rem 0;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 0.95rem;
+        opacity: 0.8;
+    }
+
+    /* Filter Modal Refinements - Compact & Professional */
+    .filter-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .filter-modal.show { opacity: 1; display: flex !important; }
+
+    .filter-content {
+        background: var(--card-bg, white);
+        width: 100%;
+        max-width: 500px; /* More compact width */
+        border-radius: 12px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        overflow: visible !important;
+        transform: translateY(15px);
+        transition: transform 0.3s ease;
+    }
+
+    .filter-modal.show .filter-content { transform: translateY(0); }
+
+    .filter-header {
+        padding: 12px 20px; /* More compact header */
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .filter-header h3 { font-size: 1.1rem; margin: 0; }
+
+    .filter-body {
+        padding: 16px 20px; /* Reduced padding */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px; /* Tighter gap */
+        overflow: visible !important;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .filter-group.full-width { grid-column: span 2; }
+
+    .filter-group label {
+        font-size: 0.75rem; /* Smaller labels */
+        font-weight: 600;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 2px;
+    }
+
+    /* Smaller inputs for compactness */
+    .custom-dropdown-toggle, .form-control, .date-input-container input {
+        height: 38px !important;
+        padding: 0 12px !important;
+        font-size: 0.85rem !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .custom-dropdown-text {
+        flex: 1 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        text-align: left !important;
+        padding-right: 4px !important;
+    }
+
+    .custom-dropdown-arrow {
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
+        font-size: 0.7rem !important;
+        opacity: 0.7 !important;
+    }
+
+    .filter-footer {
+        padding: 12px 20px;
+        background: var(--bg-hover, #f8fafc);
+        border-radius: 0 0 12px 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    body.dark-mode .filter-content {
+        background: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark-mode .filter-footer { background: rgba(255, 255, 255, 0.02); }
+
+    /* Custom Dropdown Adjustments */
+    .custom-dropdown-menu {
+        max-height: 200px;
+        z-index: 2200 !important;
+        background: var(--card-bg, white) !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+    }
+
+    body.dark-mode .custom-dropdown-menu {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--border-color);
+    }
+
+    .custom-dropdown-option:hover {
+        background: var(--primary-light) !important;
+        color: var(--primary-color) !important;
+    }
+
+    .attendance-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .attendance-toggle {
+        display: flex;
+        background: var(--bg-color);
+        border-radius: 8px;
+        padding: 4px;
+        gap: 4px;
+    }
+
+    .toggle-btn {
+        padding: 6px 12px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-muted);
+    }
+
+    .toggle-btn.active[data-status="P"] { background: #10b981; color: white; }
+    .toggle-btn.active[data-status="A"] { background: #ef4444; color: white; }
+    .toggle-btn.active[data-status="L"] { background: #f59e0b; color: white; }
+    .toggle-btn.active[data-status="H"] { background: #8b5cf6; color: white; }
+
+    @media (max-width: 768px) {
+        .attendance-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .attendance-stats-row {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .attendance-stats-row .attendance-stat-card:first-child {
+            grid-column: span 2 !important;
+        }
+
+        .attendance-stat-card {
+            padding: 1rem !important;
+        }
+
+        .attendance-stat-value {
+            font-size: 1.5rem !important;
+        }
+
+        /* Ensure Filter/Reset icons have brand color on mobile too */
+        .control-buttons .btn i {
+            color: var(--primary-color);
+        }
+    }
+
+    /* Filter Summary Box Styles */
+    .summary-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--card-bg);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .summary-item i {
+        color: var(--primary-color);
+        font-size: 0.8rem;
+    }
+
+    /* Standard button icon colors */
+    .control-buttons .btn i {
+        color: var(--primary-color);
+    }
+    .control-buttons .btn:hover i {
+        color: white;
+    }
+    .control-buttons .btn.btn-success i {
+        color: white !important;
+    }
+    .filter-content { background: var(--card-bg) !important; color: var(--text-color) !important; overflow: visible !important; }
+    .filter-body { overflow: visible !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    {% csrf_token %}
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-calendar-check text-primary me-2"></i>Mark Student Attendance</h3>
+            
+            <!-- Filter Summary Box -->
+            <div id="filter-summary" class="summary-box" style="{% if not selected_class_id %}display: none;{% endif %}">
+                {% if selected_date %}
+                <div class="summary-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="summary-date">{{ selected_date }}</span>
+                </div>
+                {% endif %}
+
+                <div class="summary-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span id="summary-class">{% if selected_class_name %}{{ selected_class_name }}{% else %}-{% endif %}</span>
+                </div>
+
+                <div class="summary-item">
+                    <i class="fas fa-users"></i>
+                    <span id="summary-section">{% if selected_section_name %}{{ selected_section_name }}{% else %}All Sections{% endif %}</span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="control-buttons">
+                <button type="button" class="btn btn-secondary" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    <span class="btn-label">Filter</span>
+                </button>
+                <a href="." class="btn btn-secondary">
+                    <i class="fas fa-redo"></i>
+                    <span class="btn-label">Reset</span>
+                </a>
+                <button type="button" class="btn btn-success" onclick="saveAllAttendance()">
+                    <i class="fas fa-save me-2"></i>Save All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter me-2"></i>Filter Options</h3>
+                <button type="button" class="action-btn" id="close-filter-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-body">
+                {% if request.session.ProfileID == 1 %}
+                <div class="filter-group full-width">
+                    <label><i class="fas fa-school"></i> Select School</label>
+                    <div class="custom-dropdown" data-target="school">
+                        <div class="custom-dropdown-toggle">
+                            <i class="fas fa-school dropdown-icon"></i>
+                            <span class="custom-dropdown-text">Select School</span>
+                            <span class="custom-dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-dropdown-menu" id="school-dropdown-menu">
+                            <div class="custom-dropdown-option" data-value="">Select School</div>
+                        </div>
+                        <input type="hidden" name="school_id" id="school-id-input">
+                    </div>
+                    <select id="school" style="display: none;" onchange="loadClasses(this.value)">
+                        <option value="">Select School</option>
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar-alt"></i> Attendance Date</label>
+                    <div class="date-input-container">
+                        <input type="date" id="attendance-date" class="form-control" value="{{ selected_date }}">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fas fa-graduation-cap"></i> Select Class</label>
+                    <div class="custom-dropdown" data-target="class">
+                        <div class="custom-dropdown-toggle">
+                            <i class="fas fa-graduation-cap dropdown-icon"></i>
+                            <span class="custom-dropdown-text">Select Class</span>
+                            <span class="custom-dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-dropdown-menu" id="class-dropdown-menu">
+                            <div class="custom-dropdown-option" data-value="">Select Class</div>
+                            {% for class in classes %}
+                            <div class="custom-dropdown-option" data-value="{{ class.id }}">{{ class.name }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <select id="class" style="display: none;" onchange="loadSections(this.value)">
+                        <option value="">Select Class</option>
+                        {% for class in classes %}
+                        <option value="{{ class.id }}">{{ class.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group full-width">
+                    <label><i class="fas fa-users"></i> Select Section</label>
+                    <div class="custom-dropdown" data-target="section">
+                        <div class="custom-dropdown-toggle">
+                            <i class="fas fa-users dropdown-icon"></i>
+                            <span class="custom-dropdown-text">All Sections</span>
+                            <span class="custom-dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-dropdown-menu" id="section-dropdown-menu">
+                            <div class="custom-dropdown-option selected" data-value="">All Sections</div>
+                        </div>
+                    </div>
+                    <select id="section" style="display: none;">
+                        <option value="">All Sections</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-footer">
+                <button type="button" class="btn btn-secondary" onclick="location.reload()">
+                    <i class="fas fa-undo me-2"></i>Reset
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-filters-attendance" onclick="loadStudents()">
+                    <i class="fas fa-search me-2"></i>Apply Filter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area" id="students-attendance-list">
+        <div class="empty-state">
+            <i class="fas fa-user-graduate"></i>
+            <h3>No Students Loaded</h3>
+            <p>Please select filters and click "Apply Filter"</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global data
+    let allSections = {};
+    try {
+        allSections = JSON.parse('{{ all_sections|default:"{}"|safe|escapejs }}');
+    } catch (e) {
+        console.error('Error parsing sections:', e);
+    }
+    let currentProfileId = parseInt("{{ request.session.ProfileID|default:0 }}");
+    let studentsData = [];
+
+    // Modal Control Overrides for Attendance (since we want custom logic on apply)
+    // The global script will handle opening/closing via #filterBtn and #close-filter-modal
+    // but we can also use these helpers if needed.
+    function openFilterModal() {
+        const modal = document.getElementById('filter-modal');
+        if (modal) {
+            modal.classList.add('show');
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeFilterModal() {
+        const modal = document.getElementById('filter-modal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => { if (!modal.classList.contains('show')) modal.style.display = 'none'; }, 300);
+        }
+    }
+
+    function updateCustomDropdown(id, value, text) {
+        const dropdown = document.querySelector(`.custom-dropdown[data-target="${id}"]`);
+        if (dropdown) {
+            const textSpan = dropdown.querySelector('.custom-dropdown-text');
+            if (textSpan) textSpan.textContent = text;
+            
+            const select = document.getElementById(id);
+            if (select) {
+                select.value = value;
+                select.dispatchEvent(new Event('change'));
+            }
+        }
+    }
+
+    function loadSchools() {
+        if (currentProfileId !== 1) return;
+        fetch('{% url "school_dropdown_api" %}')
+            .then(res => res.json())
+            .then(data => {
+                const menu = document.getElementById('school-dropdown-menu');
+                const select = document.getElementById('school');
+                if (!menu || !select) return;
+                
+                menu.innerHTML = '<div class="custom-dropdown-option" data-value="">Select School</div>';
+                select.innerHTML = '<option value="">Select School</option>';
+                
+                if (data.status === 'SUCCESS' && data.data) {
+                    data.data.forEach(s => {
+                        // Update Menu
+                        const div = document.createElement('div');
+                        div.className = 'custom-dropdown-option';
+                        div.dataset.value = s.id;
+                        div.textContent = s.name;
+                        menu.appendChild(div);
+                        
+                        // Update Select
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.name;
+                        select.appendChild(opt);
+                    });
+                }
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            });
+    }
+
+    function loadClasses(schoolId) {
+        if (!schoolId) return;
+        
+        fetch(`/api/classes/?school_id=${schoolId}`)
+            .then(response => response.json())
+            .then(data => {
+                const classMenu = document.getElementById('class-dropdown-menu');
+                const classSelect = document.getElementById('class');
+                
+                if (classMenu) {
+                    classMenu.innerHTML = '<div class="custom-dropdown-option" data-value="">Select Class</div>';
+                    data.classes.forEach(cls => {
+                        const option = document.createElement('div');
+                        option.className = 'custom-dropdown-option';
+                        option.dataset.value = cls.ClassID;
+                        option.textContent = cls.ClassName;
+                        classMenu.appendChild(option);
+                    });
+                }
+
+                if (classSelect) {
+                    classSelect.innerHTML = '<option value="">Select Class</option>';
+                    data.classes.forEach(cls => {
+                        const option = document.createElement('option');
+                        option.value = cls.ClassID;
+                        option.textContent = cls.ClassName;
+                        classSelect.appendChild(option);
+                    });
+                }
+                
+                updateCustomDropdown('section', '', 'Select Section');
+                const sectionMenu = document.getElementById('section-dropdown-menu');
+                if (sectionMenu) sectionMenu.innerHTML = '<div class="custom-dropdown-option" data-value="">Select Section</div>';
+                
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            })
+            .catch(error => console.error('Error loading classes:', error));
+    }
+
+    function loadSections(classId) {
+        if (!classId) return;
+        
+        fetch(`/api/sections/?class_id=${classId}`)
+            .then(res => res.json())
+            .then(data => {
+                const nativeSelect = document.getElementById('section');
+                const sectionMenu = document.getElementById('section-dropdown-menu');
+                
+                if (nativeSelect) {
+                    nativeSelect.innerHTML = '<option value="">Select Section</option>';
+                    data.sections.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.SectionID;
+                        opt.textContent = s.SectionName;
+                        nativeSelect.appendChild(opt);
+                    });
+                }
+
+                if (sectionMenu) {
+                    sectionMenu.innerHTML = '<div class="custom-dropdown-option" data-value="">Select Section</div>';
+                    data.sections.forEach(s => {
+                        const option = document.createElement('div');
+                        option.className = 'custom-dropdown-option';
+                        option.dataset.value = s.SectionID;
+                        option.textContent = s.SectionName;
+                        sectionMenu.appendChild(option);
+                    });
+                }
+                
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            })
+            .catch(err => console.error('Error loading sections:', err));
+    }
+
+    function loadStudents() {
+        const classId = document.getElementById('class').value;
+        const sectionId = document.getElementById('section').value;
+        const date = document.getElementById('attendance-date').value;
+        const schoolId = document.getElementById('school') ? document.getElementById('school').value : '';
+
+        if (!classId || !date) {
+            Swal.fire('Warning', 'Please select class and date', 'warning');
+            return;
+        }
+
+        const container = document.getElementById('students-attendance-list');
+        container.innerHTML = '<div class="loader">Loading Students...</div>';
+
+        const formData = new FormData();
+        formData.append('class_id', classId);
+        formData.append('section_id', sectionId);
+        formData.append('date', date);
+        formData.append('school_id', schoolId);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch('{% url "load_students_ajax" %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                studentsData = data.students || [];
+                renderStudents();
+                
+                // Update Filter Summary Box
+                const summaryBox = document.getElementById('filter-summary');
+                const summaryDate = document.getElementById('summary-date');
+                const summaryClass = document.getElementById('summary-class');
+                const summarySection = document.getElementById('summary-section');
+                
+                if (summaryBox) {
+                    summaryBox.style.display = 'flex';
+                    if (summaryDate) summaryDate.textContent = date;
+                    
+                    // Get text labels from dropdowns
+                    const classSelect = document.getElementById('class');
+                    const sectionSelect = document.getElementById('section');
+                    
+                    if (summaryClass) {
+                        summaryClass.textContent = classSelect.options[classSelect.selectedIndex].text;
+                    }
+                    if (summarySection) {
+                        summarySection.textContent = sectionSelect.value ? sectionSelect.options[sectionSelect.selectedIndex].text : 'All Sections';
+                    }
+                }
+                
+                closeFilterModal();
+            } else {
+                container.innerHTML = `<div class="empty-state"><h3>${data.message || 'Error loading students'}</h3></div>`;
+            }
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="empty-state"><h3>Failed to communicate with server</h3></div>';
+        });
+    }
+
+    function renderStudents() {
+        const container = document.getElementById('students-attendance-list');
+        if (studentsData.length === 0) {
+            container.innerHTML = '<div class="empty-state"><h3>No Students Found</h3></div>';
+            return;
+        }
+
+        const counts = { P: 0, A: 0, L: 0, H: 0 };
+        studentsData.forEach(s => {
+            if (!s.Status) s.Status = 'P';
+            counts[s.Status]++;
+        });
+
+        let html = `
+            <div class="attendance-stats-row text-center">
+                <div class="attendance-stat-card">
+                    <div class="attendance-stat-value">${studentsData.length}</div>
+                    <div class="attendance-stat-label">Total Students</div>
+                </div>
+                <div class="attendance-stat-card present">
+                    <div class="attendance-stat-value" id="count-P">${counts.P}</div>
+                    <div class="attendance-stat-label">Present</div>
+                </div>
+                <div class="attendance-stat-card absent">
+                    <div class="attendance-stat-value" id="count-A">${counts.A}</div>
+                    <div class="attendance-stat-label">Absent</div>
+                </div>
+                <div class="attendance-stat-card late">
+                    <div class="attendance-stat-value" id="count-L">${counts.L}</div>
+                    <div class="attendance-stat-label">Late</div>
+                </div>
+                 <div class="attendance-stat-card holiday">
+                    <div class="attendance-stat-value" id="count-H">${counts.H}</div>
+                    <div class="attendance-stat-label">Holiday</div>
+                </div>
+            </div>
+
+            <div class="mark-all-controls">
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="markAll('P')">
+                    <i class="fas fa-check me-1"></i> Mark All Present
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAll('A')">
+                    <i class="fas fa-times me-1"></i> Mark All Absent
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-warning" onclick="markAll('L')">
+                    <i class="fas fa-clock me-1"></i> Mark All Late
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-info" onclick="markAll('H')">
+                    <i class="fas fa-umbrella-beach me-1"></i> Mark All Holiday
+                </button>
+            </div>
+
+            <div class="attendance-table-container">
+                <table class="attendance-table">
+                    <thead class="sticky-top">
+                        <tr>
+                            <th style="width: 50px;">SN</th>
+                            <th>Roll No</th>
+                            <th>Student Name</th>
+                            <th>Code</th>
+                            <th class="text-center" style="width: 180px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        studentsData.forEach((s, index) => {
+            const studentId = s.StudentID || s.id;
+            const studentName = s.FullName || s.FullName || s.name || 'Unknown';
+            const rollNo = s.RollNo || s.roll_no || '-';
+            const code = s.StudentCode || s.code || '-';
+            const status = s.Status || 'P';
+            
+            html += `
+                <tr data-student-id="${studentId}">
+                    <td data-label="SN">${index + 1}</td>
+                    <td data-label="Roll No">${rollNo}</td>
+                    <td data-label="Student Name">${studentName}</td>
+                    <td data-label="Code">${code}</td>
+                    <td data-label="Status">
+                        <div class="attendance-btns justify-content-center">
+                            <button type="button" class="att-btn ${status === 'P' ? 'active' : ''}" data-status="P" onclick="updateStatus(this, '${studentId}', 'P')">P</button>
+                            <button type="button" class="att-btn ${status === 'A' ? 'active' : ''}" data-status="A" onclick="updateStatus(this, '${studentId}', 'A')">A</button>
+                            <button type="button" class="att-btn ${status === 'L' ? 'active' : ''}" data-status="L" onclick="updateStatus(this, '${studentId}', 'L')">L</button>
+                            <button type="button" class="att-btn ${status === 'H' ? 'active' : ''}" data-status="H" onclick="updateStatus(this, '${studentId}', 'H')">H</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }
+
+    function markAll(status) {
+        studentsData.forEach(s => s.Status = status);
+        renderStudents();
+    }
+
+    function updateStatus(btn, studentId, status) {
+        const row = btn.closest('tr');
+        row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const student = studentsData.find(s => (s.StudentID || s.id) == studentId);
+        if (student) student.Status = status;
+        
+        // Update counts in header without full re-render
+        updateCounts();
+    }
+
+    function updateCounts() {
+        const counts = { P: 0, A: 0, L: 0, H: 0 };
+        studentsData.forEach(s => counts[s.Status || 'P']++);
+        ['P', 'A', 'L', 'H'].forEach(type => {
+            const el = document.getElementById(`count-${type}`);
+            if (el) el.textContent = counts[type];
+        });
+    }
+
+    function saveAllAttendance() {
+        if (studentsData.length === 0) {
+            Swal.fire('Info', 'No students to save', 'info');
+            return;
+        }
+
+        const classId = document.getElementById('class').value;
+        const sectionId = document.getElementById('section').value;
+        const date = document.getElementById('attendance-date').value;
+        const schoolId = document.getElementById('school') ? document.getElementById('school').value : '';
+
+        Swal.fire({
+            title: 'Saving Attendance...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        const attendance_data = {};
+        studentsData.forEach(s => {
+            attendance_data[s.StudentID || s.id] = s.Status || 'P';
+        });
+
+        const formData = new FormData();
+        formData.append('class_id', classId);
+        formData.append('section_id', sectionId);
+        formData.append('date', date);
+        formData.append('school_id', schoolId);
+        formData.append('attendance_data', JSON.stringify(attendance_data));
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch('{% url "submit_attendance_ajax" %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                Swal.fire('Success', 'Attendance saved successfully', 'success');
+            } else {
+                Swal.fire('Error', data.message || 'Failed to save attendance', 'error');
+            }
+        })
+        .catch(err => Swal.fire('Error', 'Server communication failure', 'error'));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSchools();
+        if (window.initCustomDropdowns) window.initCustomDropdowns();
+    });
+</script>
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,818 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Academic Year | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* High-Density Page Header / Control Row */
+    .sw-container {
+        background: var(--bg-main, #f8fafc);
+        min-height: 100vh;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+
+    body.dark-mode .sw-container {
+        background: var(--bg-main, #0f172a);
+    }
+
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--card-bg, #fff);
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color, #e5e7eb);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .controls-row {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .controls-left h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    body.dark-mode .controls-left h3 {
+        background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .count-badge {
+        font-size: 0.75rem;
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+        -webkit-text-fill-color: white;
+    }
+
+    .controls-right, .control-buttons {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .btn-standard {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 20px;
+        height: 40px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        white-space: nowrap;
+        border: none;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb, 99, 102, 241), 0.2);
+        background: linear-gradient(135deg, var(--primary-color, #7c3aed) 0%, var(--primary-hover, #6366f1) 100%);
+        color: white !important;
+    }
+
+    .btn-standard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+        filter: brightness(1.1);
+    }
+
+    .btn-standard i { font-size: 0.85rem; }
+
+    /* Premium Table Styling */
+    .table-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .table-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .sw-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .sw-table th {
+        background: var(--primary-color, #7c3aed);
+        padding: 14px 20px;
+        text-align: left;
+        font-size: 0.725rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #fff;
+        border-bottom: none;
+    }
+
+    .sw-table th:first-child { border-top-left-radius: 12px; }
+    .sw-table th:last-child { border-top-right-radius: 12px; }
+
+    body.dark-mode .sw-table th {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sw-table td {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid var(--border-color, #f3f4f6);
+        color: var(--text-main, #374151);
+        vertical-align: middle;
+    }
+
+    body.dark-mode .sw-table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .sw-table tr:hover td {
+        background: var(--bg-hover, #f9fafb);
+    }
+
+    body.dark-mode .sw-table tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .sw-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Status Badges */
+    .badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .badge-current { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-history { background: rgba(107, 114, 128, 0.1); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.2); }
+    
+    .status-pill {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    .status-active { background: #064e3b; color: #34d399; }
+    .status-inactive { background: #450a0a; color: #f87171; }
+
+    /* Action Buttons */
+    .action-group {
+        display: flex;
+        gap: 8px;
+    }
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color, #e5e7eb);
+        background: var(--card-bg, #fff);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.9rem;
+        color: var(--text-main);
+    }
+
+    /* Edit Button Standard */
+    .btn-icon.edit-btn {
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.05);
+        border: 1px solid rgba(245, 158, 11, 0.15);
+    }
+    .btn-icon.edit-btn:hover {
+        background: #f59e0b;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+
+    /* Delete Button Standard */
+    .btn-icon.delete-btn {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+    .btn-icon.delete-btn:hover {
+        background: #ef4444;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    }
+
+    body.dark-mode .btn-icon {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+    }
+    body.dark-mode .btn-icon.edit-btn { background: rgba(245, 158, 11, 0.1); }
+    body.dark-mode .btn-icon.delete-btn { background: rgba(239, 68, 68, 0.1); }
+
+    /* =========================================================
+       MODAL OVERRIDES (Sync with Global Exam Design)
+       ========================================================= */
+    .sw-modal-container {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 99999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .sw-modal-container.show { display: flex !important; }
+
+    .sw-modal {
+        background: var(--card-bg);
+        width: 100%;
+        max-width: 550px;
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sw-modal-header {
+        padding: 24px 32px;
+        background: var(--primary-color, #7c3aed);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .sw-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: white;
+    }
+
+    .sw-modal-title h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: white !important;
+        letter-spacing: -0.01em;
+    }
+
+    .sw-modal-close {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .sw-modal-close:hover { background: rgba(255, 255, 255, 0.25); transform: rotate(90deg); }
+
+    .sw-modal-body { padding: 32px; }
+
+    .sw-modal-footer {
+        padding: 24px 32px;
+        background: var(--bg-hover, #f1f5f9);
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        border-top: 1px solid var(--border-color);
+    }
+    body.dark-mode .sw-modal-footer { background: rgba(0, 0, 0, 0.2); }
+
+    .btn-cancel {
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 10px 24px;
+        border-radius: 12px;
+        transition: all 0.2s;
+    }
+    .btn-cancel:hover { background: #e2e8f0; color: #475569; }
+    body.dark-mode .btn-cancel { background: rgba(255, 255, 255, 0.05); color: #cbd5e1; }
+    body.dark-mode .btn-cancel:hover { background: rgba(255, 255, 255, 0.1); }
+
+    .btn-save {
+        background: var(--primary-color, #7c3aed);
+        color: #fff !important;
+        padding: 10px 24px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+    }
+    .btn-save:hover {
+        background: var(--primary-hover, #6d28d9);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(var(--primary-rgb), 0.3);
+    }
+
+    @keyframes modalScaleUp {
+        from { opacity: 0; transform: scale(0.95) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Form specific refinements */
+    .sw-form-group { margin-bottom: 20px; }
+    
+    .sw-form-label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: var(--primary-color, #6366f1);
+        margin-bottom: 10px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    body.dark-mode .sw-form-label { color: #818cf8; }
+
+    .sw-form-control {
+        width: 100%;
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color, #e2e8f0);
+        background: var(--card-bg, #fff);
+        color: var(--text-main, #1e293b);
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        box-sizing: border-box;
+        display: block;
+        height: 40px;
+    }
+
+    body.dark-mode .sw-form-control {
+        background: #1e293b;
+        border: 1.5px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        color-scheme: dark;
+    }
+
+    .sw-form-control:focus {
+        outline: none;
+        border-color: var(--primary-color, #6366f1);
+        background: var(--card-bg, #fff);
+        box-shadow: 0 0 0 4px rgba(var(--primary-rgb, 99, 102, 241), 0.1);
+    }
+
+    body.dark-mode .sw-form-control:focus {
+        background: #1e293b;
+    }
+
+    .sw-checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        background: var(--bg-hover, #f8fafc);
+        border-radius: 12px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.2s;
+        border: 1.5px solid var(--border-color, #e2e8f0);
+    }
+    body.dark-mode .sw-checkbox-row { 
+        background: rgba(255, 255, 255, 0.05); 
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    .sw-checkbox-row input { 
+        width: 18px; 
+        height: 18px; 
+        cursor: pointer; 
+        accent-color: var(--primary-color, #7c3aed); 
+    }
+    .sw-checkbox-row label { 
+        margin: 0; 
+        cursor: pointer; 
+        color: var(--text-main, #334155); 
+        font-size: 0.95rem; 
+        font-weight: 600; 
+        text-transform: none; 
+    }
+    body.dark-mode .sw-checkbox-row label { color: #fff; }
+
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+        .controls-row { 
+            flex-direction: column; 
+            gap: 12px; 
+            align-items: stretch; 
+            padding: 15px;
+            margin-bottom: 16px;
+        }
+        
+        .controls-left { width: 100%; margin-bottom: 4px; }
+        .controls-left h3 { font-size: 1.15rem; }
+        
+        .controls-right { 
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .sw-form-control { width: 100% !important; min-width: 0 !important; }
+        .btn-standard { width: 100%; justify-content: center; height: 44px; }
+
+        .sw-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .sw-table thead th { white-space: nowrap; font-size: 0.75rem; padding: 10px 12px; }
+        .sw-table td { white-space: nowrap; font-size: 0.85rem; padding: 10px 12px; }
+        .form-row { grid-template-columns: 1fr; }
+
+        /* Modal Mobile Refinements */
+        .sw-modal { 
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-end !important;
+            padding: 0 !important; 
+            overflow: hidden !important;
+        }
+        .modal-card { 
+            width: 100% !important; 
+            margin: 0 !important;
+            max-width: none !important; 
+            border-radius: 20px 20px 0 0 !important; 
+            max-height: 90vh !important; 
+            transform: translateY(100%); 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sw-modal.show .modal-card { transform: translateY(0); }
+        .sw-modal-header { padding: 16px 24px !important; border-radius: 20px 20px 0 0 !important; }
+        .sw-modal-body { padding: 24px !important; overflow-y: auto !important; }
+        .sw-modal-footer { 
+            padding: 16px 24px !important; 
+            padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; 
+            background: var(--bg-hover) !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-container">
+    <!-- Global Control Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-calendar-check" style="color: var(--primary-color);"></i>
+                Academic Year Management
+                <span class="count-badge">{{ academic_years|length }}</span>
+            </h3>
+        </div>
+
+        <div class="controls-right">
+            <div class="control-buttons">
+                {% if is_super_admin %}
+                <select id="school_selector" class="sw-form-control" style="width: auto; min-width: 260px; margin: 0; cursor: pointer;" onchange="loadAcademicYears()">
+                    <option value="">-- Select School --</option>
+                    <option value="0" {% if selected_school_id == 0 %}selected{% endif %}>Global Academic Year</option>
+                    {% for school in schools %}
+                    <option value="{{ school.SchoolID }}" {% if selected_school_id == school.SchoolID %}selected{% endif %}>{{ school.DisplayName }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+
+                <button class="btn-standard" onclick="openModal()">
+                    <i class="fas fa-plus"></i> <span class="btn-label">Add Academic Year</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Section -->
+    <div class="table-card">
+        <div id="yearsList">
+            {% if academic_years %}
+            <table class="sw-table">
+                <thead>
+                    <tr>
+                        <th width="60">SN</th>
+                        <th width="100" style="text-align: center;">Actions</th>
+                        <th>Academic Year</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for year in academic_years %}
+                    <tr>
+                        <td data-label="SN">{{ forloop.counter }}</td>
+                        <td data-label="Actions" style="text-align: center;">
+                            <div class="action-group" style="justify-content: center;">
+                                <button class="btn-icon edit-btn" onclick="editYear({{ year.AcademicYearID }}, '{{ year.AcademicYear|escapejs }}', '{{ year.StartDate|date:'Y-m-d' }}', '{{ year.EndDate|date:'Y-m-d' }}', {{ year.IsCurrent|yesno:'true,false' }}, {{ year.IsActive|yesno:'true,false' }}, {{ year.SchoolID }})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon delete-btn" onclick="deleteYear({{ year.AcademicYearID }})" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td data-label="Year">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-weight: 600;">{{ year.AcademicYear }}</span>
+                                {% if year.IsCurrent %}
+                                <span class="badge badge-current">Current</span>
+                                {% else %}
+                                <span class="badge badge-history">History</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td data-label="Start">{{ year.StartDate|date:"d M Y" }}</td>
+                        <td data-label="End">{{ year.EndDate|date:"d M Y" }}</td>
+                        <td data-label="Status">
+                            <span class="status-pill {% if year.IsActive %}status-active{% else %}status-inactive{% endif %}">
+                                {% if year.IsActive %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 60px 20px;">
+                <i class="fas fa-calendar-alt" style="font-size: 3rem; opacity: 0.2; margin-bottom: 20px; display: block;"></i>
+                <p style="color: rgba(255,255,255,0.5);">No academic years found. Click "Add Year" to begin.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ===== ACADEMIC YEAR MODAL (Synchronized) ===== -->
+<div class="sw-modal-container" id="yearModalContainer">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-edit"></i>
+                <h2 id="modalTitle">Create New Academic Year</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body">
+            <form id="yearForm" method="POST" action="{% url 'academic_year_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="academic_year_id" id="academic_year_id">
+                {% if is_super_admin %}
+                <div class="sw-form-group" id="modal_school_group">
+                    <label class="sw-form-label">Target School / Organization <span style="color: var(--danger);">*</span></label>
+                    <select name="school_id" id="modal_school_id" class="sw-form-control" required>
+                        <option value="0">My Organization (Global)</option>
+                        {% for school in schools %}
+                        <option value="{{ school.SchoolID }}">{{ school.DisplayName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                {% if not is_super_admin %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Academic Year Name <span style="color: var(--danger);">*</span></label>
+                    <input type="text" name="academic_year" id="academic_year" class="sw-form-control" placeholder="e.g., 2024-2025" required>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Start Date <span style="color: var(--danger);">*</span></label>
+                        <input type="date" name="start_date" id="start_date" class="sw-form-control" required>
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">End Date <span style="color: var(--danger);">*</span></label>
+                        <input type="date" name="end_date" id="end_date" class="sw-form-control" required>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="sw-checkbox-row" onclick="document.getElementById('is_current').click()">
+                        <input type="checkbox" name="is_current" id="is_current" onclick="event.stopPropagation()">
+                        <label for="is_current">Set as Current Year</label>
+                    </div>
+                    
+                    <div class="sw-checkbox-row" onclick="document.getElementById('is_active').click()">
+                        <input type="checkbox" name="is_active" id="is_active" checked onclick="event.stopPropagation()">
+                        <label for="is_active">Active Activity Status</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="sw-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button type="submit" form="yearForm" class="btn-save">
+                <i class="fas fa-save" style="font-size: 0.9rem;"></i> Save Academic Year
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        const globalSchoolId = document.getElementById('school_selector') ? document.getElementById('school_selector').value : '';
+        
+        {% if is_super_admin %}
+        const modalSchoolSelector = document.getElementById('modal_school_id');
+        if (modalSchoolSelector) {
+            // Pre-populate with global selection if available, otherwise default to "My Organization" (0)
+            modalSchoolSelector.value = globalSchoolId || "0";
+        }
+        {% endif %}
+        
+        document.getElementById('modalTitle').textContent = 'Create New Academic Year';
+        document.getElementById('academic_year_id').value = '';
+        document.getElementById('academic_year').value = '';
+        document.getElementById('start_date').value = '';
+        document.getElementById('end_date').value = '';
+        document.getElementById('is_current').checked = false;
+        document.getElementById('is_active').checked = true;
+        
+        const modal = document.getElementById('yearModalContainer');
+        modal.classList.add('show');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('yearModalContainer');
+        modal.classList.remove('show');
+    }
+
+    function editYear(id, year, startDate, endDate, isCurrent, isActive, schoolId) {
+        {% if is_super_admin %}
+        const modalSchoolSelector = document.getElementById('modal_school_id');
+        if (modalSchoolSelector) {
+            modalSchoolSelector.value = schoolId || "0";
+        }
+        {% endif %}
+        
+        document.getElementById('modalTitle').textContent = 'Update Academic Year';
+        document.getElementById('academic_year_id').value = id;
+        document.getElementById('academic_year').value = year;
+        document.getElementById('start_date').value = startDate;
+        document.getElementById('end_date').value = endDate;
+        document.getElementById('is_current').checked = isCurrent;
+        document.getElementById('is_active').checked = isActive;
+        
+        const modal = document.getElementById('yearModalContainer');
+        modal.classList.add('show');
+    }
+
+    function deleteYear(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This action will permanently delete the academic year record.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: 'rgba(255,255,255,0.1)',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('{% url "academic_year_delete" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'academic_year_id=' + id
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS') {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    {% if is_super_admin %}
+    function loadAcademicYears() {
+        const schoolId = document.getElementById('school_selector').value || "0";
+        
+        fetch('{% url "academic_year_load" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: 'school_id=' + schoolId
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                const years = data.data;
+                let html = '';
+                
+                if (years.length === 0) {
+                    html = '<div style="text-align: center; padding: 60px 20px;"><i class="fas fa-calendar-alt" style="font-size: 3.5rem; opacity: 0.1; margin-bottom: 20px; display: block;"></i><p style="color: rgba(255,255,255,0.4);">No records found for this school.</p></div>';
+                } else {
+                    html = '<table class="sw-table"><thead><tr><th width="60">SN</th><th width="100" style="text-align: center;">Actions</th><th>Academic Year</th><th>Start Date</th><th>End Date</th><th>Status</th></tr></thead><tbody>';
+                    years.forEach((year, index) => {
+                        const startDate = new Date(year.StartDate).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+                        const endDate = new Date(year.EndDate).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+                        const startDateISO = new Date(year.StartDate).toISOString().split('T')[0];
+                        const endDateISO = new Date(year.EndDate).toISOString().split('T')[0];
+                        
+                        html += `
+                            <tr>
+                                <td data-label="SN">${index + 1}</td>
+                                <td data-label="Actions" style="text-align: center;">
+                                    <div class="action-group" style="justify-content: center;">
+                                        <button class="btn-icon edit-btn" onclick="editYear(${year.AcademicYearID}, '${year.AcademicYear}', '${startDateISO}', '${endDateISO}', ${year.IsCurrent}, ${year.IsActive})" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon delete-btn" onclick="deleteYear(${year.AcademicYearID})" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td data-label="Year">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span style="font-weight: 600;">${year.AcademicYear}</span>
+                                        ${year.IsCurrent == 1 ? '<span class="badge badge-current">Current</span>' : '<span class="badge badge-history">History</span>'}
+                                    </div>
+                                </td>
+                                <td data-label="Start">${startDate}</td>
+                                <td data-label="End">${endDate}</td>
+                                <td data-label="Status">
+                                    <span class="status-pill ${year.IsActive ? 'status-active' : 'status-inactive'}">
+                                        ${year.IsActive ? 'Active' : 'Inactive'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    html += '</tbody></table>';
+                }
+                
+                document.getElementById('yearsList').innerHTML = html;
+            }
+        });
+    }
+    {% endif %}
+
+    // Close modal on outside click
+    document.getElementById('yearModalContainer').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+</script>
+{% endblock %}

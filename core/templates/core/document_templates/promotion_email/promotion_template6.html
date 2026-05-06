@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .gradient-top {
+            background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%);
+            padding: 60px 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .gradient-top h1 {
+            margin: 0;
+            font-size: 36px;
+            font-weight: 800;
+        }
+
+        .body-content {
+            background: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            margin-top: -30px;
+            border-radius: 30px 30px 0 0;
+        }
+
+        .info-pill {
+            display: inline-block;
+            background: #f3f4f6;
+            color: #4b5563;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .main-info {
+            font-size: 18px;
+            color: #374151;
+            margin-bottom: 30px;
+        }
+
+        .card-row {
+            display: flex;
+            justify-content: space-around;
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+
+        .card-item {
+            flex: 1;
+        }
+
+        .card-val {
+            font-size: 24px;
+            font-weight: 800;
+            color: #784BA0;
+            display: block;
+        }
+
+        .card-lab {
+            font-size: 12px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .primary-btn {
+            display: inline-block;
+            background: #784BA0;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 10px 20px rgba(120, 75, 160, 0.3);
+        }
+
+        .footer {
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="gradient-top">
+            <h1>You Smashed It! 🌟</h1>
+            <p style="font-size: 18px; opacity: 0.9;">Time to Level Up</p>
+        </div>
+        <div class="body-content">
+            <div class="info-pill">STUDENT PROMOTION NOTICE</div>
+            <p class="main-info">Hey <strong>{{ student_name }}</strong>, your journey just got more exciting. We've
+                officially moved you up to the next grade!</p>
+
+            <div class="card-row">
+                <div class="card-item">
+                    <span class="card-val">{{ new_class }}</span>
+                    <span class="card-lab">New Class</span>
+                </div>
+                <div class="card-item" style="border-left: 1px solid #eee; border-right: 1px solid #eee;">
+                    <span class="card-val">{{ new_section }}</span>
+                    <span class="card-lab">Section</span>
+                </div>
+                <div class="card-item">
+                    <span class="card-val">{{ roll_no }}</span>
+                    <span class="card-lab">Roll No</span>
+                </div>
+            </div>
+
+            <p style="color: #6b7280; font-size: 15px;">Your solid performance in <strong>{{ prev_class }}</strong>
+                brought you here. Best of luck for <strong>{{ academic_year }}</strong>!</p>
+
+            <a href="#" class="primary-btn">View My Dashboard</a>
+        </div>
+        <div class="footer">
+            <p><strong>{{ school_name }}</strong></p>
+            <p>{{ current_date }}</p>
+        </div>
+    </div>
+</body>
+
+</html>

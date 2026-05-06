@@ -1,0 +1,384 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Leave Report | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=3.0">
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #64748b;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --success-dark: #059669;
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --error-dark: #dc2626;
+        --bg-hover: #f8fafc;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --secondary-color: #111827;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+        --bg-hover: #374151;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .dashboard-container { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Filter required state */
+    .filter-required {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 60px 20px; color: var(--text-light); text-align: center;
+    }
+    .filter-required-icon {
+        width: 64px; height: 64px; border-radius: 50%; background: var(--primary-light, rgba(0,74,173,.08));
+        display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+        color: var(--primary-color); margin-bottom: 14px;
+    }
+
+    /* Content area / table */
+    .content-area {
+        flex: 1; background: var(--card-bg, white); border-radius: 10px;
+        border: 1px solid var(--border-color); overflow: hidden;
+        display: flex; flex-direction: column;
+    }
+    body.dark-mode .content-area { background: var(--secondary-color); }
+    .table-header {
+        padding: 11px 16px; background: var(--bg-hover);
+        border-bottom: 1px solid var(--border-color);
+        display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    body.dark-mode .table-header { background: rgba(255,255,255,.02); }
+    .table-header-title { font-size: 0.875rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 6px; }
+    .count-badge { background: var(--warning-color); color: white; border-radius: 20px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+    .table-container { flex: 1; overflow: auto; }
+
+    .leave-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .leave-table th {
+        background: var(--primary-color) !important; color: white !important;
+        font-size: 0.78rem; font-weight: 600; padding: 11px 14px; text-align: left;
+        position: sticky; top: 0; z-index: 10; white-space: nowrap;
+        text-transform: uppercase; letter-spacing: .04em;
+    }
+    .leave-table td {
+        padding: 12px 14px; border-bottom: 1px solid var(--border-color);
+        vertical-align: middle; color: var(--text-color); font-size: 0.875rem;
+    }
+    body.dark-mode .leave-table th,
+    body.dark-mode .leave-table td { border-bottom: 1px solid rgba(255,255,255,.08) !important; }
+    .leave-table tbody tr { transition: background .15s; }
+    .leave-table tbody tr:hover { background: var(--primary-light); }
+
+    .emp-name { font-weight: 600; font-size: 0.875rem; }
+    .emp-code  { font-size: 0.75rem; color: var(--text-light); }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 0.73rem; font-weight: 700; }
+    .badge-pending  { background: var(--warning-light);  color: var(--warning-dark); border: 1px solid var(--warning-light); }
+    .badge-approved { background: var(--success-light);  color: var(--success-dark); border: 1px solid var(--success-light); }
+    .badge-rejected { background: var(--error-light);   color: var(--error-dark); border: 1px solid var(--error-light); }
+    .badge-cancelled{ background: var(--primary-light); color: var(--text-light); border: 1px solid var(--border-color); }
+
+    /* Summary stat strip */
+    .report-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+    .report-stat { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; text-align: center; box-shadow: var(--card-shadow); }
+    .rs-val   { font-size: 1.5rem; font-weight: 800; color: var(--text-color); }
+    .rs-label { font-size: 0.72rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+    body.dark-mode .report-stat { background: var(--card-bg); }
+
+    .filter-select {
+        padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color);
+        background: var(--card-bg); color: var(--text-color); font-size: 0.82rem;
+        cursor: pointer; min-width: 120px; transition: border-color .2s;
+    }
+    .filter-select:focus { outline: none; border-color: var(--primary-color); }
+    body.dark-mode .filter-select { background: var(--card-bg); }
+
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(0,74,173,.2); border-top-color: var(--primary-color); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) { .report-stats { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .report-stats { grid-template-columns: 1fr 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- ===== CONTROLS ROW ===== -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-chart-bar" style="color:var(--warning-color);"></i> Leave Report</h3>
+        </div>
+        <div class="controls-right">
+            <a href="{% url 'leave_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i><span class="btn-label"> Dashboard</span>
+            </a>
+            <button class="btn btn-success" onclick="exportReport()" id="export-btn" style="display:none;">
+                <i class="fas fa-download"></i><span class="btn-label"> Export CSV</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== FILTERS ===== -->
+    <div style="background:var(--card-bg,white);border:1px solid var(--border-color);border-radius:10px;padding:14px 16px;box-shadow:var(--card-shadow);">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+            {% if is_admin %}
+            <div>
+                <div style="font-size:0.75rem;font-weight:600;color:var(--text-light);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Employee</div>
+                <select id="filter-employee" class="filter-select" style="min-width:200px;">
+                    <option value="">All Employees</option>
+                </select>
+            </div>
+            </div>
+            {% endif %}
+            <div>
+                <div style="font-size:0.75rem;font-weight:600;color:var(--text-light);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Month</div>
+                <select id="filter-month" class="filter-select">
+                    <option value="">All Months</option>
+                    <option value="1">January</option><option value="2">February</option>
+                    <option value="3">March</option><option value="4">April</option>
+                    <option value="5">May</option><option value="6">June</option>
+                    <option value="7">July</option><option value="8">August</option>
+                    <option value="9">September</option><option value="10">October</option>
+                    <option value="11">November</option><option value="12">December</option>
+                </select>
+            </div>
+            <div>
+                <div style="font-size:0.75rem;font-weight:600;color:var(--text-light);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Year</div>
+                <select id="filter-year" class="filter-select">
+                    {% for yr in academic_years %}
+                    <option value="{{ yr }}" {% if current_year|stringformat:"i" == yr or current_year == yr %}selected{% endif %}>{{ yr }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button class="btn btn-primary" onclick="loadReport()" style="align-self:flex-end;">
+                <i class="fas fa-search"></i><span class="btn-label"> Generate</span>
+            </button>
+            <button class="btn btn-secondary" onclick="resetFilters()" style="align-self:flex-end;">
+                <i class="fas fa-times"></i><span class="btn-label"> Reset</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== SUMMARY STATS ===== -->
+    <div class="report-stats" id="report-stats" style="display:none;">
+        <div class="report-stat">
+            <div class="rs-val" id="rs-total">0</div>
+            <div class="rs-label">Total Requests</div>
+        </div>
+        <div class="report-stat">
+            <div class="rs-val" id="rs-approved" style="color:var(--success-color);">0</div>
+            <div class="rs-label">Approved</div>
+        </div>
+        <div class="report-stat">
+            <div class="rs-val" id="rs-rejected" style="color:var(--error-color);">0</div>
+            <div class="rs-label">Rejected</div>
+        </div>
+        <div class="report-stat">
+            <div class="rs-val" id="rs-days" style="color:var(--primary-color);">0</div>
+            <div class="rs-label">Days Taken</div>
+        </div>
+    </div>
+
+    <!-- ===== RESULTS TABLE ===== -->
+    <div class="content-area" id="report-content-area">
+        <div class="table-header">
+            <div class="table-header-title">
+                <i class="fas fa-chart-bar" style="color:var(--primary-color);"></i>
+                Report Results
+                <span class="count-badge" id="result-count">0</span>
+            </div>
+        </div>
+        <!-- Initial filter-required state -->
+        <div class="filter-required" id="filter-hint">
+            <div class="filter-required-icon"><i class="fas fa-filter"></i></div>
+            <h3 style="font-size:1rem;font-weight:700;color:var(--text-color);margin-bottom:6px;">Apply Filters to Generate Report</h3>
+            <p style="font-size:0.875rem;color:var(--text-light);">Select a year and optionally a month or employee, then click <strong>Generate</strong>.</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<script>
+const CSRF   = '{{ csrf_token }}';
+const IS_ADMIN = {{ is_admin|yesno:'true,false' }};
+let reportData = [];
+
+{% if is_admin %}
+// Load employee dropdown
+fetch('{% url "get_school_employees" %}')
+.then(r => r.json())
+.then(res => {
+    if (res.status === 'SUCCESS') {
+        const sel = document.getElementById('filter-employee');
+        res.data.forEach(e => {
+            const o = document.createElement('option');
+            o.value = e.id;
+            o.textContent = e.name + (e.code ? ` (${e.code})` : '');
+            sel.appendChild(o);
+        });
+    }
+});
+{% endif %}
+
+function loadReport() {
+    const month  = document.getElementById('filter-month')?.value || '';
+    const year   = document.getElementById('filter-year').value;
+    const empId  = document.getElementById('filter-employee')?.value || '';
+    const area   = document.getElementById('report-content-area');
+    const hint   = document.getElementById('filter-hint');
+    const statsEl= document.getElementById('report-stats');
+    const cols   = IS_ADMIN ? 10 : 9;
+
+    // Show loading
+    area.querySelector('.table-header').nextElementSibling?.remove?.();
+    hint.remove?.() || hint.style && (hint.style.display = 'none');
+
+    const loadDiv = document.createElement('div');
+    loadDiv.id = 'report-loading';
+    loadDiv.style.cssText = 'text-align:center;padding:50px;';
+    loadDiv.innerHTML = '<div class="spinner" style="width:28px;height:28px;"></div>';
+    area.appendChild(loadDiv);
+    statsEl.style.display = 'none';
+
+    const params = new URLSearchParams({ year, page: 1, page_size: 200 });
+    if (month) params.append('month', month);
+    if (empId)  params.append('employee_id', empId);
+
+    fetch(`{% url 'leave_report_data' %}?${params}`)
+    .then(r => r.json())
+    .then(res => {
+        loadDiv.remove();
+        if (res.status !== 'SUCCESS') {
+            showError(area, res.message || 'Error loading report');
+            return;
+        }
+        reportData = res.data?.records || [];
+        renderTable(area, reportData, statsEl);
+    })
+    .catch(() => { loadDiv.remove(); showError(area, 'Network error. Please try again.'); });
+}
+
+function renderTable(area, records, statsEl) {
+    document.getElementById('result-count').textContent = records.length;
+    document.getElementById('export-btn').style.display = records.length ? 'inline-flex' : 'none';
+
+    // Stats
+    if (records.length) {
+        const totalReq = records.reduce((s, r) => s + (parseInt(r.RequestCount) || 0), 0);
+        const approved = records.reduce((s, r) => s + (parseInt(r.Approved) || 0), 0);
+        const rejected = records.reduce((s, r) => s + (parseInt(r.Rejected) || 0), 0);
+        const days     = records.reduce((s, r) => s + (parseFloat(r.TotalDaysTaken) || 0), 0);
+        document.getElementById('rs-total').textContent    = totalReq;
+        document.getElementById('rs-approved').textContent = approved;
+        document.getElementById('rs-rejected').textContent = rejected;
+        document.getElementById('rs-days').textContent     = days;
+        statsEl.style.display = 'grid';
+    }
+
+    if (!records.length) {
+        const empty = document.createElement('div');
+        empty.className = 'filter-required';
+        empty.innerHTML = `<div class="filter-required-icon" style="background:var(--success-light);"><i class="fas fa-check-circle" style="color:var(--success-color);"></i></div><h3 style="font-size:1rem;font-weight:700;color:var(--text-color);margin-bottom:6px;">No Records Found</h3><p style="font-size:0.875rem;color:var(--text-light);">No leave requests match your filters.</p>`;
+        area.appendChild(empty);
+        return;
+    }
+
+    const cols = IS_ADMIN ? 9 : 8;
+    const wrap = document.createElement('div');
+    wrap.className = 'table-container';
+    wrap.innerHTML = `
+<table class="leave-table">
+  <thead><tr>
+    <th>#</th>
+    ${IS_ADMIN ? '<th>Employee</th>' : ''}
+    <th>Leave Type</th>
+    <th>Total Requests</th>
+    <th>Days Taken</th>
+    <th>Approved</th>
+    <th>Pending</th>
+    <th>Rejected</th>
+  </tr></thead>
+  <tbody>
+    ${records.map((r, i) => `
+    <tr>
+      <td style="color:var(--text-light);font-size:0.8rem;">${i+1}</td>
+      ${IS_ADMIN ? `<td><div class="emp-name">${r.EmployeeName||'—'}</div><div class="emp-code">${r.EmployeeCode||''}</div></td>` : ''}
+      <td style="font-weight:600;">${r.LeaveTypeName||'—'}</td>
+      <td style="font-weight:700;">${r.RequestCount||0}</td>
+      <td style="color:var(--primary-color);font-weight:700;">${r.TotalDaysTaken||0}</td>
+      <td><span class="badge badge-approved">${r.Approved||0}</span></td>
+      <td><span class="badge badge-pending">${r.Pending||0}</span></td>
+      <td><span class="badge badge-rejected">${r.Rejected||0}</span></td>
+    </tr>`).join('')}
+  </tbody>
+</table>`;
+    area.appendChild(wrap);
+}
+
+function showError(area, msg) {
+    const div = document.createElement('div');
+    div.style.cssText = 'text-align:center;padding:40px;color:var(--error-color);font-size:0.875rem;';
+    div.innerHTML = `<i class="fas fa-times-circle" style="font-size:1.5rem;margin-bottom:8px;display:block;"></i>${msg}`;
+    area.appendChild(div);
+}
+
+function fmt(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); } catch { return d; } }
+function esc(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function statusBadge(s) {
+    const m={Pending:'badge-pending',Approved:'badge-approved',Rejected:'badge-rejected',Cancelled:'badge-cancelled'};
+    return `<span class="badge ${m[s]||'badge-cancelled'}"><i class="fas fa-circle" style="font-size:.4rem;"></i> ${s||'—'}</span>`;
+}
+
+function resetFilters() {
+    ['filter-month','filter-year','filter-employee'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.selectedIndex = 0; if (id==='filter-year') el.value='2025'; }
+    });
+    const area = document.getElementById('report-content-area');
+    const existing = area.querySelector('.table-container,.filter-required');
+    if (existing) existing.remove();
+    const hint = document.createElement('div');
+    hint.className = 'filter-required'; hint.id = 'filter-hint';
+    hint.innerHTML = `<div class="filter-required-icon"><i class="fas fa-filter"></i></div><h3 style="font-size:1rem;font-weight:700;color:var(--text-color);margin-bottom:6px;">Apply Filters to Generate Report</h3><p style="font-size:0.875rem;color:var(--text-light);">Select a year and optionally a month or employee, then click <strong>Generate</strong>.</p>`;
+    area.appendChild(hint);
+    document.getElementById('report-stats').style.display = 'none';
+    document.getElementById('result-count').textContent = '0';
+    document.getElementById('export-btn').style.display = 'none';
+}
+
+function exportReport() {
+    if (!reportData.length) return;
+    const hdrs = IS_ADMIN
+        ? ['#','Employee','Code','Leave Type','Total Requests','Days Taken','Approved','Pending','Rejected']
+        : ['#','Leave Type','Total Requests','Days Taken','Approved','Pending','Rejected'];
+    const rows = reportData.map((r,i) => {
+        const base = [i+1,r.LeaveTypeName||'',r.RequestCount||0,r.TotalDaysTaken||0,r.Approved||0,r.Pending||0,r.Rejected||0];
+        return IS_ADMIN ? [i+1, r.EmployeeName||'', r.EmployeeCode||'', ...base.slice(1)] : base;
+    });
+    const csv = [hdrs, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = `leave_report_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+</script>
+{% endblock %}

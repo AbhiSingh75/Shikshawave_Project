@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #0a0a0b;
+            margin: 0;
+            padding: 20px;
+            color: #00ff41;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+
+        .header {
+            border-bottom: 2px solid #30363d;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        .code-block {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid #00ff41;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+
+        .text {
+            color: #c9d1d9;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: #58a6ff;
+            font-weight: bold;
+        }
+
+        .meta {
+            color: #8b949e;
+            font-size: 12px;
+            margin-top: 30px;
+            border-top: 1px solid #30363d;
+            padding-top: 15px;
+        }
+
+        .neon-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .neon-btn:hover {
+            background: rgba(0, 255, 65, 0.1);
+            box-shadow: 0 0 10px #00ff41;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>> LEVEL_UP_CONFIRMED</h1>
+        </div>
+        <div class="text">
+            <p>Subject: <span class="highlight">Status Update for User: {{ student_name }}</span></p>
+            <p>Initialization complete. We have successfully upgraded your access levels for the upcoming cycle.</p>
+
+            <div class="code-block">
+                UPGRADE_PATH: {{ prev_class }} -> {{ new_class }}<br>
+                SUB_SECTOR: {{ new_section }}<br>
+                INDEX_ID: {{ roll_no }}<br>
+                CYCLE_REF: {{ academic_year }}<br>
+                STATUS: [COMPLETED]
+            </div>
+
+            <p>Your previous configuration in <span class="highlight">{{ prev_class }} - {{ prev_section }}</span> has
+                been archived. Prepare for new objective integration.</p>
+        </div>
+        <div class="meta">
+            System: {{ school_name }}<br>
+            Timestamp: {{ current_date }}<br>
+            _EOF_
+        </div>
+    </div>
+</body>
+
+</html>

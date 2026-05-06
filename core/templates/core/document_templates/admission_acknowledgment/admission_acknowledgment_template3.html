@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admission Acknowledgment - {{ acknowledgment.student_name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; margin: 10px; background: #f5f3ff; }
+        .no-print { text-align: left; margin-bottom: 20px; }
+        .btn-print { background: #667eea; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin: 5px; }
+        
+        
+        @media print { @page { size: A4; margin: 10mm; } .no-print { display: none; } * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 0; background: white; margin: 0; } .page { box-shadow: none; max-width: 100%; margin: 0; border: 3px double #000; } }
+        .page { max-width: 800px; margin: 20px auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(102,126,234,0.15); }
+        .header { border-bottom: 3px double #000; padding: 20px; text-align: center; }
+        .logo { width: 70px; height: 70px; border: 2px solid #000; padding: 8px; margin: 0 auto 12px; }
+        .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .school-name { font-size: 24px; font-weight: 700; margin-bottom: 5px; color: #000; text-transform: uppercase; letter-spacing: 1px; }
+        .tagline { font-size: 12px; font-style: italic; color: #333; }
+        .badge { display: inline-block; border: 2px solid #000; padding: 6px 20px; font-size: 12px; font-weight: 700; margin-top: 12px; text-transform: uppercase; }
+        .content { padding: 20px 15px; }
+        .section { margin-bottom: 18px; page-break-inside: avoid; }
+        .section-header { border-bottom: 2px solid #000; padding: 6px 0; margin-bottom: 10px; }
+        .section-title { font-size: 13px; font-weight: 700; color: #000; text-transform: uppercase; letter-spacing: 0.5px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .field { padding: 8px; border: 1px solid #000; }
+        .field-label { font-size: 9px; text-transform: uppercase; color: #666; font-weight: 700; margin-bottom: 3px; }
+        .field-value { font-size: 11px; color: #000; font-weight: 600; }
+        .highlight { text-decoration: underline; }
+        .card { border: 2px solid #000; padding: 12px; margin-bottom: 12px; page-break-inside: avoid; }
+        .card-title { font-size: 12px; font-weight: 700; margin-bottom: 8px; color: #000; text-transform: uppercase; }
+        .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .card-item { border: 1px solid #000; padding: 8px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10px; border: 2px solid #000; }
+        .table th { background: #f5f5f5; padding: 8px; text-align: left; font-size: 10px; font-weight: 700; border: 1px solid #000; }
+        .table td { padding: 8px; border: 1px solid #000; font-size: 10px; color: #000; }
+        .doc-badge { display: inline-block; border: 1px solid #000; padding: 4px 10px; font-size: 9px; font-weight: 600; margin: 3px; }
+        .instructions { border: 2px solid #000; padding: 12px; page-break-inside: avoid; }
+        .instructions-title { font-size: 12px; font-weight: 700; color: #000; margin-bottom: 6px; text-transform: uppercase; }
+        .instructions li { margin: 4px 0; color: #000; font-size: 10px; line-height: 1.5; }
+        .footer { border-top: 3px double #000; padding: 12px; text-align: center; color: #333; font-size: 9px; }
+        .welcome { border: 2px solid #000; padding: 12px; text-align: center; margin-bottom: 12px; page-break-inside: avoid; background: #f9f9f9; }
+        .welcome-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
+        .welcome-text { font-size: 11px; font-style: italic; }
+
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-print" style="background: #6b7280;" onclick="window.close()">Close</button>
+    </div>
+    <div class="page">
+        <div class="header">
+            <div class="logo">
+                {% if acknowledgment.school_logo %}
+                <img src="{{ acknowledgment.school_logo }}" alt="Logo">
+                {% else %}
+                <div style="font-size: 40px;">🎓</div>
+                {% endif %}
+            </div>
+            <div class="school-name">{{ acknowledgment.school_name }}</div>
+            <div class="tagline">Excellence in Education</div>
+            <div class="badge">ADMISSION CONFIRMED</div>
+        </div>
+        
+        <div class="content">
+            <div class="welcome">
+                <div class="welcome-title">Welcome to {{ acknowledgment.school_name }}</div>
+                <div class="welcome-text">Congratulations on your successful admission. We're excited to have you join our academic family.</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">Student Information</span>
+                </div>
+                <div class="grid">
+                    <div class="field"><div class="field-label">Full Name</div><div class="field-value highlight">{{ acknowledgment.student_name }}</div></div>
+                    <div class="field"><div class="field-label">Student ID</div><div class="field-value highlight">{{ acknowledgment.student_code }}</div></div>
+                    <div class="field"><div class="field-label">Gender</div><div class="field-value">{{ acknowledgment.gender }}</div></div>
+                    <div class="field"><div class="field-label">Date of Birth</div><div class="field-value">{{ acknowledgment.date_of_birth }}</div></div>
+                    <div class="field"><div class="field-label">Age</div><div class="field-value">{{ acknowledgment.age }} years</div></div>
+                    <div class="field"><div class="field-label">Blood Group</div><div class="field-value">{{ acknowledgment.blood_group }}</div></div>
+                    <div class="field"><div class="field-label">Category</div><div class="field-value">{{ acknowledgment.category }}</div></div>
+                    <div class="field"><div class="field-label">Religion</div><div class="field-value">{{ acknowledgment.religion }}</div></div>
+                    <div class="field"><div class="field-label">Nationality</div><div class="field-value">{{ acknowledgment.nationality }}</div></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">Admission Details</span>
+                </div>
+                <div class="grid">
+                    <div class="field"><div class="field-label">Class</div><div class="field-value">{{ acknowledgment.admission_class }}</div></div>
+                    <div class="field"><div class="field-label">Section</div><div class="field-value">{{ acknowledgment.section|default:"To be assigned" }}</div></div>
+                    <div class="field"><div class="field-label">Stream</div><div class="field-value">{{ acknowledgment.stream|default:"N/A" }}</div></div>
+                    <div class="field"><div class="field-label">Admission Date</div><div class="field-value">{{ acknowledgment.admission_date }}</div></div>
+                    <div class="field"><div class="field-label">Academic Year</div><div class="field-value">{{ acknowledgment.academic_year }}</div></div>
+                    <div class="field"><div class="field-label">Mode</div><div class="field-value">{{ acknowledgment.mode_of_admission }}</div></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">Student Portal Access</div>
+                <div class="card-grid">
+                    <div class="card-item"><div style="font-size: 9px; color: #666; margin-bottom: 2px;">USERNAME</div><div style="font-size: 11px; font-weight: 600;">{{ acknowledgment.login_username }}</div></div>
+                    <div class="card-item"><div style="font-size: 9px; color: #666; margin-bottom: 2px;">PORTAL URL</div><div style="font-size: 11px; font-weight: 600;">{{ acknowledgment.portal_url|default:"Contact School" }}</div></div>
+                </div>
+                <div style="margin-top: 6px; font-size: 10px; font-style: italic;">Use Email ID or Student Code as username to login</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">Contact Information</span>
+                </div>
+                <div class="grid">
+                    <div class="field"><div class="field-label">Email</div><div class="field-value">{{ acknowledgment.email }}</div></div>
+                    <div class="field"><div class="field-label">Mobile</div><div class="field-value">{{ acknowledgment.parent_mobile }}</div></div>
+                    <div class="field"><div class="field-label">Address</div><div class="field-value">{{ acknowledgment.present_address }}</div></div>
+                    <div class="field"><div class="field-label">District</div><div class="field-value">{{ acknowledgment.district_name }}</div></div>
+                    <div class="field"><div class="field-label">State</div><div class="field-value">{{ acknowledgment.state_name }}</div></div>
+                    <div class="field"><div class="field-label">Country</div><div class="field-value">{{ acknowledgment.country_name }}</div></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">Parent/Guardian Information</span>
+                </div>
+                <div class="grid">
+                    <div class="field"><div class="field-label">Father Name</div><div class="field-value">{{ acknowledgment.father_name }}</div></div>
+                    <div class="field"><div class="field-label">Father Mobile</div><div class="field-value">{{ acknowledgment.father_mobile }}</div></div>
+                    <div class="field"><div class="field-label">Mother Name</div><div class="field-value">{{ acknowledgment.mother_name }}</div></div>
+                    <div class="field"><div class="field-label">Mother Mobile</div><div class="field-value">{{ acknowledgment.mother_mobile }}</div></div>
+                    {% if acknowledgment.guardian_name %}
+                    <div class="field"><div class="field-label">Guardian Name</div><div class="field-value">{{ acknowledgment.guardian_name }}</div></div>
+                    <div class="field"><div class="field-label">Guardian Mobile</div><div class="field-value">{{ acknowledgment.guardian_mobile }}</div></div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if acknowledgment.documents %}
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">Uploaded Documents</span>
+                </div>
+                <div>
+                    {% for doc in acknowledgment.documents %}
+                    <span class="doc-badge">{{ doc.type }}: {{ doc.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if acknowledgment.fees %}
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">Fee Structure</span>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Fee Type</th>
+                            <th>Amount</th>
+                            <th>Discount</th>
+                            <th>Final Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in acknowledgment.fees %}
+                        <tr>
+                            <td>{{ fee.FeeTypeName }}</td>
+                            <td>₹{{ fee.FeeAmount }}</td>
+                            <td>{{ fee.DiscountPercentage }}%</td>
+                            <td style="font-weight: 700;">₹{{ fee.FinalAmount }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr style="background: #4caf50; color: white; font-weight: 700;">
+                            <td colspan="3">TOTAL</td>
+                            <td>₹{{ acknowledgment.total_amount }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            
+            {% if acknowledgment.instructions %}
+            <div class="instructions">
+                <div class="instructions-title">Important Next Steps</div>
+                <ul>
+                    {% for instruction in acknowledgment.instructions %}
+                    <li><strong>{{ instruction.title }}:</strong> {{ instruction.text }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p><strong>Document Generated:</strong> {{ acknowledgment.current_date }} | <strong>Academic Year:</strong> {{ acknowledgment.academic_year }}</p>
+            <p style="margin-top: 8px;">This is a computer-generated document. No signature required.</p>
+            <p style="margin-top: 8px;">For queries, contact: {{ acknowledgment.school_phone }} | {{ acknowledgment.school_email }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Notification - ShikshaWave</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f8fafc;
+            padding: 20px 0;
+        }
+
+        .container {
+            max-width: 580px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(25, 118, 210, 0.12);
+            border: 1px solid #e2e8f0;
+        }
+
+        .header {
+            background-color: #1976D2;
+            padding: 20px 25px;
+            text-align: center;
+        }
+
+        .logo-box {
+            background: white;
+            padding: 8px 16px;
+            display: inline-block;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .header img {
+            max-height: 40px;
+            width: auto;
+            display: block;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px 35px;
+        }
+
+        .greeting {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .message-intro {
+            font-size: 15px;
+            color: #64748b;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .callout {
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        .callout-otp {
+            background-color: #f0f7ff;
+            border-color: #bee3f8;
+        }
+
+        .otp-code {
+            font-family: 'Courier New', monospace;
+            font-size: 40px;
+            font-weight: 900;
+            color: #1976D2;
+            letter-spacing: 8px;
+            margin: 12px 0;
+        }
+
+        .callout-danger {
+            background-color: #fff1f2;
+            border-color: #fecdd3;
+            color: #9f1239;
+            text-align: left;
+        }
+
+        .callout-success {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+            text-align: left;
+        }
+
+        .callout-alert {
+            background-color: #fffbeb;
+            border-color: #fef3c7;
+            color: #92400e;
+            text-align: left;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #1976D2;
+            color: #ffffff !important;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.2);
+        }
+
+        .details-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .grid-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px 20px 8px 20px;
+            display: block;
+        }
+
+        .grid-row td {
+            padding: 8px 20px;
+            border-top: 1px solid #eef2f6;
+        }
+
+        .grid-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .grid-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            text-align: right;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+
+        .footer {
+            padding: 25px;
+            text-align: center;
+            font-size: 11px;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .brand-link {
+            color: #1976D2;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .process-hint {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 12px;
+            line-height: 1.4;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <!-- Header Table -->
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #1976D2; border-radius: 16px 16px 0 0; overflow: hidden;">
+                <tr>
+                    <td align="center" style="background: linear-gradient(135deg, #1976D2 0%, #4CAF50 100%); padding: 20px 25px;">
+                        <div class="logo-box" style="margin-bottom: 5px;">
+                            <div style="font-weight: 900; color: #1976D2; font-size: 26px; letter-spacing: 0.5px; text-transform: uppercase;">{{ school_name }}</div>
+                        </div>
+                        <h1 style="color: #ffffff; margin: 0; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9;">{{ header_title|default:"Security Dispatch" }}</h1>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="content">
+                <div class="greeting">Hello {{ user_name | default:"Valued Member" }},</div>
+
+                {% if code == 'LOGIN_OTP' %}
+                    <p class="message-intro">We detected a sign-in attempt on your ShikshaWave account. Use the following code to authorize this session.</p>
+                    <div class="callout callout-otp">
+                        <div style="font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase;">One-Time Password</div>
+                        <div class="otp-code">{{ otp }}</div>
+                        <div style="font-size: 13px; font-weight: 600;">Valid for {{ valid_minutes | default:15 }} minutes</div>
+                    </div>
+                    <div class="process-hint">Note: If you did not initiate this login, your credentials may be compromised. We recommend changing your password immediately.</div>
+
+                {% elif code == 'PASSWORD_RESET_OTP' %}
+                    <p class="message-intro">A password reset has been initiated for your account. Please use this authorization token to proceed with the update.</p>
+                    <div class="callout" style="background-color: #fff1f2; border-color: #fecdd3;">
+                        <div style="font-size: 12px; font-weight: 800; color: #be123c; text-transform: uppercase;">Reset Authorization</div>
+                        <div class="otp-code" style="color: #e11d48;">{{ otp }}</div>
+                        <div style="font-size: 13px; font-weight: 600; color: #be123c;">Expires in {{ valid_minutes | default:15 }} minutes</div>
+                    </div>
+                    <div class="process-hint">Security Tip: ShikshaWave staff will never ask for this code. Never share your reset token with anyone.</div>
+
+                {% elif code == 'ACCOUNT_BLOCKED' %}
+                    <div class="callout callout-danger">
+                        <div style="font-size: 32px; margin-bottom: 10px;">🛡️</div>
+                        <h2 style="margin: 0 0 10px 0; font-size: 20px;">Account Protected (Locked)</h2>
+                        <p style="margin: 0; font-size: 15px; line-height: 1.5;">Our security systems have temporarily restricted access to your account for 24 hours following multiple unsuccessful login attempts. This measure keeps your data safe from brute-force attacks.</p>
+                    </div>
+                    <strong>Process Instruction:</strong>
+                    <p class="message-intro">To restore access before the 24-hour period expires, please contact your School Administrator or IT Support for manual identity verification.</p>
+
+                {% elif code == 'PASSWORD_CHANGED' or code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+                    <div class="callout callout-success">
+                        <div style="font-size: 32px; margin-bottom: 10px;">✨</div>
+                        <h2 style="margin: 0 0 10px 0; font-size: 20px;">Credential Update Successful</h2>
+                        <p style="margin: 0; font-size: 15px; line-height: 1.5;">Your account password was recently changed. If this was performed by you, no further action is required.</p>
+                    </div>
+                    <p style="color: #be123c; font-weight: 700; font-size: 14px;">URGENT: If you did not make this change, please contact IT support immediately to freeze your account and prevent unauthorized data access.</p>
+
+                {% elif code == 'NEW_LOGIN_ALERT' %}
+                    <div class="callout callout-alert">
+                        <div style="font-size: 32px; margin-bottom: 10px;">🔔</div>
+                        <h2 style="margin: 0 0 10px 0; font-size: 20px;">Unrecognized Login Detected</h2>
+                        <p style="margin: 0; font-size: 15px; line-height: 1.5;">Your account was successfully accessed from a new device, browser, or location. We are notifying you to ensure this activity was authorized by you.</p>
+                    </div>
+                    <div style="text-align: center;"><a href="#" class="btn">Verify System Activity</a></div>
+                    <div class="process-hint">If this was you, you can safely ignore this alert. If not, please secure your account immediately.</div>
+                {% endif %}
+
+                <table class="details-grid">
+                    <tr><td colspan="2"><span class="grid-title">Security Audit Log</span></td></tr>
+                    <tr class="grid-row">
+                        <td class="grid-label">Identity / Login</td>
+                        <td class="grid-value">{{ login_id | default:user_name }}</td>
+                    </tr>
+                    <tr class="grid-row">
+                        <td class="grid-label">Access Profile</td>
+                        <td class="grid-value">{{ profile | default:"Institutional User" }}</td>
+                    </tr>
+                    <tr class="grid-row">
+                        <td class="grid-label">Origin IP</td>
+                        <td class="grid-value">{{ ip_address | default:"Standard Backbone" }}</td>
+                    </tr>
+                    <tr class="grid-row">
+                        <td class="grid-label">Device / Browser</td>
+                        <td class="grid-value">{{ browser | default:"Web/Mobile Client" }}</td>
+                    </tr>
+                    <tr class="grid-row">
+                        <td class="grid-label">Timestamp (GMT)</td>
+                        <td class="grid-value">{{ timestamp | default:"Automated Dispatch" }}</td>
+                    </tr>
+                </table>
+
+                <p style="font-size: 11px; color: #64748b; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                    This is an automated security transmission from <strong>ShikshaWave Infrastructure</strong>. Verified by ShikshaWave Security Services.
+                </p>
+            </div>
+
+            <div class="footer">
+                <p>&copy; 2026 <strong>ShikshaWave</strong>. Future of Education.</p>
+                <p>Platform Security &bull; <a href="#" class="brand-link">Powered by ShikshaWave</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

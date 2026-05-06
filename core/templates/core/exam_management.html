@@ -1,0 +1,1201 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Exam Management | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=3.0">
+<style>
+    /* ── PHASE 5: ZERO GAP & THEME SYNC ── */
+    /* Force Theme Variables from Context (Overpowers any Purple defaults) */
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }} !important;
+        --primary-hover: {{ primary_hover|default:"#003a8c" }} !important;
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }} !important;
+        --primary-rgb: {{ primary_rgb|default:"0, 74, 173" }} !important;
+    }
+
+    /* Dashboard Layout with Premium Spacing */
+    body { padding-top: 0 !important; }
+    .sw-main-content { margin-top: var(--header-height, 70px) !important; padding: 0 !important; }
+    
+    .dashboard-container { 
+        padding: 16px 20px 24px 20px !important; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 12px; 
+    }
+
+    /* Standard Sticky Controls Row - Only for Desktop */
+    @media (min-width: 1025px) {
+        .controls-row {
+            position: sticky !important;
+            top: calc(var(--header-height, 70px) + 12px) !important;
+            z-index: 999 !important;
+            margin: 0 !important;
+        }
+    }
+
+    .controls-row {
+        background: var(--card-bg, white) !important;
+        padding: 12px 20px !important;
+        border-radius: 12px !important;
+        box-shadow: var(--shadow-sm) !important;
+        border: 1px solid var(--border-color) !important;
+        overflow: visible !important; /* CRITICAL: Allow dropdown to overflow card */
+    }
+
+    .controls-left h3 {
+        color: var(--primary-color) !important;
+        font-weight: 700 !important;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Premium Form Controls */
+    .sw-form-group { margin-bottom: 16px; }
+    .sw-form-label { display: block; margin-bottom: 6px; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .sw-form-control {
+        width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border-color);
+        background: var(--card-bg); color: var(--text-main); font-size: 0.9rem; font-weight: 500;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box;
+    }
+    .sw-form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px var(--primary-light); background: var(--card-bg); }
+    
+    body.dark-mode .sw-form-control {
+        border: 2px solid rgba(255, 255, 255, 0.4) !important; /* Bold, high-contrast border */
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        color-scheme: dark;
+    }
+    body.dark-mode .sw-form-control option {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+    }
+    body.dark-mode .sw-form-control:focus {
+        border-color: var(--primary-color) !important;
+        background-color: #1e293b !important;
+        box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.2) !important;
+    }
+    
+    /* Stats grid - Matching Leave Dashboard */
+    .exam-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .exam-stat-card {
+        background: var(--card-bg, white); border: 1px solid var(--border-color);
+        border-radius: 10px; padding: 14px 16px; box-shadow: var(--card-shadow);
+        display: flex; align-items: center; gap: 12px; transition: transform 0.2s;
+    }
+    .exam-stat-card:hover { transform: translateY(-2px); }
+    .exam-stat-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: white; flex-shrink: 0;
+    }
+    .exam-stat-icon.total     { background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); }
+    .exam-stat-icon.published { background: linear-gradient(135deg, #10b981, #059669); }
+    .exam-stat-icon.draft     { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .exam-stat-info h4 { font-size: 0.7rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: .5px; margin: 0 0 2px; }
+    .exam-stat-value  { font-size: 1.5rem; font-weight: 800; color: var(--text-main, #1e293b); line-height: 1; }
+    body.dark-mode .custom-dropdown-toggle {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #f8fafc !important;
+        border-color: var(--primary-color) !important;
+    }
+    body.dark-mode .custom-dropdown-menu {
+        background: #1e293b !important;
+        border-color: var(--primary-color) !important;
+    }
+    body.dark-mode .custom-dropdown-option {
+        color: #f8fafc !important;
+    }
+    body.dark-mode .custom-dropdown-option:hover {
+        background: var(--primary-light) !important;
+    }
+    body.dark-mode .exam-stat-value { color: #f8fafc !important; }
+
+    .exam-form-card {
+        background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px;
+        padding: 24px; box-shadow: var(--shadow-lg); height: min-content; position: sticky;
+        top: calc(var(--header-height, 70px) + 20px);
+        margin-top: 4px;
+    }
+    
+    /* Table Header Standard */
+    .table-header {
+        padding: 8px 12px; background: var(--light-gray, #f8fafc);
+        border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    
+    /* Standardized Filter Grid for 2 Columns (Modal) */
+    .filter-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 16px !important;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+    .filter-group label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); }
+    .filter-control {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        background: var(--bg-hover, #f1f5f9);
+        font-size: 0.9rem;
+        color: var(--text-main);
+        transition: all 0.2s;
+        width: 100%;
+        height: 42px; /* Explicit height to prevent collapse */
+        display: block;
+    }
+    .filter-control:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
+
+    /* Absolute Search Icon Removal & Table Scroll */
+    #examSearch {
+        background: var(--card-bg) none !important;
+        background-image: none !important;
+        padding: 8px 12px !important; /* Force standard padding, no room for icon */
+        text-indent: 0 !important;
+        box-shadow: none !important;
+        -webkit-appearance: none;
+    }
+    .search-container i, 
+    .search-container::before, 
+    .search-container::after,
+    #examSearch::before,
+    #examSearch::after {
+        display: none !important;
+        content: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        pointer-events: none !important;
+    }
+    .sw-table-wrapper {
+        width: 100% !important;
+        overflow-x: auto !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 0 0 16px 16px;
+    }
+    .exam-table {
+        min-width: 1100px !important;
+        width: 100% !important;
+    }
+    
+    /* Sortable Headers */
+    .sortable { cursor: pointer; position: relative; transition: background 0.2s; }
+    .sortable:hover { background: rgba(var(--primary-rgb), 0.05) !important; }
+    .sort-icon { font-size: 0.75rem; margin-left: 6px; opacity: 0.3; transition: all 0.2s; }
+    .sortable.active .sort-icon { opacity: 1; color: var(--primary-color); }
+    
+    /* Pagination Styles */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-top: 1px solid var(--border-color);
+        background: var(--card-bg);
+    }
+    .pagination-info { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+    .pagination-controls { display: flex; gap: 6px; }
+    .page-link {
+        width: 34px; height: 34px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; border: 1px solid var(--border-color);
+        font-size: 0.88rem; font-weight: 600; color: var(--text-main);
+        cursor: pointer; transition: all 0.2s;
+    }
+    .page-link:hover { background: var(--bg-hover, #f1f5f9); color: var(--primary-color); border-color: var(--primary-color); }
+    .page-link.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+    .page-link.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 15px 12px 20px !important; gap: 15px !important; }
+        .controls-row { 
+            padding: 16px 15px !important; 
+            flex-direction: column !important; 
+            align-items: center !important;
+            text-align: center !important;
+            gap: 15px !important;
+            margin-top: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            background: var(--card-bg) !important; /* Ensure standard card background */
+            border: 1px solid var(--border-color) !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+        .controls-left { 
+            flex-direction: column !important; 
+            width: 100% !important;
+            gap: 10px !important;
+            align-items: center !important;
+            margin-bottom: 0 !important;
+            display: flex !important; /* Force display */
+        }
+        .controls-left h3 { font-size: 1.15rem !important; margin: 0 !important; justify-content: center; width: 100%; display: flex; align-items: center; gap: 10px; color: var(--primary-color) !important; }
+        .school-selector-container { 
+            margin-left: 0 !important; 
+            width: 100% !important; 
+            min-width: 100% !important; 
+            display: block !important; 
+            position: relative !important;
+            margin-bottom: 5px !important;
+        }
+        /* Removed Active School Context Label per user request */
+        
+        .custom-dropdown-toggle {
+            background: rgba(var(--primary-rgb), 0.1) !important; /* Slight tint to distinguish from card */
+            border: 2px solid var(--primary-color) !important; /* Thick primary border */
+            color: var(--text-main) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+        }
+        .controls-right { width: 100% !important; display: flex; justify-content: center; margin-top: 5px; }
+        .controls-right .btn { width: 100% !important; max-width: 400px; justify-content: center; height: 44px !important; font-size: 0.95rem !important; font-weight: 700 !important; }
+        
+        .exam-stats-grid { 
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important; /* 2 Column Grid for Standard Look */
+            gap: 12px !important;
+            margin-top: 10px !important;
+            width: 100% !important;
+        }
+        .exam-stats-grid .exam-stat-card:first-child {
+            grid-column: span 2 !important; /* Total Exams remains full width */
+        }
+        .exam-stat-card { 
+            padding: 12px 15px !important; 
+            flex-direction: column !important; /* Stack Icon/Text */
+            align-items: center !important;
+            text-align: center !important;
+            justify-content: center !important;
+            min-height: 100px !important; 
+            border-radius: 16px !important;
+            background: var(--card-bg) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+            border: 1.5px solid var(--border-color) !important;
+        }
+        .exam-stat-icon {
+            margin-bottom: 8px !important;
+            width: 44px !important;
+            height: 44px !important;
+            font-size: 1.2rem !important;
+        }
+        .exam-stat-value { font-size: 1.8rem !important; font-weight: 800 !important; margin: 4px 0 !important; }
+        .exam-stat-info h4 { font-size: 0.65rem !important; font-weight: 700 !important; letter-spacing: 0.5px !important; opacity: 0.7; }
+        
+        .filter-row { padding: 12px; gap: 10px; }
+        .filter-control { min-width: 100%; }
+        .filter-group { width: 100%; }
+        .table-responsive-container { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; border-radius: 12px !important; }
+        
+        /* Table Header Standardization */
+        .table-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+            padding: 15px !important;
+        }
+        .table-header-title {
+            width: 100% !important;
+            margin-bottom: 5px !important;
+            font-size: 1rem !important;
+        }
+        .search-container {
+            width: 100% !important;
+            justify-content: space-between !important;
+            gap: 10px !important;
+        }
+        .search-container > div {
+            flex-grow: 1 !important;
+            width: auto !important;
+        }
+        #examSearch {
+            height: 40px !important;
+            font-size: 0.9rem !important;
+        }
+        .search-container .btn-secondary {
+            height: 40px !important;
+            padding: 0 15px !important;
+            flex-shrink: 0 !important;
+        }
+    }
+    
+    /* Summary Box Refinement */
+    .summary-item:not(:last-child):after { content: "|"; margin-left: 8px; color: var(--text-light); }
+
+    /* Status Badges */
+    .status-badge { padding: 6px 14px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-published { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-draft { background: rgba(100, 116, 139, 0.1); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.2); }
+    
+    /* Table Enhancements & Standard Colors */
+    .exam-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .exam-table th { background: var(--primary-color) !important; color: white !important; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; padding: 14px 16px; }
+    .exam-table td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+    .exam-table tr:last-child td { border-bottom: none; }
+    .exam-table tr:hover { background: var(--bg-hover, #f8fafc) !important; }
+    body.dark-mode .exam-table tr:hover { background: rgba(255,255,255,.03) !important; }
+    
+    .exam-name-text { font-weight: 700; color: var(--text-main); }
+    .exam-type-badge { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; border: 1px solid #e2e8f0; }
+    body.dark-mode .exam-type-badge { background: rgba(255,255,255,0.05); color: #94a3b8; border-color: rgba(255,255,255,0.1); }
+    
+    tr.is-deleted { opacity: 0.5; filter: grayscale(1); }
+    tr.is-editing { border-left: 5px solid var(--primary-color) !important; background: var(--primary-light) !important; }
+
+    .action-group { display: flex; gap: 8px; }
+    .btn-action { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid var(--border-color); transition: all 0.2s; cursor: pointer; background: var(--card-bg); }
+    .btn-edit { color: var(--warning-color); }
+    .btn-edit:hover { background: var(--warning-color); color: white; border-color: var(--warning-color); }
+    .btn-delete { color: var(--error-color); }
+    .btn-delete:hover { background: var(--error-color); color: white; border-color: var(--error-color); }
+    .btn-restore { color: var(--success-color); }
+    .btn-restore:hover { background: var(--success-color); color: white; border-color: var(--success-color); }
+    .school-selector-container {
+        position: relative;
+    }
+    
+    .dropdown-search:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px var(--primary-light) !important;
+    }
+    
+    .searchable-option.selected {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    /* Ensure the search bar inside the dropdown is clean */
+    .dropdown-search {
+        transition: all 0.2s;
+    }
+
+    /* Custom Dropdown Styling and Toggle */
+    .custom-dropdown { position: relative; width: 100%; cursor: pointer; }
+    .custom-dropdown-toggle {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0 14px; border-radius: 10px; border: 1.5px solid var(--border-color);
+        background: var(--card-bg); color: var(--text-main); font-size: 0.9rem; font-weight: 600;
+        transition: all 0.2s; height: 42px;
+    }
+    .custom-dropdown-toggle:hover { border-color: var(--primary-color); background: var(--bg-hover); }
+    .custom-dropdown-menu {
+        display: none; position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+        background: var(--card-bg) !important; border: 1.5px solid var(--primary-color) !important;
+        border-radius: 12px; box-shadow: var(--shadow-lg);
+        z-index: 10000 !important; overflow: hidden; min-width: 250px;
+    }
+    .dropdown-search-wrapper {
+        padding: 10px; position: sticky; top: 0; background: var(--card-bg); 
+        z-index: 10; border-bottom: 1px solid var(--border-color);
+    }
+    .custom-dropdown.active .custom-dropdown-menu { 
+        display: block !important; 
+        animation: dropdownFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .custom-dropdown-option { 
+        padding: 10px 14px; font-size: 0.88rem; color: var(--text-main); 
+        transition: all 0.1s; border-bottom: 1px solid rgba(var(--primary-rgb), 0.05);
+    }
+    .custom-dropdown-option:hover { background: var(--primary-light); color: var(--primary-color); }
+    .custom-dropdown-option.selected { background: var(--primary-color); color: white; }
+
+    @keyframes dropdownFadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="dashboard-container">
+    <!-- ===== PREMIUM CONTROLS ROW ===== -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-graduation-cap" style="color: var(--warning-color);"></i> Exam Management</h3>
+            {% if is_admin_view %}
+            <div class="school-selector-container" style="margin-left: 15px; min-width: 240px;">
+                <select id="adminSchoolSelect" class="filter-control" style="display: none;" onchange="loadExams(1)">
+                    <option value="">Select School</option>
+                </select>
+                <div class="custom-dropdown active-force" data-target="adminSchoolSelect" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+                    <div class="custom-dropdown-toggle" style="display: flex !important; visibility: visible !important; opacity: 1 !important; background: rgba(255,255,255,0.05) !important; border: 2.5px solid var(--primary-color) !important;">
+                        <span class="custom-dropdown-text" style="color: white !important; font-weight: 700 !important;">Select School</span>
+                        <span class="custom-dropdown-arrow" style="color: white !important;"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="custom-dropdown-menu">
+                        <div class="dropdown-search-wrapper">
+                            <input type="text" class="dropdown-search" placeholder="Search school..." style="width: 100%; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; font-size: 0.85rem; outline: none;">
+                        </div>
+                        <div class="custom-dropdown-option selected" data-value="">Select School</div>
+                        <!-- Options filled via JS -->
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="controls-right">
+            <button class="btn btn-primary" onclick="window.openExamModal()" style="padding: 0 16px; height: 38px; font-size: 0.9rem; font-weight: 700; border-radius: 10px;">
+                <i class="fas fa-plus"></i> <span>Create Exam</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== PREMIUM STATS GRID ===== -->
+    <div class="exam-stats-grid">
+        <div class="exam-stat-card">
+            <div class="exam-stat-icon total"><i class="fas fa-calendar-check"></i></div>
+            <div class="exam-stat-info">
+                <h4>Total Exams</h4>
+                <div class="exam-stat-value">{{ total_records|default:0 }}</div>
+            </div>
+        </div>
+        <div class="exam-stat-card">
+            <div class="exam-stat-icon published"><i class="fas fa-check-double"></i></div>
+            <div class="exam-stat-info">
+                <h4>Published</h4>
+                <div class="exam-stat-value" id="statPublished">0</div>
+            </div>
+        </div>
+        <div class="exam-stat-card">
+            <div class="exam-stat-icon draft"><i class="fas fa-file-signature"></i></div>
+            <div class="exam-stat-info">
+                <h4>Drafts</h4>
+                <div class="exam-stat-value" id="statDrafts">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PREMIUM TABLE SECTION ===== -->
+    <div class="exam-list-section" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; overflow: visible !important; display: flex; flex-direction: column; box-shadow: var(--shadow-sm); margin-top: 8px;">
+        <div class="table-header">
+            <div class="table-header-title" style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-list-ul"></i> Exam List
+                <span class="count-badge" id="examCount" style="background: var(--warning-color); color: white; border-radius: 20px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700;">{{ exams|length }}</span>
+            </div>
+            <div class="search-container" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <div style="position: relative; width: 160px;">
+                    <input type="text" id="examSearch" placeholder="Search exams..." style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.82rem;">
+                </div>
+                <button class="btn btn-secondary" onclick="window.openFilterModal()" style="height: 38px; border-radius: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: var(--bg-hover, #f1f5f9); border: 1.5px solid var(--border-color); color: var(--text-main); font-size: 0.85rem;">
+                    <i class="fas fa-filter"></i> <span>Filters</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="sw-table-wrapper table-responsive-container">
+            <table id="examsTable" class="exam-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px; text-align: center;">SN</th>
+                        <th style="width: 100px; text-align: center;">ACTIONS</th>
+                        <th class="sortable" onclick="changeSort('ExamName')">Exam Name <i class="fas fa-sort sort-icon"></i></th>
+                        <th class="sortable" onclick="changeSort('ExamType')">Type <i class="fas fa-sort sort-icon"></i></th>
+                        <th class="sortable active" onclick="changeSort('StartDate')">Dates <i class="fas fa-sort-down sort-icon"></i></th>
+                        <th class="sortable" onclick="changeSort('AcademicYear')">Year <i class="fas fa-sort sort-icon"></i></th>
+                        <th class="sortable" onclick="changeSort('IsPublish')">Status <i class="fas fa-sort sort-icon"></i></th>
+                        <th style="width: 80px; text-align: center;">Timetable</th>
+                    </tr>
+                </thead>
+                <tbody id="examTableBody">
+                    {% for exam in exams %}
+                    <tr class="{% if exam.IsActive == 1 %}is-deleted{% endif %}" id="exam-row-{{ exam.ExamID }}">
+                        <td style="text-align: center; color: var(--text-muted); font-weight: 600; font-size: 0.85rem;">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="action-group" style="justify-content: center; gap: 4px;">
+                                <button class="btn-action btn-edit" onclick="editExam('{{ exam.ExamID }}')" title="Edit" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% if exam.IsActive == 1 %}
+                                <button class="btn-action btn-restore" onclick="restoreExam('{{ exam.ExamID }}', '{{ exam.ExamName|escapejs }}')" title="Restore" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                {% else %}
+                                <button class="btn-action btn-delete" onclick="deleteExam('{{ exam.ExamID }}', '{{ exam.ExamName|escapejs }}')" title="Delete" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="exam-name-text">{{ exam.ExamName }}</div>
+                        </td>
+                        <td><span class="exam-type-badge">{{ exam.ExamType|default:"Main" }}</span></td>
+                        <td>
+                            <div style="font-size: 0.82rem; font-weight: 500; white-space: nowrap;">
+                                <i class="far fa-calendar-alt" style="color: var(--text-muted); margin-right: 2px;"></i>
+                                {{ exam.StartDate|date:"M d, Y" }} - {{ exam.EndDate|date:"M d, Y" }}
+                            </div>
+                        </td>
+                            <td style="font-weight: 600;">{{ exam.AcademicYear }}</td>
+                            <td>
+                                {% if exam.IsPublish == 'Yes' %}
+                                <span class="status-badge badge-published"><i class="fas fa-check-circle"></i> Published</span>
+                                {% else %}
+                                <span class="status-badge badge-draft"><i class="fas fa-history"></i> Draft</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="{% url 'exam_timetable' encrypted_exam_id=exam.ExamID|encrypt_id %}" class="btn-action" title="Manage Timetable" style="color: var(--primary-color); display: inline-flex;">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="no-data">
+                                <i class="fas fa-clipboard-list fa-3x" style="margin-bottom: 15px; opacity: 0.1;"></i>
+                                <p>No exams found. Start by creating one.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- ===== PREMIUM PAGINATION FOOTER ===== -->
+            <div class="pagination-container">
+                <div class="pagination-info" id="paginationInfo">
+                    Showing 0 to 0 of 0 records
+                </div>
+                <div class="pagination-controls" id="paginationControls">
+                    <!-- Dynamic Pagination -->
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- End of Dashboard Container -->
+
+<!-- ===== EXAM CREATION MODAL ===== -->
+<div class="sw-modal-container" id="examModal" style="display: none;">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-edit" id="formIcon"></i>
+                <h2 id="formTitle">Create New Exam</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeExamModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body">
+            <form id="examForm">
+                {% csrf_token %}
+                <input type="hidden" id="examId">
+                
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Exam Name <span style="color: var(--danger);">*</span></label>
+                    <input type="text" id="examName" class="sw-form-control" placeholder="e.g. Final Term Examination" required>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Academic Year <span style="color: var(--danger);">*</span></label>
+                        <select id="academicYearId" class="sw-form-control" required>
+                            {% for ay in academic_years %}
+                            <option value="{{ ay.0 }}">{{ ay.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Exam Type <span style="color: var(--danger);">*</span></label>
+                        <select id="examType" class="sw-form-control" required>
+                                                    <option value="">Select Exam Type</option>
+                        <option value="Unit Test">Unit Test</option>
+                        <option value="Monthly Test">Monthly Test</option>
+                        <option value="Quarterly Exam">Quarterly Exam</option>
+                        <option value="Half-Yearly Exam">Half-Yearly Exam</option>
+                        <option value="Pre-Board Exam">Pre-Board Exam</option>
+                        <option value="Annual Exam">Annual Exam</option>
+                        <option value="Mid-Term Exam">Mid-Term Exam</option>
+                        <option value="Final Term Exam">Final Term Exam</option>
+                        <option value="Weekly Test">Weekly Test</option>
+                        <option value="Class Test">Class Test</option>
+                        <option value="Internal Assessment">Internal Assessment</option>
+                        <option value="Practical Exam">Practical Exam</option>
+                        <option value="Oral Test / Viva">Oral Test / Viva</option>
+                        <option value="Assignment Evaluation">Assignment Evaluation</option>
+                        <option value="Project Work">Project Work</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Start Date <span style="color: var(--danger);">*</span></label>
+                        <input type="date" id="startDate" class="sw-form-control" required>
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">End Date <span style="color: var(--danger);">*</span></label>
+                        <input type="date" id="endDate" class="sw-form-control" required>
+                    </div>
+                </div>
+                
+                <div class="sw-form-group" style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-hover); border-radius: 12px; border: 1px solid var(--border-color); margin-top: 10px;">
+                    <input type="checkbox" id="isPublish" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-color);">
+                    <label for="isPublish" style="margin: 0; cursor: pointer; font-weight: 600; color: var(--text-main); font-size: 0.95rem;">Publish this Exam immediately</label>
+                </div>
+            </form>
+        </div>
+        <div class="sw-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeExamModal()">Cancel</button>
+            <button type="submit" form="examForm" class="btn btn-primary" id="saveExamBtn">
+                <i class="fas fa-save"></i> <span>Save Exam</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PREMIUM FILTER MODAL ===== -->
+<div class="sw-modal-container" id="filterModal" style="display: none;">
+    <div class="sw-modal" style="max-width: 500px;">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-filter"></i>
+                <h2>Filter Exams</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeFilterModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Academic Year</label>
+                    <select id="swFilterYear" class="filter-control" style="display: block !important; visibility: visible !important; height: 42px !important; opacity: 1 !important; border: 2px solid var(--primary-color) !important;">
+                        <option value="">All Years</option>
+                        {% for y in academic_years %}
+                        <option value="{{ y.0 }}">{{ y.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Exam Type</label>
+                    <select id="swFilterType" class="filter-control" style="display: block !important; visibility: visible !important; height: 42px !important; opacity: 1 !important; border: 2px solid var(--primary-color) !important;">
+                        <option value="">All Types</option>
+                        <option value="Main">Main Exam</option>
+                        <option value="Unit">Unit Test</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Half-Yearly">Half-Yearly</option>
+                        <option value="Final">Final Exam</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="grid-column: span 2;">
+                    <label>Status</label>
+                    <select id="swFilterStatus" class="filter-control" style="display: block !important; visibility: visible !important; height: 42px !important; opacity: 1 !important; border: 2px solid var(--primary-color) !important;">
+                        <option value="">All Status</option>
+                        <option value="Yes">Published Only</option>
+                        <option value="No">Draft Only</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="sw-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="resetFilters()" style="margin-right: auto;">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeFilterModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="applyFilters()">
+                <i class="fas fa-check"></i> Apply Filters
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block main_js %}
+<script>
+// 1. STATE MANAGEMENT
+let currentPage = 1;
+let pageSize = 10;
+let currentSortCol = 'StartDate';
+let currentSortDir = 'DESC';
+
+// 2. GLOBAL MODAL FUNCTIONS
+window.openExamModal = function() {
+    console.log("Opening Exam Modal...");
+    if (window.ShikshaWave && window.ShikshaWave.UI) {
+        window.ShikshaWave.UI.openModal('examModal');
+    } else {
+        const modal = document.getElementById('examModal');
+        if (modal) modal.style.setProperty('display', 'flex', 'important');
+    }
+};
+
+window.closeExamModal = function() {
+    if (window.ShikshaWave && window.ShikshaWave.UI) {
+        window.ShikshaWave.UI.closeModal('examModal');
+    } else {
+        document.getElementById('examModal').style.setProperty('display', 'none', 'important');
+    }
+    resetForm();
+};
+
+window.openFilterModal = function() {
+    if (window.ShikshaWave && window.ShikshaWave.UI) {
+        window.ShikshaWave.UI.openModal('filterModal');
+    } else {
+        document.getElementById('filterModal').style.display = 'flex';
+    }
+};
+
+window.closeFilterModal = function() {
+    if (window.ShikshaWave && window.ShikshaWave.UI) {
+        window.ShikshaWave.UI.closeModal('filterModal');
+    } else {
+        document.getElementById('filterModal').style.display = 'none';
+    }
+};
+
+window.applyFilters = function() {
+    loadExams(1);
+    closeFilterModal();
+};
+
+// 3. INITIALIZATION
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Exam Management JS Initialized");
+    initSchoolDropdown();
+    loadExams(1); // Initial dynamic load
+});
+
+function initSchoolDropdown() {
+    const schoolSelect = document.getElementById('adminSchoolSelect');
+    if (!schoolSelect) return;
+
+    const customDropdown = document.querySelector('.custom-dropdown[data-target="adminSchoolSelect"]');
+    const menu = customDropdown.querySelector('.custom-dropdown-menu');
+    const textSpan = customDropdown.querySelector('.custom-dropdown-text');
+    let selectedId = "{{ active_school_id|default:'' }}";
+    if (selectedId === "None" || selectedId === "null") selectedId = "";
+
+    fetch('/api/school-dropdown/')
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'SUCCESS') {
+                schoolSelect.innerHTML = '<option value="">Select School</option>';
+                
+                // Clear existing options except search
+                const searchBox = menu.querySelector('div[style*="position: sticky"]');
+                menu.innerHTML = '';
+                if (searchBox) menu.appendChild(searchBox);
+
+                const allOpt = document.createElement('div');
+                allOpt.className = 'custom-dropdown-option searchable-option' + (!selectedId ? ' selected' : '');
+                allOpt.dataset.value = '';
+                allOpt.dataset.search = 'select school';
+                allOpt.textContent = 'Select School';
+                menu.appendChild(allOpt);
+
+                res.data.forEach(school => {
+                    // Native Select
+                    const option = document.createElement('option');
+                    option.value = school.id;
+                    option.textContent = school.name;
+                    if (String(school.raw_id) === String(selectedId) || String(school.id) === String(selectedId)) {
+                        option.selected = true;
+                        textSpan.textContent = school.name;
+                    }
+                    schoolSelect.appendChild(option);
+
+                    // Custom Dropdown
+                    const opt = document.createElement('div');
+                    opt.className = 'custom-dropdown-option searchable-option' + (option.selected ? ' selected' : '');
+                    opt.dataset.value = school.id;
+                    opt.dataset.search = (school.name || '').toLowerCase();
+                    opt.textContent = school.name;
+                    menu.appendChild(opt);
+                });
+
+                if (!selectedId) textSpan.textContent = 'Select School';
+                
+                // Ensure visibility is forced after load
+                customDropdown.style.setProperty('display', 'block', 'important');
+                customDropdown.style.setProperty('visibility', 'visible', 'important');
+                customDropdown.style.setProperty('opacity', '1', 'important');
+
+                // --- TOGGLE & SELECTION LOGIC ---
+                const toggle = customDropdown.querySelector('.custom-dropdown-toggle');
+                toggle.onclick = (e) => {
+                    e.stopPropagation();
+                    // Close other dropdowns if any
+                    document.querySelectorAll('.custom-dropdown').forEach(d => {
+                        if (d !== customDropdown) d.classList.remove('active');
+                    });
+                    customDropdown.classList.toggle('active');
+                };
+
+                menu.querySelectorAll('.custom-dropdown-option').forEach(opt => {
+                    opt.onclick = (e) => {
+                        e.stopPropagation();
+                        const val = opt.dataset.value;
+                        const name = opt.textContent;
+                        
+                        // Update Native Select
+                        schoolSelect.value = val;
+                        textSpan.textContent = name;
+                        
+                        // Update UI
+                        menu.querySelectorAll('.custom-dropdown-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        
+                        customDropdown.classList.remove('active');
+                        
+                        // Trigger Load
+                        loadExams(1);
+                    };
+                });
+
+                // Global click to close
+                document.addEventListener('click', () => {
+                    customDropdown.classList.remove('active');
+                });
+
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+                
+                // Re-init search listener for the new elements
+                initDropdownSearch(customDropdown);
+            } else {
+                textSpan.textContent = 'Error loading schools';
+            }
+        })
+        .catch(err => {
+            console.error("School API Error:", err);
+            textSpan.textContent = 'Failed to load schools';
+        });
+}
+
+function initDropdownSearch(container) {
+    const searchInput = container.querySelector('.dropdown-search');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const options = container.querySelectorAll('.searchable-option');
+        options.forEach(opt => {
+            const searchData = opt.dataset.search || '';
+            opt.style.display = searchData.includes(term) ? '' : 'none';
+        });
+    });
+
+    // Prevent dropdown close when clicking search
+    searchInput.addEventListener('click', e => e.stopPropagation());
+}
+
+// Search input handler with debounce
+let searchTimeout;
+    document.getElementById('examSearch').oninput = function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => loadExams(1), 500);
+    };
+
+// 4. CORE AJAX LOADING ENGINE
+function loadExams(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('examSearch').value;
+    const yearId = document.getElementById('swFilterYear') ? document.getElementById('swFilterYear').value : '';
+    const type = document.getElementById('swFilterType') ? document.getElementById('swFilterType').value : '';
+    const status = document.getElementById('swFilterStatus') ? document.getElementById('swFilterStatus').value : '';
+    
+    // Get School ID from admin selector if it exists
+    const schoolSelect = document.getElementById('adminSchoolSelect');
+    const schoolId = schoolSelect ? schoolSelect.value : '';
+    
+    if (!schoolId && schoolSelect) {
+        const tableBody = document.getElementById('examTableBody');
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="no-data" style="padding: 60px 20px;">
+                    <i class="fas fa-school fa-3x" style="margin-bottom: 20px; opacity: 0.2; color: var(--primary-color);"></i>
+                    <h3 style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">No School Selected</h3>
+                    <p style="color: var(--text-muted); max-width: 300px; margin: 0 auto;">Please select a school from the dropdown above to manage its exams.</p>
+                </td>
+            </tr>`;
+        updateStats({total_records: 0});
+        return;
+    }
+
+    const url = `/exam/list/ajax/?page=${page}&page_size=${pageSize}&sort_col=${currentSortCol}&sort_dir=${currentSortDir}&search=${search}&year_id=${yearId}&type=${type}&status=${status}&school_id=${schoolId}`;
+    
+    // Add loading state to table
+    const tableBody = document.getElementById('examTableBody');
+    tableBody.style.opacity = '0.5';
+    
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            tableBody.style.opacity = '1';
+            if (data.status === 'SUCCESS') {
+                renderExams(data.exams);
+                updatePagination(data.total_records, data.page, data.page_size);
+                updateStats(data);
+            } else {
+                showToast(data.message || 'Failed to load exams', 'error');
+            }
+        })
+        .catch(err => {
+            tableBody.style.opacity = '1';
+            console.error("Fetch Error:", err);
+            showToast('Network error while loading exams', 'error');
+        });
+}
+
+// 5. DYNAMIC DOM RECONSTRUCTION
+function renderExams(exams) {
+    const tableBody = document.getElementById('examTableBody');
+    const examCount = document.getElementById('examCount');
+    
+    if (examCount) examCount.textContent = exams.length;
+    
+    if (!exams || exams.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="no-data">
+                    <i class="fas fa-clipboard-list fa-3x" style="margin-bottom: 15px; opacity: 0.1;"></i>
+                    <p>No exams found matching your criteria.</p>
+                </td>
+            </tr>`;
+        return;
+    }
+    
+    const schoolSelect = document.getElementById('adminSchoolSelect');
+    const schoolId = schoolSelect ? schoolSelect.value : '';
+
+    let html = '';
+    exams.forEach((exam, index) => {
+        if (!exam) return;
+        const examName = exam.ExamName || 'Untitled Exam';
+        const escapedName = examName.replace(/'/g, "\\'");
+        
+        const sn = ((currentPage - 1) * pageSize) + (index + 1);
+        const statusClass = exam.IsPublish === 'Yes' ? 'badge-published' : 'badge-draft';
+        const statusIcon = exam.IsPublish === 'Yes' ? 'fa-check-circle' : 'fa-history';
+        const statusText = exam.IsPublish === 'Yes' ? 'Published' : 'Draft';
+        const timetableUrl = `/exam/timetable/${exam.encrypted_id}/` + (schoolId ? `?school_id=${schoolId}` : '');
+        
+        html += `
+            <tr id="exam-row-${exam.ExamID}">
+                <td style="text-align: center; color: var(--text-muted); font-weight: 600; font-size: 0.85rem;">${sn}</td>
+                <td>
+                    <div class="action-group" style="justify-content: center; gap: 4px;">
+                        <button class="btn-action btn-edit" onclick="editExam('${exam.ExamID}')" title="Edit" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="deleteExam('${exam.ExamID}', '${escapedName}')" title="Delete" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+                <td><div class="exam-name-text">${examName}</div></td>
+                <td><span class="exam-type-badge">${exam.ExamType || 'Main'}</span></td>
+                <td>
+                    <div style="font-size: 0.82rem; font-weight: 500; white-space: nowrap;">
+                        <i class="far fa-calendar-alt" style="color: var(--text-muted); margin-right: 2px;"></i>
+                        ${exam.StartDate || 'N/A'} - ${exam.EndDate || 'N/A'}
+                    </div>
+                </td>
+                <td style="font-weight: 600;">${exam.AcademicYear || 'N/A'}</td>
+                <td><span class="status-badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</span></td>
+                <td style="text-align: center;">
+                    <a href="${timetableUrl}" class="btn-action" title="Manage Timetable" style="color: var(--primary-color); display: inline-flex;">
+                        <i class="fas fa-calendar-plus"></i>
+                    </a>
+                </td>
+            </tr>`;
+    });
+    tableBody.innerHTML = html;
+}
+
+// 6. PAGINATION LOGIC
+function updatePagination(total, current, size) {
+    const controls = document.getElementById('paginationControls');
+    const info = document.getElementById('paginationInfo');
+    
+    const totalPages = Math.ceil(total / size);
+    const start = total === 0 ? 0 : ((current - 1) * size) + 1;
+    const end = Math.min(current * size, total);
+    
+    if (info) info.textContent = `Showing ${start} to ${end} of ${total} records`;
+    
+    let html = '';
+    // Prev button
+    html += `<div class="page-link ${current === 1 ? 'disabled' : ''}" onclick="loadExams(${current - 1})"><i class="fas fa-chevron-left"></i></div>`;
+    
+    // Page numbers (simple version)
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= current - 1 && i <= current + 1)) {
+            html += `<div class="page-link ${i === current ? 'active' : ''}" onclick="loadExams(${i})">${i}</div>`;
+        } else if (i === current - 2 || i === current + 2) {
+            html += `<div class="page-link disabled">...</div>`;
+        }
+    }
+    
+    // Next button
+    html += `<div class="page-link ${current === totalPages || total === 0 ? 'disabled' : ''}" onclick="loadExams(${current + 1})"><i class="fas fa-chevron-right"></i></div>`;
+    
+    controls.innerHTML = html;
+}
+
+// 7. SORTING & FILTERS
+function changeSort(col) {
+    if (currentSortCol === col) {
+        currentSortDir = currentSortDir === 'ASC' ? 'DESC' : 'ASC';
+    } else {
+        currentSortCol = col;
+        currentSortDir = 'ASC';
+    }
+    
+    // Update UI headers
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.classList.remove('active');
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.className = 'fas fa-sort sort-icon';
+    });
+    
+    const activeTh = document.querySelector(`.sortable[onclick*="'${col}'"]`);
+    if (activeTh) {
+        activeTh.classList.add('active');
+        const icon = activeTh.querySelector('.sort-icon');
+        if (icon) icon.className = `fas fa-sort-${currentSortDir === 'ASC' ? 'up' : 'down'} sort-icon`;
+    }
+    
+    loadExams(1);
+}
+
+function resetFilters() {
+    if (document.getElementById('examSearch')) document.getElementById('examSearch').value = '';
+    if (document.getElementById('swFilterYear')) document.getElementById('swFilterYear').value = '';
+    if (document.getElementById('swFilterType')) document.getElementById('swFilterType').value = '';
+    if (document.getElementById('swFilterStatus')) document.getElementById('swFilterStatus').value = '';
+    loadExams(1);
+}
+
+function updateStats(data) {
+    if (!data) return;
+    
+    // Update Total Stats card
+    const totalEl = document.querySelector('.exam-stat-value');
+    if (totalEl) totalEl.textContent = data.total_records || 0;
+    
+    let published = 0;
+    let drafts = 0;
+    
+    if (data.exams && Array.isArray(data.exams)) {
+        data.exams.forEach(ex => {
+            if (ex.IsPublish === 'Yes') published++;
+            else drafts++;
+        });
+    }
+    
+    const pubEl = document.getElementById('statPublished');
+    const drfEl = document.getElementById('statDrafts');
+    if (pubEl) pubEl.textContent = published;
+    if (drfEl) drfEl.textContent = drafts;
+}
+
+// 8. FORM & ACTIONS
+function resetForm() {
+    document.getElementById('examForm').reset();
+    document.getElementById('examId').value = '';
+    document.getElementById('formTitle').textContent = 'Create New Exam';
+    document.getElementById('saveExamBtn').innerHTML = '<i class="fas fa-save"></i> <span>Save Exam</span>';
+}
+
+function editExam(examId) {
+    fetch('/exam/get/' + examId + '/').then(r => r.json()).then(data => {
+        document.getElementById('formTitle').textContent = 'Edit Exam';
+        document.getElementById('saveExamBtn').innerHTML = '<i class="fas fa-save"></i> <span>Update Exam</span>';
+        
+        document.getElementById('examId').value = data.ExamID;
+        document.getElementById('examName').value = data.ExamName;
+        document.getElementById('examType').value = data.ExamType || '';
+        document.getElementById('startDate').value = data.StartDate;
+        document.getElementById('endDate').value = data.EndDate;
+        document.getElementById('academicYearId').value = data.AcademicYearId;
+        document.getElementById('isPublish').checked = data.IsPublish === 'Yes';
+        
+        openExamModal();
+    });
+}
+
+async function deleteExam(examId, name) {
+    const res = await ShikshaWave.Dialog.confirm({
+        title: 'Delete Exam?',
+        text: `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+        icon: 'warning',
+        confirmText: 'Yes, Delete',
+        confirmButtonColor: 'var(--error-color)'
+    });
+    
+    if (res.isConfirmed) {
+        performAction('/exam/delete/', { exam_id: examId });
+    }
+}
+
+async function restoreExam(examId, name) {
+    const res = await ShikshaWave.Dialog.confirm({
+        title: 'Restore Exam?',
+        text: `Do you want to restore "${name}"?`,
+        icon: 'info',
+        confirmText: 'Yes, Restore'
+    });
+    
+    if (res.isConfirmed) {
+        performAction('/exam/restore/', { exam_id: examId });
+    }
+}
+
+function performAction(url, body) {
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Optional: Show loading toast or spinner
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        body: JSON.stringify(body)
+    }).then(r => r.json()).then(data => {
+        if (data.status === 'SUCCESS' || data.status === 'success') {
+            showToast('success', data.message);
+            loadExams(currentPage);
+            closeExamModal();
+        } else {
+            showToast('error', data.message);
+        }
+    }).catch(err => {
+        console.error("Action Failed:", err);
+        showToast('error', 'Operation failed: ' + err.message);
+    });
+}
+
+document.getElementById('examForm').onsubmit = function(e) {
+    e.preventDefault();
+    const schoolSelect = document.getElementById('adminSchoolSelect');
+    const formData = {
+        exam_id: document.getElementById('examId').value,
+        exam_name: document.getElementById('examName').value,
+        exam_type: document.getElementById('examType').value,
+        start_date: document.getElementById('startDate').value,
+        end_date: document.getElementById('endDate').value,
+        academic_year_id: document.getElementById('academicYearId').value,
+        is_publish: document.getElementById('isPublish').checked ? 'Yes' : 'No',
+        school_id: schoolSelect ? schoolSelect.value : ''
+    };
+    performAction('/exam/save/', formData);
+};
+
+function showToast(type, msg, title = '') {
+    if (window.ShikshaWave && window.ShikshaWave.Notification) {
+        window.ShikshaWave.Notification.showToast(type, msg, title);
+    } else {
+        // Fallback to simple alert if system not loaded
+        alert(`${type.toUpperCase()}: ${msg}`);
+    }
+}
+</script>
+{% endblock %}

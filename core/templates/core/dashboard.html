@@ -1,0 +1,44 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" data-ticket-url="{% url 'tickets:ticket_list' %}">
+    <!-- Breadcrumb / Header Row -->
+    <div class="sw-controls-row">
+        <div class="sw-page-title">
+            <i class="fas fa-th-large"></i>
+            <h1>
+                {% if profile_id == 1 or profile_name == 'Super Admin' %}
+                Super Admin Dashboard
+                {% else %}
+                School Dashboard
+                {% endif %}
+            </h1>
+        </div>
+        <div class="sw-header-actions">
+            <span class="sw-badge sw-badge-primary">Session: {{ current_session|default:"2023-24" }}</span>
+        </div>
+    </div>
+
+    <!-- Stats Cards Section -->
+    {% include "components/dashboard/stats_cards.html" %}
+
+    <!-- Quick Actions Section -->
+    {% include "components/dashboard/quick_actions.html" %}
+
+    <!-- Modals Section -->
+    {% include "components/dashboard/modals_wrapper.html" %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/dashboard.js' %}?v=1.1"></script>
+{% endblock %}

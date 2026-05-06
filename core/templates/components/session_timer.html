@@ -1,0 +1,34 @@
+{% load static %}
+<div class="sw-session-timer" id="sessionTimer" title="Session expires in">
+    <i class="fas fa-clock"></i>
+    <span id="sessionCountdown" class="sw-badge">--</span>
+</div>
+
+<style>
+    .sw-session-timer {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0 12px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    .sw-session-timer:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    #sessionCountdown {
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--success);
+        padding: 2px 8px;
+        border-radius: 10px;
+        min-width: 45px;
+        text-align: center;
+    }
+</style>

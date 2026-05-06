@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt | ShikshaWave</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: auto; min-height: 100%; }
+        body { font-family: 'Courier New', monospace; background: #e8f5e9; padding: 10px; }
+        .no-print { text-align: left; margin-bottom: 8px; }
+        .btn-print { background: #28a745; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin: 3px; font-size: 0.75rem; }
+        .btn-print:hover { background: #218838; }
+        .btn-close { background: #6b7280; }
+        .receipt-container { max-width: 700px; margin: 0 auto; background: white; border: 2px dashed #4caf50; padding: 0; }
+        .header { background: linear-gradient(135deg, #4caf50, #81c784); color: white; padding: 15px; text-align: center; position: relative; }
+        .header::before { content: '✓'; position: absolute; top: 5px; left: 15px; font-size: 25px; opacity: 0.3; }
+        .header::after { content: '✓'; position: absolute; bottom: 5px; right: 15px; font-size: 25px; opacity: 0.3; }
+        .header img { max-height: 50px; margin-bottom: 5px; background: white; padding: 5px; border-radius: 6px; }
+        .header h2 { font-size: 18px; margin: 5px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .header h3 { font-size: 12px; font-weight: normal; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 15px; display: inline-block; margin-top: 5px; }
+        .receipt-body { padding: 15px; }
+        .receipt-stamp { text-align: center; margin-bottom: 15px; }
+        .receipt-stamp .stamp { display: inline-block; border: 2px solid #4caf50; border-radius: 8px; padding: 8px 20px; transform: rotate(-5deg); }
+        .receipt-stamp .stamp h3 { color: #4caf50; font-size: 13px; margin: 0; }
+        .info-box { background: #f1f8e9; border-left: 4px solid #4caf50; padding: 12px; margin: 12px 0; }
+        .info-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #c8e6c9; font-size: 11px; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: bold; color: #2e7d32; }
+        .info-value { color: #1b5e20; }
+        .fee-section { margin: 15px 0; border: 2px solid #4caf50; border-radius: 6px; overflow: hidden; }
+        .fee-header { background: #4caf50; color: white; padding: 8px 12px; font-size: 12px; font-weight: bold; }
+        .fee-list { padding: 10px 12px; }
+        .fee-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #c8e6c9; font-size: 11px; }
+        .fee-item:last-child { border-bottom: none; }
+        .total-box { background: #4caf50; color: white; padding: 12px; margin-top: 15px; text-align: center; border-radius: 6px; }
+        .total-box h3 { font-size: 13px; margin-bottom: 5px; }
+        .total-box p { font-size: 24px; font-weight: bold; letter-spacing: 1px; }
+        .footer { background: #f1f8e9; padding: 12px; text-align: center; border-top: 2px dashed #4caf50; margin-top: 12px; }
+        .footer p { color: #2e7d32; font-size: 9px; margin: 3px 0; }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 60px; color: rgba(76, 175, 80, 0.05); font-weight: bold; z-index: 0; pointer-events: none; }
+        @media print {
+            .no-print { display: none; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { padding: 0; background: white; }
+            .receipt-container { border: 2px dashed #4caf50; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-print btn-close" onclick="window.close()">Close</button>
+    </div>
+    
+    <div class="receipt-container" style="position: relative;">
+        <div class="watermark">PAID</div>
+        
+        <div class="header">
+            {% if payment_receipt.school_logo %}
+            <img src="{{ payment_receipt.school_logo }}" alt="School Logo">
+            {% endif %}
+            <h2>{{ payment_receipt.school_name|default:"ShikshaWave" }}</h2>
+            <h3>PAYMENT RECEIPT</h3>
+        </div>
+        
+        <div class="receipt-body">
+            <div class="receipt-stamp">
+                <div class="stamp">
+                    <h3>RECEIPT #{{ payment_receipt.receipt_number }}</h3>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">STUDENT NAME:</span>
+                    <span class="info-value">{{ payment_receipt.student_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">STUDENT CODE:</span>
+                    <span class="info-value">{{ payment_receipt.student_code }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">PAYMENT DATE:</span>
+                    <span class="info-value">{{ payment_receipt.payment_date }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">PAYMENT MODE:</span>
+                    <span class="info-value">{{ payment_receipt.payment_mode }}</span>
+                </div>
+                {% if payment_receipt.transaction_ref %}
+                <div class="info-row">
+                    <span class="info-label">TRANSACTION REF:</span>
+                    <span class="info-value" style="font-size: 11px; word-break: break-all;">{{ payment_receipt.transaction_ref }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if payment_receipt.fee_breakdown %}
+            <div class="fee-section">
+                <div class="fee-header">
+                    <i class="fas fa-receipt"></i> FEE DETAILS
+                </div>
+                <div class="fee-list">
+                    {% for fee in payment_receipt.fee_breakdown %}
+                    <div class="fee-item">
+                        <span>{{ fee.fee_name }}</span>
+                        <span style="font-weight: bold;">
+                            {% if fee.discount_percentage > 0 %}
+                                <small style="text-decoration: line-through; color: #999;">₹{{ fee.default_amount }}</small>
+                                <span style="color: #2e7d32; margin-left: 5px;">₹{{ fee.amount }}</span>
+                                <small style="color: #666;">({{ fee.discount_percentage }}% off)</small>
+                            {% else %}
+                                ₹{{ fee.amount }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="total-box">
+                <h3>TOTAL AMOUNT PAID</h3>
+                <p>₹{{ payment_receipt.amount_paid }}</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>✓ PAYMENT SUCCESSFUL</strong></p>
+            <p>This is a computer-generated receipt and does not require a signature.</p>
+            <p>For any queries, please contact the school office.</p>
+        </div>
+    </div>
+</body>
+</html>

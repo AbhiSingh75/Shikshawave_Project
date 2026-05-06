@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 11px; }
+        .container { max-width: 210mm; margin: 0 auto; padding: 10mm; }
+        .header { text-align: center; background: #004aad; color: white; padding: 15px; margin-bottom: 15px; }
+        .school-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .school-info { font-size: 10px; }
+        .title { text-align: center; font-size: 18px; font-weight: bold; color: #004aad; margin: 15px 0; padding: 10px; background: #f0f4ff; border-left: 4px solid #004aad; }
+        .section-title { font-size: 12px; font-weight: bold; color: #004aad; margin: 15px 0 8px 0; padding-bottom: 5px; border-bottom: 2px solid #e0e7ff; }
+        .info-grid { display: table; width: 100%; margin: 12px 0; }
+        .info-row { display: table-row; }
+        .info-card { display: table-cell; padding: 8px 10px; background: #f8fafc; border-left: 3px solid #004aad; margin: 5px; font-size: 10px; width: 33%; }
+        .info-label { font-weight: 600; color: #64748b; font-size: 9px; display: block; margin-bottom: 2px; }
+        .info-value { color: #1e293b; font-weight: 600; }
+        .salary-section { width: 100%; margin: 15px 0; }
+        .salary-box { width: 48%; display: inline-block; vertical-align: top; background: #f8fafc; padding: 10px; border: 1px solid #e0e7ff; }
+        .salary-table { width: 100%; border-collapse: collapse; }
+        .salary-table th { background: #004aad; color: white; padding: 6px 8px; text-align: left; font-size: 10px; font-weight: 600; }
+        .salary-table td { padding: 5px 8px; border-bottom: 1px solid #e0e7ff; font-size: 10px; }
+        .total-row { background: #e0e7ff; font-weight: bold; }
+        .net-salary { background: #004aad; color: white; font-weight: bold; font-size: 11px; }
+        .bank-details { width: 100%; margin: 15px 0; padding: 12px; background: #fef3c7; border: 2px solid #fbbf24; }
+        .bank-item { display: inline-block; width: 32%; text-align: center; vertical-align: top; }
+        .bank-label { font-size: 9px; color: #92400e; font-weight: 600; }
+        .bank-value { font-size: 11px; color: #78350f; font-weight: bold; }
+        .payment-info { margin: 12px 0; padding: 10px; background: #f0fdf4; border: 1px solid #86efac; font-size: 10px; }
+        .signature-section { width: 100%; margin-top: 25px; }
+        .signature-box { display: inline-block; width: 48%; text-align: center; }
+        .signature-line { border-top: 2px solid #1e293b; padding-top: 5px; font-size: 10px; font-weight: 600; margin-top: 30px; }
+        .footer { margin-top: 20px; padding: 10px; background: #f8fafc; text-align: center; font-size: 9px; color: #64748b; border: 1px dashed #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {% if school_logo %}
+            <img src="{{ school_logo }}" alt="Logo" style="width: 50px; height: 50px; margin: 0 auto 8px; display: block; border-radius: 50%; border: 3px solid white;">
+            {% endif %}
+            <div class="school-name">{{ school_name }}</div>
+            <div class="school-info">{{ school_address }} | {{ school_phone }} | {{ school_email }}</div>
+        </div>
+
+        <div class="title">SALARY SLIP</div>
+
+        <div class="section-title">Employee Information</div>
+        <table style="width: 100%; margin: 10px 0;">
+            <tr>
+                <td style="width: 33%; padding: 5px; background: #f8fafc; border-left: 3px solid #004aad;">
+                    <span class="info-label">Employee Code</span><br>
+                    <span class="info-value">{{ employee_code }}</span>
+                </td>
+                <td style="width: 33%; padding: 5px; background: #f8fafc; border-left: 3px solid #004aad;">
+                    <span class="info-label">Employee Name</span><br>
+                    <span class="info-value">{{ employee_name }}</span>
+                </td>
+                <td style="width: 33%; padding: 5px; background: #f8fafc; border-left: 3px solid #004aad;">
+                    <span class="info-label">Designation</span><br>
+                    <span class="info-value">{{ designation }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 5px; background: #f8fafc; border-left: 3px solid #004aad;">
+                    <span class="info-label">Salary Month</span><br>
+                    <span class="info-value">{{ salary_month }}</span>
+                </td>
+                <td style="padding: 5px; background: #f8fafc; border-left: 3px solid #004aad;">
+                    <span class="info-label">Reference ID</span><br>
+                    <span class="info-value">{{ salary_reference_id }}</span>
+                </td>
+                <td style="padding: 5px; background: #f8fafc; border-left: 3px solid #004aad;">
+                    <span class="info-label">Payment Date</span><br>
+                    <span class="info-value">{{ payment_date }}</span>
+                </td>
+            </tr>
+        </table>
+
+        <div class="section-title">Bank & Account Details</div>
+        <div class="bank-details">
+            <div class="bank-item">
+                <div class="bank-label">BANK ACCOUNT</div>
+                <div class="bank-value">XXXX-XXXX-1234</div>
+            </div>
+            <div class="bank-item">
+                <div class="bank-label">UPI ID</div>
+                <div class="bank-value">employee@upi</div>
+            </div>
+            <div class="bank-item">
+                <div class="bank-label">UAN NUMBER</div>
+                <div class="bank-value">1234-5678-9012</div>
+            </div>
+        </div>
+
+        <div class="section-title">Salary Breakdown</div>
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 48%; vertical-align: top; padding-right: 10px;">
+                    <table class="salary-table">
+                        <thead><tr><th>Earnings</th><th style="text-align: right; width: 90px;">Amount (Rs.)</th></tr></thead>
+                        <tbody>
+                            {% if earnings %}{% for earning in earnings %}<tr><td>{{ earning.name }}</td><td style = "text-align: right;">{{ earning.amount }}</td></tr>{% endfor %}{% endif %}
+                            <tr class="total-row"><td><strong>Gross Salary</strong></td><td style="text-align: right;"><strong>{{ gross_salary }}</strong></td></tr>
+                        </tbody>
+                    </table>
+                </td>
+                <td style="width: 48%; vertical-align: top; padding-left: 10px;">
+                    <table class="salary-table">
+                        <thead><tr><th>Deductions</th><th style="text-align: right; width: 90px;">Amount (Rs.)</th></tr></thead>
+                        <tbody>
+                            {% if deductions %}{% for deduction in deductions %}<tr><td>{{ deduction.name }}</td><td style = "text-align: right;">{{ deduction.amount }}</td></tr>{% endfor %}{% else %}<tr><td colspan = "2" style = "text-align: center; color: #64748b;">No deductions</td></tr>{% endif %}
+                            <tr class="total-row"><td><strong>Total Deductions</strong></td><td style="text-align: right;"><strong>{{ total_deductions }}</strong></td></tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        
+        <table class="salary-table" style="margin-top: 10px;">
+            <tr class="net-salary"><td><strong>NET SALARY PAYABLE</strong></td><td style="text-align: right;"><strong>Rs. {{ net_salary }}</strong></td></tr>
+        </table>
+
+        <div class="section-title">Payment Information</div>
+        <div class="payment-info">
+            <strong>Mode:</strong> {{ payment_mode }} | <strong>Reference:</strong> {{ transaction_ref }}
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box"><div class="signature-line">Employee Signature</div></div>
+            <div class="signature-box"><div class="signature-line">Authorized Signatory</div></div>
+        </div>
+        
+        <div class="footer">This is a computer-generated salary slip and does not require a physical signature. For any queries, please contact the accounts department.</div>
+    </div>
+</body>
+</html>

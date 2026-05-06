@@ -1,0 +1,557 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Create Ticket | ShikshaWave Indigo{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* High-Density Indigo Design Tokens */
+    :root {
+        --sw-primary: var(--primary-color, #4f46e5); /* Standardized from Global Theme */
+        --sw-primary-rgb: var(--primary-rgb, 79, 70, 229);
+        --sw-primary-hover: var(--primary-hover, #4338ca);
+        --sw-secondary: #64748b;
+        --sw-success: #10b981;
+        --sw-warning: #f59e0b;
+        --sw-error: #ef4444;
+        --sw-info: #3b82f6;
+        
+        --bg-main: #f8fafc;
+        --card-bg: rgba(255, 255, 255, 0.9);
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --border-subtle: rgba(226, 232, 240, 0.8);
+        
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.3);
+    }
+
+    body.dark-mode {
+        --bg-main: #0f172a;
+        --card-bg: rgba(30, 41, 59, 0.8);
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border-subtle: rgba(51, 65, 85, 0.8);
+        --glass-bg: rgba(15, 23, 42, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        color-scheme: dark; /* Ensures native elements like select/date/file follow dark mode */
+    }
+
+    .sw-container {
+        padding: 1.5rem;
+        max-width: 1000px;
+        margin: 0 auto;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Global Control Row - High Density */
+    .sw-control-row {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 0.75rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        position: sticky;
+        top: 80px; /* Adjusted to match list alignment */
+        z-index: 100;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1.5rem;
+    }
+
+    .sw-title-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .sw-title-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--sw-primary), #818cf8);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+    }
+
+    .sw-title-text h1 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-main);
+        letter-spacing: -0.01em;
+    }
+
+    .sw-title-text p {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    /* Modern Card Layout */
+    .sw-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .sw-card-header {
+        padding: 0.75rem 1.25rem; /* Standard header padding */
+        background: var(--sw-primary); /* Bold primary background */
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px 20px 0 0; /* Matches card corner radius */
+    }
+
+    .sw-card-title {
+        font-size: 0.85rem; /* Clean standard font size */
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: white !important; /* Force high contrast */
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .sw-card-title i {
+        background: rgba(255, 255, 255, 0.2); /* Semi-transparent icon badge */
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        color: white !important;
+    }
+
+    .sw-card-body {
+        padding: 1.25rem; /* Increased density */
+    }
+
+    /* Form Grid */
+    .sw-form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 3-column approach for meta items */
+        gap: 1rem;
+    }
+
+    .sw-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .sw-form-group.full-width {
+        grid-column: span 3; /* Matches our 3-column grid base */
+    }
+
+    .sw-form-group.span-2 {
+        grid-column: span 2;
+    }
+
+    .sw-form-group.span-1 {
+        grid-column: span 1;
+    }
+
+    .sw-label {
+        font-size: 0.75rem; /* Standard label size */
+        font-weight: 700;
+        color: var(--text-muted); /* More sophisticated color */
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sw-label i {
+        color: var(--sw-primary); /* Only icons carry theme color */
+        font-size: 0.8rem;
+    }
+
+    .sw-label .required {
+        color: var(--sw-error);
+    }
+
+    .sw-input, .sw-select, .sw-textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--bg-main);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 12px;
+        color: var(--text-main);
+        font-size: 0.875rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sw-input:focus, .sw-select:focus, .sw-textarea:focus {
+        outline: none;
+        border-color: var(--sw-primary);
+        box-shadow: 0 0 0 4px rgba(var(--sw-primary-rgb), 0.15);
+        transform: translateY(-1px);
+        background: var(--card-bg); /* Follows theme instead of hardcoded white */
+    }
+
+    .sw-select option {
+        background: var(--bg-main);
+        color: var(--text-main);
+    }
+
+    .sw-file-input-wrapper {
+        position: relative;
+        border: 2px dashed var(--border-subtle);
+        border-radius: 12px;
+        padding: 1.25rem; /* Compact upload area */
+        text-align: center;
+        transition: all 0.3s ease;
+        background: rgba(var(--sw-primary-rgb), 0.01);
+    }
+
+    .sw-file-input-wrapper:hover {
+        border-color: var(--sw-primary);
+        background: rgba(var(--sw-primary-rgb), 0.03);
+    }
+
+    .sw-file-input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .sw-file-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .sw-file-label i {
+        font-size: 1.5rem; /* More compact icon */
+        color: var(--sw-primary);
+        opacity: 0.8;
+    }
+
+    /* Buttons */
+    .sw-btn {
+        height: 42px;
+        padding: 0 1.5rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .sw-btn-primary {
+        background: linear-gradient(135deg, var(--sw-primary), #818cf8);
+        color: white;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+    }
+
+    .sw-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+        filter: brightness(1.05);
+    }
+
+    .sw-btn-secondary {
+        background: var(--card-bg);
+        border-color: var(--border-subtle);
+        color: var(--text-main);
+    }
+
+    .sw-btn-secondary:hover {
+        background: var(--bg-main);
+        border-color: var(--sw-primary);
+        color: var(--sw-primary);
+    }
+
+    .sw-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 768px) {
+        .sw-container { padding: 0.75rem; }
+        
+        .sw-control-row {
+            flex-direction: column;
+            gap: 1.25rem;
+            align-items: stretch;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .sw-title-group {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .sw-form-grid { 
+            grid-template-columns: 1fr; /* Force 1-column collapse */
+            gap: 1.25rem;
+        }
+        
+        /* Reset all grid spans for mobile stacking */
+        .sw-form-group.full-width,
+        .sw-form-group.span-2,
+        .sw-form-group.span-1 {
+            grid-column: span 1;
+        }
+
+        .sw-card-header {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .sw-card-title {
+            justify-content: center;
+        }
+
+        .sw-card-body {
+            padding: 1rem;
+        }
+
+        .sw-actions { 
+            flex-direction: column;
+            gap: 0.75rem;
+            padding-top: 1.5rem;
+        }
+
+        .sw-btn { 
+            width: 100%; 
+            height: 48px; /* Larger touch target for mobile */
+            font-size: 0.95rem;
+        }
+
+        .sw-textarea {
+            height: 154px !important; /* Larger area in mobile stack */
+        }
+
+        .sw-file-input-wrapper {
+            height: auto !important;
+            padding: 1.5rem 1rem;
+        }
+
+        .sw-file-label div {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-container">
+    <!-- Indigo Control Row -->
+    <div class="sw-control-row">
+        <div class="sw-title-group">
+            <div class="sw-title-icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <div class="sw-title-text">
+                <h1>Create New Ticket</h1>
+                <p>Submit a support request to our helpdesk</p>
+            </div>
+        </div>
+        <div class="sw-actions-group">
+            <a href="{% url 'tickets:ticket_list' %}" class="sw-btn sw-btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to List</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Ticket Form Card -->
+    <div class="sw-card">
+        <div class="sw-card-header">
+            <h3 class="sw-card-title">
+                <i class="fas fa-ticket-alt"></i>
+                Ticket Registration Details
+            </h3>
+        </div>
+        <div class="sw-card-body">
+            <form method="post" enctype="multipart/form-data" id="ticketForm">
+                {% csrf_token %}
+                
+                <div class="sw-form-grid">
+                    {% if role_name == 'Super Admin' %}
+                    <div class="sw-form-group">
+                        <label class="sw-label">
+                            <i class="fas fa-school"></i>
+                            Select School <span class="required">*</span>
+                        </label>
+                        <select name="school_id" class="sw-select" required>
+                            <option value="">Choose a school...</option>
+                            {% for school in schools %}
+                            <option value="{{ school.SchoolID }}">{{ school.DisplayName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div class="sw-form-group">
+                        <label class="sw-label">
+                            <i class="fas fa-tag"></i>
+                            Category <span class="required">*</span>
+                        </label>
+                        <select name="category_id" class="sw-select" required>
+                            <option value="">Select issue category...</option>
+                            {% for category in categories %}
+                            <option value="{{ category.category_id }}">{{ category.category_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="sw-form-group">
+                        <label class="sw-label">
+                            <i class="fas fa-bolt"></i>
+                            Priority <span class="required">*</span>
+                        </label>
+                        <select name="priority" class="sw-select" required>
+                            <option value="">Select priority level...</option>
+                            {% for priority in priorities %}
+                            <option value="{{ priority.priority_level }}">{{ priority.priority_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="sw-form-group">
+                        <label class="sw-label">
+                            <i class="fas fa-paper-plane"></i>
+                            Request Source <span class="required">*</span>
+                        </label>
+                        <select name="source" class="sw-select" required>
+                            <option value="Website" selected>Web Portal</option>
+                            <option value="Email">Direct Email</option>
+                            <option value="Call">Phone Call</option>
+                        </select>
+                    </div>
+
+                    <div class="sw-form-group full-width">
+                        <label class="sw-label">
+                            <i class="fas fa-heading"></i>
+                            Issue Subject <span class="required">*</span>
+                        </label>
+                        <input type="text" name="subject" class="sw-input" 
+                               placeholder="Briefly state the issue (e.g., Cannot login to student portal)" 
+                               maxlength="255" required id="subjectInput">
+                    </div>
+
+                    <div class="sw-form-group span-2">
+                        <label class="sw-label">
+                            <i class="fas fa-align-left"></i>
+                            Detailed Description <span class="required">*</span>
+                        </label>
+                        <textarea name="description" class="sw-textarea" rows="4" 
+                                  placeholder="Provide as much detail as possible to help us resolve the issue quickly..." 
+                                  required id="descriptionInput" style="height: 104px; resize: none;"></textarea>
+                    </div>
+
+                    <div class="sw-form-group span-1">
+                        <label class="sw-label">
+                            <i class="fas fa-paperclip"></i>
+                            Supporting Evidence (Optional)
+                        </label>
+                        <div class="sw-file-input-wrapper" style="height: 104px; display: flex; align-items: center; justify-content: center;">
+                            <input type="file" name="attachment" class="sw-file-input" 
+                                   accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" id="fileInput">
+                            <div class="sw-file-label" id="fileLabel">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; justify-content: center;">
+                                    <i class="fas fa-upload" style="font-size: 1.2rem;"></i>
+                                    <span style="font-size: 0.75rem; font-weight: 600;">Click to upload</span>
+                                    <small style="font-size: 0.65rem; opacity: 0.8;">PNG, JPG, PDF (max 5MB)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sw-actions">
+                    <button type="reset" class="sw-btn sw-btn-secondary">
+                        <i class="fas fa-undo"></i>
+                        Clear Form
+                    </button>
+                    <button type="submit" class="sw-btn sw-btn-primary">
+                        <i class="fas fa-save"></i>
+                        Submit Support Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('ticketForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.getElementById('fileLabel');
+
+        // File input preview
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                fileLabel.querySelector('span').textContent = this.files[0].name;
+                fileLabel.querySelector('i').className = 'fas fa-file-check';
+                fileLabel.style.color = 'var(--sw-success)';
+            }
+        });
+
+        // Form validation enhancement
+        form.addEventListener('submit', function(e) {
+            const subject = document.getElementById('subjectInput').value.trim();
+            const description = document.getElementById('descriptionInput').value.trim();
+            
+            let errors = [];
+            if (subject.length < 5) errors.push('Subject is too short (min 5 chars).');
+            if (description.length < 10) errors.push('Description is too short (min 10 chars).');
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                alert(errors.join('\n'));
+                return false;
+            }
+
+            // Button loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fee Receipt - Minimalist</title>
+    <style>
+        @page { size: A4; margin: 10mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Helvetica', Arial, sans-serif; padding: 10px; background: #ffffff; font-size: 11px; }
+        .action-buttons { position: fixed; top: 5px; left: 5px; z-index: 1000; }
+        .action-buttons button { padding: 6px 12px; margin-right: 5px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .btn-print { background: #000; color: white; }
+        .btn-close { background: #666; color: white; }
+        .receipt { max-width: 210mm; margin: 40px auto 0; background: white; border: 1px solid #000; }
+        .header { padding: 20px; border-bottom: 3px solid #000; display: flex; align-items: center; gap: 20px; }
+        .school-logo { width: 60px; height: 60px; border: 2px solid #000; }
+        .school-info { flex: 1; }
+        .school-name { font-size: 22px; font-weight: bold; margin-bottom: 5px; }
+        .school-details { font-size: 9px; color: #333; }
+        .receipt-no { font-size: 10px; font-weight: bold; text-align: right; }
+        .content { padding: 20px; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #000; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-item { font-size: 10px; }
+        .info-label { color: #666; margin-bottom: 3px; }
+        .info-value { font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10px; }
+        th { background: #000; color: white; padding: 8px; text-align: left; font-weight: 600; }
+        td { padding: 6px 8px; border-bottom: 1px solid #ddd; }
+        .total-row { background: #f5f5f5 !important; font-weight: bold; border-top: 2px solid #000; }
+        .footer { padding: 15px; border-top: 1px solid #000; text-align: center; font-size: 9px; color: #666; }
+        @media print { body { padding: 0; } .action-buttons { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="action-buttons">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-close" onclick="window.close()">✖ Close</button>
+    </div>
+    
+    <div class="receipt">
+        <div class="header">
+            {% if school_logo %}
+            <img src="{{ school_logo }}" alt="Logo" class="school-logo">
+            {% endif %}
+            <div class="school-info">
+                <div class="school-name">{{ school_name|default:"School Name" }}</div>
+                <div class="school-details">{{ school_address|default:"Address" }} | {{ school_phone|default:"Phone" }}</div>
+            </div>
+            <div class="receipt-no">
+                RECEIPT<br>{{ receipt_no }}<br>{{ date_of_submission }}
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <div class="section-title">Student Information</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Name</div>
+                        <div class="info-value">{{ full_name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Student Code</div>
+                        <div class="info-value">{{ student_code }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Class</div>
+                        <div class="info-value">{{ class_name }} - {{ section_name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Payment Mode</div>
+                        <div class="info-value">{{ payment_mode }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Fee Details</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">SN</th>
+                            <th style="width: 62%;">Particulars</th>
+                            <th style="width: 30%; text-align: right;">Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if fee_breakdown %}
+                            {% for item in fee_breakdown %}
+                            {% if not item.isSummary %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ item.feeTypeName }}</td>
+                                <td style="text-align: right;">{{ item.userEnterAmount|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <tr class="total-row">
+                            <td colspan="2" style="text-align: right;">PAID</td>
+                            <td style="text-align: right;">₹ {{ paid_amount|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if previous_payments %}
+            <div class="section">
+                <div class="section-title">Payment History</div>
+                <table style="font-size: 9px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 4%;">SN</th>
+                            <th style="width: 20%;">Receipt</th>
+                            <th style="width: 13%;">Date</th>
+                            <th style="width: 13%;">Month</th>
+                            <th style="width: 9%;">Mode</th>
+                            <th style="width: 14%; text-align: right;">Total</th>
+                            <th style="width: 13%; text-align: right;">Discount</th>
+                            <th style="width: 14%; text-align: right;">Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in previous_payments %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ payment.receipt_number }}</td>
+                            <td>{{ payment.payment_date }}</td>
+                            <td>{{ payment.payment_month }}</td>
+                            <td>{{ payment.payment_mode }}</td>
+                            <td style="text-align: right;">{{ payment.total_amount|floatformat:2 }}</td>
+                            <td style="text-align: right;">{{ payment.discount_value|floatformat:2 }}</td>
+                            <td style="text-align: right;">{{ payment.paid_amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            {{ school_name }} | Computer Generated Receipt
+        </div>
+    </div>
+</body>
+</html>

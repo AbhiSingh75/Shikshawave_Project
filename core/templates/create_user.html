@@ -1,0 +1,553 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Create User | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Use Global Theme Variables and inherit background from base.html */
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 15px;
+    }
+
+    .form-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 0;
+        box-shadow: var(--card-shadow);
+    }
+
+    body.dark-mode .form-section {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        /* Reduced */
+        align-items: start;
+    }
+
+    /* Span rules for responsiveness */
+    @media (max-width: 1100px) {
+        .form-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0 0 15px 0;
+        /* Reduced */
+        padding: 12px 20px;
+        /* Reduced */
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        position: sticky;
+        top: 20px;
+        z-index: 900;
+    }
+
+    .controls-left h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .controls-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    body.dark-mode .controls-row {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.875rem;
+    }
+
+    .form-control {
+        width: 100%;
+        max-width: 100%;
+        /* Prevent overflow */
+        padding: 10px 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: white;
+        color: var(--text-color);
+        transition: all 0.2s;
+        /* Text truncation for long values */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Specific fix for select elements to allow browser UI to work but constrain width */
+    select.form-control {
+        white-space: normal;
+        /* Allow standard selecting behavior if needed, but constrain width */
+    }
+
+    body.dark-mode .form-control {
+        background: #111827;
+        /* Darker background for contrast */
+        border-color: #4b5563;
+        color: #f9fafb;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    body.dark-mode .form-control:focus {
+        background: #000000;
+        border-color: var(--primary-color);
+    }
+
+    /* Photo Upload - Compact */
+    .file-upload {
+        border: 2px dashed var(--border-color);
+        padding: 10px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: var(--light-gray);
+        transition: all 0.2s;
+        cursor: pointer;
+        height: 90px;
+        /* Balanced height */
+        overflow: hidden;
+    }
+
+    .file-upload:hover {
+        border-color: var(--primary-color);
+    }
+
+    .upload-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .preview-image {
+        max-width: calc(100% - 20px);
+        /* Leave margin */
+        max-height: 70px;
+        /* Fit within area with margin */
+        object-fit: contain;
+        border-radius: 6px;
+        border: 2px solid var(--success-color);
+        display: none;
+        margin: 5px;
+        /* Margin around image */
+    }
+
+    /* When preview is shown, hide upload content */
+    .file-upload.has-preview .upload-content {
+        display: none;
+    }
+
+    .file-upload.has-preview .preview-image {
+        display: block;
+    }
+
+    /* Actions */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn {
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    body.dark-mode .btn-secondary {
+        background: #374151;
+        color: #d1d5db;
+        border-color: #4b5563;
+    }
+
+    .btn-secondary:hover {
+        background: var(--light-gray);
+        border-color: var(--text-light);
+    }
+
+    /* Breadcrumb-ish header logic */
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .page-subtitle {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Mobile Fixes */
+    @media (max-width: 600px) {
+
+
+        .container {
+            padding: 10px;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .controls-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 15px;
+            position: static !important;
+            z-index: auto !important;
+            margin-top: 10px;
+            /* Reduced spacing per user request */
+            padding: 15px;
+            width: 100%;
+        }
+
+        .form-section {
+            padding: 15px;
+            width: 100%;
+        }
+
+        .controls-left h2 {
+            font-size: 1.1rem;
+        }
+
+        .controls-right {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        /* Target our inline action area specifically */
+        .form-group[style*="grid-column: 2 / -1"] {
+            grid-column: 1 / -1 !important;
+            justify-content: flex-start !important;
+            padding-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .form-group[style*="grid-column: 2 / -1"]>div {
+            width: 100%;
+        }
+
+        .btn {
+            flex: 1;
+            justify-content: center;
+            white-space: nowrap;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- Controls Row (Header + Actions) -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h2>
+                <i class="fas fa-user-plus" style="color: var(--primary-color);"></i>
+                Create New User
+            </h2>
+        </div>
+        <div class="controls-right">
+            <a href="{% url 'user_list' %}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                <i class="fas fa-list"></i> View User List
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Form Section -->
+    <div class="form-section">
+        <!-- Removed inner header since we have controls row now -->
+
+        {% if error %}
+        <div
+            style="background: rgba(239, 68, 68, 0.1); color: var(--error-color); padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--error-color);">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <script>
+            // Photo upload handler - must be defined before form
+            function handlePhotoChange(input) {
+                if (input.files && input.files[0]) {
+                    var file = input.files[0];
+                    var imagePreview = document.getElementById('imagePreview');
+                    var photoDropZone = document.getElementById('photoDropZone');
+
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File too large (Max 5MB)');
+                        input.value = '';
+                        return;
+                    }
+
+                    if (!file.type.startsWith('image/')) {
+                        alert('Invalid image file. Please upload JPG, PNG or GIF.');
+                        input.value = '';
+                        return;
+                    }
+
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        if (imagePreview) {
+                            imagePreview.src = e.target.result;
+                        }
+                        if (photoDropZone) {
+                            photoDropZone.classList.add('has-preview');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            // Phone number formatter - 99999-99999
+            function formatPhone(input) {
+                let value = input.value.replace(/\D/g, ''); // Remove non-digits
+                if (value.length > 5) {
+                    value = value.substring(0, 5) + '-' + value.substring(5, 10);
+                }
+                input.value = value;
+            }
+        </script>
+
+        <form method="post" enctype="multipart/form-data" id="createUserForm" novalidate>
+            {% csrf_token %}
+
+            <div class="form-grid">
+                <!-- User Name -->
+                <div class="form-group">
+                    <label for="user_name">Full Name <span style="color: var(--error-color)">*</span></label>
+                    <input type="text" id="user_name" name="user_name" required class="form-control" maxlength="50"
+                        placeholder="Enter full name (max 50 chars)">
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" pattern="[0-9]{5}-[0-9]{5}"
+                        maxlength="11" placeholder="99999-99999" oninput="formatPhone(this)">
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="example@domain.com">
+                </div>
+
+                <!-- Profile -->
+                <div class="form-group">
+                    <label for="profile">User Role / Profile <span style="color: var(--error-color)">*</span></label>
+                    <select id="profile" name="profile" required class="form-control">
+                        <option value="">Select Role</option>
+                        {% for profile in profiles %}
+                        <option value="{{ profile.ProfileID }}">{{ profile.ProfileName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="password">Password <span style="color: var(--error-color)">*</span></label>
+                    <input type="password" id="password" name="password" required class="form-control" minlength="8"
+                        pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$" placeholder="Min 8 chars, 1 letter & 1 number">
+                </div>
+
+                <!-- School -->
+                <div class="form-group" id="schoolGroup">
+                    <label for="school">Associated School <span style="color: var(--error-color)">*</span></label>
+                    <select id="school" name="school" class="form-control">
+                        <option value="">Select School</option>
+                        {% for school in schools %}
+                        <option value="{{ school.SchoolID }}" {% if school.SchoolID == user_school_id %}selected{% endif %}>
+                            {{ school.DisplayName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="form-group">
+                    <label>User Photo</label>
+                    <input type="file" id="user_photo" name="user_photo" accept="image/*" style="display: none;"
+                        onchange="handlePhotoChange(this)">
+                    <label for="user_photo" class="file-upload" id="photoDropZone">
+                        <div class="upload-content" id="uploadContent">
+                            <i class="fas fa-camera" style="font-size: 1.2rem; color: var(--primary-color);"></i>
+                            <span id="uploadTitle">Click to upload photo (Max 5MB)</span>
+                        </div>
+                        <img id="imagePreview" class="preview-image" alt="Preview">
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- Actions (Inside Form, Right of Photo) -->
+            <div class="form-group"
+                style="grid-column: 2 / -1; display: flex; justify-content: flex-end; align-items: flex-end; padding-bottom: 2px;">
+                <div style="display: flex; gap: 15px;">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save User
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const profileSelect = document.getElementById('profile');
+        const schoolSelect = document.getElementById('school');
+        const schoolGroup = document.getElementById('schoolGroup');
+        const loggedInProfileName = '{{ current_profile_name|escapejs }}';
+        const isSuperAdmin = (name) => name === 'Super Admin';
+
+        function toggleSchoolSelect() {
+            const selectedOption = profileSelect.options[profileSelect.selectedIndex];
+            const selectedProfileName = selectedOption ? selectedOption.text : '';
+            const isLoggedInSuperAdmin = isSuperAdmin(loggedInProfileName);
+            const isCreatingSuperAdmin = isSuperAdmin(selectedProfileName);
+
+            if (isLoggedInSuperAdmin) {
+                if (isCreatingSuperAdmin) {
+                    // Creating Super Admin - school not needed
+                    schoolSelect.required = false;
+                    schoolSelect.disabled = true;
+                    schoolGroup.style.opacity = '0.5';
+                    schoolSelect.value = '';
+                } else {
+                    // Creating other user - school required
+                    schoolSelect.required = true;
+                    schoolSelect.disabled = false;
+                    schoolGroup.style.opacity = '1';
+                }
+            }
+        }
+
+        // Initialize state
+        toggleSchoolSelect();
+        profileSelect.addEventListener('change', toggleSchoolSelect);
+
+        // Form Submission
+        const form = document.getElementById('createUserForm');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    form.reportValidity();
+                    return;
+                }
+
+                const phone = document.getElementById('phone');
+                if (phone && phone.value) {
+                    const phoneVal = phone.value.replace(/[^0-9]/g, '');
+                    if (phoneVal.length !== 10) {
+                        alert('Invalid phone number (10 digits required)');
+                        e.preventDefault();
+                        return;
+                    }
+                }
+
+                const btn = form.querySelector('button[type=submit]');
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+                    btn.style.opacity = '0.7';
+                    setTimeout(() => btn.disabled = true, 50);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

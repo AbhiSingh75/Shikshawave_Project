@@ -1,0 +1,689 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"List Page" }} | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* CSS Variables */
+    :root {
+        --primary-color: #004aad;
+        --primary-hover: #4338ca;
+        --secondary-color: #f8fafc;
+        --text-color: #1f2937;
+        --text-light: #6b7280;
+        --border-color: #e5e7eb;
+        --light-gray: #f3f4f6;
+        --success-color: #10b981;
+        --error-color: #ef4444;
+        --warning-color: #f59e0b;
+        --transition-speed: 0.3s;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --header-height: 80px;
+        --controls-height: 70px;
+    }
+
+    /* Dark mode variables */
+    body.dark-mode {
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --light-gray: #374151;
+    }
+
+    /* Main Layout */
+    body {
+        background-color: var(--secondary-color);
+        transition: background-color var(--transition-speed) ease;
+        min-height: 100vh;
+        padding-top: var(--header-height);
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+    }
+
+    .dashboard-container {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        padding: 20px 20px 20px;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    /* Header */
+    header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        height: var(--header-height);
+    }
+
+    /* Page Title */
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--primary-color);
+    }
+
+    /* Controls Row */
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 10px 0 0 0;
+        padding: 15px 20px;
+        background: white;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        position: sticky;
+        top: var(--header-height);
+        z-index: 999;
+        height: var(--controls-height);
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--secondary-color);
+    }
+
+    /* Summary Box */
+    .summary-box {
+        background: var(--light-gray);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    /* Search Container */
+    .search-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-container input {
+        padding: 8px 12px 8px 35px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 14px;
+        width: 250px;
+        background: white;
+        transition: all var(--transition-speed);
+    }
+
+    .search-container i {
+        position: absolute;
+        left: 12px;
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    /* Search Results Dropdown */
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        margin-top: 4px;
+        max-height: 300px;
+        overflow-y: auto;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 9999;
+        display: none;
+    }
+
+    .search-results.show {
+        display: block;
+    }
+
+    body.dark-mode .search-results {
+        background: var(--secondary-color);
+        border-color: var(--border-color);
+    }
+
+    .search-result-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s;
+    }
+
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+
+    .search-result-item:hover {
+        background: var(--light-gray);
+    }
+
+    .search-no-results {
+        padding: 15px;
+        text-align: center;
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all var(--transition-speed);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+    .filter-btn {
+        background: var(--light-gray);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .download-btn {
+        background: var(--success-color);
+        color: white;
+    }
+
+    /* Table Styles */
+    .content-area {
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.dark-mode .content-area {
+        background: var(--secondary-color);
+    }
+
+    .table-container {
+        overflow-x: auto;
+        flex: 1;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+        background: var(--light-gray);
+        font-weight: 600;
+        color: var(--text-color);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    body.dark-mode th {
+        background: var(--light-gray);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        padding: 6px 8px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all var(--transition-speed);
+        background: transparent;
+    }
+
+    .edit-btn {
+        color: var(--warning-color);
+    }
+
+    .delete-btn {
+        color: var(--error-color);
+    }
+
+    /* Status Indicator */
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+    }
+
+    .status-icon {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-active {
+        background: var(--success-color);
+    }
+
+    .status-inactive {
+        background: var(--error-color);
+    }
+
+    /* Mobile Card View */
+    .item-cards {
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .item-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    body.dark-mode .item-card {
+        background: var(--secondary-color);
+    }
+
+    .item-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .item-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color);
+    }
+
+    .item-avatar i {
+        color: white;
+        font-size: 18px;
+    }
+
+    .item-avatar img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid var(--border-color);
+    }
+
+    .item-card-info {
+        flex: 1;
+    }
+
+    .item-card-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .item-card-code {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .item-card-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        font-size: 0.9rem;
+    }
+
+    .item-card-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .detail-label {
+        font-size: 0.8rem;
+        color: var(--text-light);
+    }
+
+    .item-card-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 5px;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin: 20px 0;
+        padding: 0 20px;
+    }
+
+    .pagination-btn {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        background: var(--secondary-color);
+        color: var(--text-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+    }
+
+    .pagination-btn:hover {
+        background: var(--light-gray);
+    }
+
+    .pagination-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+        font-weight: 600;
+    }
+
+    .pagination-ellipsis {
+        padding: 8px 4px;
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .content-area {
+            display: none !important;
+        }
+        
+        .item-cards {
+            display: flex !important;
+            margin-top: 20px;
+        }
+        
+        .search-container {
+            position: static;
+        }
+        
+        .search-container input {
+            width: 120px;
+            padding: 8px 8px 8px 30px;
+            font-size: 14px;
+        }
+        
+        .search-results {
+            position: fixed;
+            top: calc(var(--header-height) + var(--controls-height) + 10px);
+            left: 10px;
+            right: 10px;
+            width: auto;
+            z-index: 10000;
+        }
+        
+        .filter-btn span,
+        .download-text {
+            display: none;
+        }
+        
+        .filter-btn,
+        .download-btn {
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+        
+        #per-page-selector {
+            display: none !important;
+        }
+        
+        .item-card-details {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .dashboard-container {
+            padding: 15px 10px 10px;
+        }
+        
+        .summary-box {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+            margin-top: 15px;
+        }
+        
+        .controls-row {
+            margin: 15px 0 0 0;
+        }
+        
+        .pagination {
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 0 10px;
+        }
+        
+        .pagination-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+            min-width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pagination-btn i {
+            font-size: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Page Title -->
+    <h1 class="page-title">{{ page_title|default:"List Page" }}</h1>
+    
+    <!-- Controls Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <!-- Summary Box -->
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                    <span>Active: {{ active_count|default:"0" }}</span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-times-circle" style="color: var(--error-color);"></i>
+                    <span>Inactive: {{ inactive_count|default:"0" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-right">
+            <!-- Search -->
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search...">
+            </div>
+            
+            <!-- Page Selector -->
+            <select name="per_page" id="per-page-selector" class="btn">
+                <option value="10" selected>10 per page</option>
+                <option value="25">25 per page</option>
+                <option value="50">50 per page</option>
+                <option value="100">100 per page</option>
+            </select>
+            
+            <!-- Filter Button -->
+            <button class="filter-btn" id="filter-btn">
+                <i class="fas fa-filter"></i> <span>Filters</span>
+            </button>
+            
+            <!-- Download Button -->
+            <button class="download-btn" id="downloadBtn">
+                <i class="fas fa-download"></i> <span class="download-text">Download</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Desktop Table View -->
+    <div class="content-area">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th data-column="sequence">#</th>
+                        <th data-column="name">Name</th>
+                        <th data-column="code">Code</th>
+                        <th data-column="status">Status</th>
+                        <th data-column="actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Table rows will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Mobile Card View -->
+    <div class="item-cards" id="item-cards">
+        <!-- Mobile cards will be populated here -->
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination">
+        <!-- Pagination buttons will be populated here -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Mobile view management
+    function ensureMobileView() {
+        const isMobile = window.innerWidth <= 768;
+        const contentArea = document.querySelector('.content-area');
+        const itemCards = document.querySelector('.item-cards');
+        
+        if (contentArea && itemCards) {
+            if (isMobile) {
+                contentArea.style.display = 'none';
+                itemCards.style.display = 'flex';
+            } else {
+                contentArea.style.display = 'flex';
+                itemCards.style.display = 'none';
+            }
+        }
+    }
+    
+    // Initialize mobile view
+    ensureMobileView();
+    
+    // Handle window resize
+    window.addEventListener('resize', ensureMobileView);
+    
+    // Search functionality
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            // Implement search logic here
+            console.log('Search:', this.value);
+        });
+    }
+    
+    // Filter functionality
+    const filterBtn = document.getElementById('filter-btn');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', function() {
+            // Implement filter modal logic here
+            console.log('Filter clicked');
+        });
+    }
+    
+    // Download functionality
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function() {
+            // Implement download logic here
+            console.log('Download clicked');
+        });
+    }
+    
+    // Pagination functionality
+    const paginationBtns = document.querySelectorAll('.pagination-btn');
+    paginationBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const page = this.dataset.page;
+            if (page) {
+                // Implement pagination logic here
+                console.log('Page:', page);
+            }
+        });
+    });
+    
+    // Action buttons functionality
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
+            const action = this.classList.contains('edit-btn') ? 'edit' : 'delete';
+            
+            if (action === 'delete' && itemId) {
+                if (confirm('Are you sure you want to delete this item?')) {
+                    // Implement delete logic here
+                    console.log('Delete item:', itemId);
+                }
+            } else if (action === 'edit' && itemId) {
+                // Implement edit logic here
+                console.log('Edit item:', itemId);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,746 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Subscription History | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#4f46e5" }};
+        --primary-light: rgba(99, 102, 241, 0.1);
+        --bg-main: #f8fafc;
+        --card-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+        --shadow-md: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+    }
+
+    body.dark-mode {
+        --bg-main: #0f172a;
+        --card-bg: #1e293b;
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border-color: #334155;
+    }
+
+    body { background: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+
+    .sw-container { padding: 24px; max-width: 1600px; margin: 0 auto; }
+
+    /* High-Density Control Row */
+    .sw-controls-row {
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        padding: 12px 20px; border-radius: 12px; box-shadow: var(--shadow-sm);
+        margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; position: sticky; top: 10px; z-index: 100;
+    }
+
+    .sw-controls-left { display: flex; align-items: center; gap: 16px; }
+    .sw-controls-left h3 { color: var(--text-main); font-weight: 800; font-size: 1.15rem; margin: 0; white-space: nowrap; }
+
+    .sw-summary-box {
+        display: flex; gap: 12px; background: rgba(var(--primary-rgb), 0.05);
+        padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border-color);
+    }
+    .summary-item { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+    .summary-item strong { color: var(--primary-color); font-size: 0.85rem; }
+
+    .sw-controls-right { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end; }
+
+    /* Search & Inputs */
+    .search-wrapper { position: relative; width: 100%; max-width: 320px; }
+    .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; }
+    .sw-search-input {
+        width: 100%; height: 40px; background: var(--bg-main); border: 1.5px solid var(--border-color);
+        border-radius: 8px; padding: 0 12px 0 36px; font-size: 0.85rem; font-weight: 600;
+        color: var(--text-main); transition: all 0.2s;
+    }
+    .sw-search-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 4px var(--primary-light); outline: none; }
+
+    .btn-action {
+        height: 40px; padding: 0 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700;
+        display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;
+        border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main);
+    }
+    .btn-action:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+    }
+    .btn-primary-elite { background: var(--primary-color) !important; color: white !important; border: none !important; }
+
+    /* ── PAGINATION & SORTING ── */
+    .sw-table th.sortable {
+        cursor: pointer;
+        position: relative;
+        padding-right: 25px !important;
+        transition: all 0.2s;
+    }
+    .sw-table th.sortable:hover {
+        background: rgba(var(--primary-rgb), 0.05);
+        color: var(--primary-color);
+    }
+    .sw-table th.sortable i.sort-icon {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        opacity: 0.3;
+        transition: all 0.2s;
+    }
+    .sw-table th.sortable.active i.sort-icon {
+        opacity: 1;
+        color: var(--primary-color);
+    }
+
+    .sw-pagination-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        background: var(--card-bg);
+        border-top: 1px solid var(--border-color);
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+    .pagination-info {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+    .pagination-controls {
+        display: flex;
+        gap: 6px;
+    }
+    .page-btn {
+        min-width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .page-btn:hover:not(:disabled) {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: var(--primary-light);
+    }
+    .page-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    .page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    /* Premium Table Architecture */
+    .sw-table-card {
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden;
+    }
+    .sw-table-container { overflow-x: auto; width: 100%; position: relative; }
+    .sw-table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1000px; }
+    .sw-table th {
+        background: var(--primary-color); padding: 12px 18px; text-align: left;
+        font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.05em; color: white !important; border-bottom: 1.5px solid var(--border-color);
+        position: sticky; top: 0; z-index: 10; white-space: nowrap;
+    }
+    .sw-table td { padding: 12px 18px; border-bottom: 1px solid var(--border-color); vertical-align: middle; white-space: nowrap; }
+    .sw-table tr:last-child td { border-bottom: none; }
+    .sw-table tbody tr:hover td { background: var(--bg-main); }
+
+    /* Data Visualization Components */
+    .trans-id { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--primary-color); font-weight: 700; }
+    .text-stack { display: flex; flex-direction: column; gap: 2px; white-space: nowrap; }
+    .text-main { font-weight: 700; color: var(--text-main); font-size: 0.85rem; white-space: nowrap; }
+    .text-sub { font-size: 0.725rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+
+    .status-pill {
+        padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.03em; display: inline-flex; align-items: center; gap: 6px;
+        white-space: nowrap;
+    }
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-expired { background: #fee2e2; color: #991b1b; }
+    .status-paid { background: #e0f2fe; color: #075985; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+
+    /* Filter Modal */
+    .filter-modal {
+        display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;
+    }
+    .filter-modal.show { display: flex; }
+    .filter-modal-content {
+        background: var(--card-bg); width: 100%; max-width: 480px; border-radius: 16px;
+        box-shadow: var(--shadow-md); overflow: hidden; animation: modalSlideUp 0.3s ease-out;
+        border: 1px solid var(--border-color);
+    }
+    .filter-header { padding: 16px 24px; background: var(--primary-color); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; color: white !important; }
+    .filter-header h4 { color: white !important; }
+    .filter-header button { color: white !important; opacity: 0.8; transition: opacity 0.2s; }
+    .filter-header button:hover { opacity: 1; }
+    .filter-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .filter-footer { padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; }
+
+    .sw-label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+    .sw-input {
+        width: 100%; height: 38px; background: var(--bg-main); border: 1.5px solid var(--border-color);
+        border-radius: 8px; padding: 0 12px; font-size: 0.85rem; font-weight: 600; color: var(--text-main);
+    }
+
+    @keyframes modalSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Custom Scrollbar */
+    .sw-table-container::-webkit-scrollbar { height: 8px; }
+    .sw-table-container::-webkit-scrollbar-track { background: var(--bg-main); }
+    .sw-table-container::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+    .sw-table-container::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    .empty-state { padding: 60px; text-align: center; color: var(--text-muted); }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.2; }
+
+    /* Nuclear Density Enhancements */
+    .sw-table { min-width: 2200px; }
+    .text-main-lg { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
+    .text-sub-mono { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.02em; }
+    .bank-logo { width: 20px; height: 20px; opacity: 0.6; }
+
+    /* ── MOBILE RESPONSIVE HARDENING ── */
+    @media (max-width: 768px) {
+        .sw-container { padding: 12px; }
+        
+        .sw-controls-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 20px;
+            padding: 16px;
+            position: relative;
+            top: 0;
+            border-radius: 16px;
+        }
+
+        .sw-controls-left {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .sw-controls-left h3 {
+            font-size: 1.1rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        .sw-summary-box {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 10px;
+        }
+        .summary-item:first-child { grid-column: span 2; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 2px; }
+
+        .sw-controls-right {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-wrapper {
+            max-width: none;
+        }
+
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+            height: 44px;
+        }
+
+        .sw-pagination-row {
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .pagination-controls {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Mobile Scroll Indicator */
+        .sw-table-card::after {
+            content: "Scroll Right ─→";
+            position: absolute;
+            bottom: 45px;
+            right: 15px;
+            background: var(--primary-color);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 20px;
+            pointer-events: none;
+            opacity: 0.8;
+            animation: bounceRight 2s infinite;
+            z-index: 20;
+        }
+    }
+
+    @keyframes bounceRight {
+        0%, 20%, 50%, 80%, 100% {transform: translateX(0);}
+        40% {transform: translateX(-5px);}
+        60% {transform: translateX(-3px);}
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-container">
+    <!-- Modern Control Row -->
+    <div class="sw-controls-row">
+        <div class="sw-controls-left">
+            <h3 title="Subscription History">Subscription History</h3>
+            <div class="sw-summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-list-ul"></i>
+                    <span>Total: <strong id="statTotal">0</strong> Records</span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Active: <strong id="statActive">0</strong></span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-receipt"></i>
+                    <span>Paid: <strong id="statPaid">0</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sw-controls-right">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="histSearch" class="sw-search-input" placeholder="Search by Plan or Sub #..." onkeyup="filterHistory()">
+            </div>
+            
+            <button class="btn-action" onclick="toggleFilterModal()">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+            
+            {% if request.session.ProfileID == 1 %}
+            <a href="{% url 'subscription_reports' %}" class="btn-action btn-primary-elite">
+                <i class="fas fa-chart-bar"></i> Analytics
+            </a>
+            {% else %}
+            <a href="{% url 'my_subscription' %}" class="btn-action">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modern Data Grid -->
+    <div class="sw-table-card">
+        <div class="sw-table-container">
+            <table class="sw-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">SN</th>
+                        <th class="text-center" style="width: 80px;">ACTIONS</th>
+                        <th class="sortable" onclick="handleSort('SubscriptionNo', this)" style="width: 180px;">
+                            SUB # <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('ReferenceNo', this)">
+                            REF NO <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('SchoolName', this)">
+                            INSTITUTION NAME <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('SchoolCode', this)">
+                            INST CODE <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('PlanName', this)">
+                            PACKAGE <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('PlanType', this)">
+                            TIER <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('StartDate', this)">
+                            START DATE <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('EndDate', this)">
+                            EXPIRY DATE <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('DurationMonths', this)">
+                            DURATION <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('FinalAmount', this)">
+                            AMOUNT <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('PaymentStatus', this)">
+                            PAYMENT STATUS <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('PaymentMethod', this)">
+                            METHOD <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('InvoiceID', this)">
+                            INVOICE # <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('PartnerName', this)">
+                            REFERRAL / PARTNER <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('AccountName', this)">
+                            SETTLEMENT <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable" onclick="handleSort('SubStatus', this)">
+                            LIC STATUS <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- Loaded via AJAX -->
+                </tbody>
+            </table>
+            <div id="noData" style="display: none;" class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>No subscription records match your filter criteria.</p>
+            </div>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div class="sw-pagination-row">
+            <div class="pagination-info" id="paginationInfo">
+                Showing 0 to 0 of 0 records
+            </div>
+            <div class="pagination-controls" id="paginationControls">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="filter-modal" id="filterModal">
+    <div class="filter-modal-content">
+        <div class="filter-header">
+            <h4 style="margin: 0; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: white;">Refine History</h4>
+            <button onclick="toggleFilterModal()" style="background: none; border: none; cursor: pointer; color: white;"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="filter-body">
+            {% if request.session.ProfileID == 1 %}
+            <div style="grid-column: span 2;">
+                <label class="sw-label">Institution</label>
+                <select id="schoolSelect" class="sw-input" onchange="loadHistory()">
+                    <option value="">-- All Schools --</option>
+                    {% for school in schools %}
+                    <option value="{{ school.SchoolID }}">
+                        {% if school.SchoolCode %}[{{ school.SchoolCode }}] {% endif %}{{ school.SchoolName }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="sw-label">Current Status</label>
+                <select id="histStatus" class="sw-input">
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active Only</option>
+                    <option value="expired">Expired Only</option>
+                </select>
+            </div>
+            <div>
+                <label class="sw-label">Plan Type</label>
+                <select id="histPlan" class="sw-input">
+                    <option value="all">All Plans</option>
+                </select>
+            </div>
+            <div>
+                <label class="sw-label">From Date</label>
+                <input type="date" id="startDate" class="sw-input">
+            </div>
+            <div>
+                <label class="sw-label">To Date</label>
+                <input type="date" id="endDate" class="sw-input">
+            </div>
+        </div>
+        <div class="filter-footer">
+            <button class="btn-action" onclick="resetFilters()">Reset</button>
+            <button class="btn-action btn-primary-elite" onclick="applyFilters()">Apply Filters</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let allHistory = [];
+let currentPage = 1;
+let pageSize = 10;
+let sortColumn = 'CreatedAt';
+let sortOrder = 'DESC';
+
+document.addEventListener('DOMContentLoaded', () => {
+    setDefaultDateRange();
+    loadHistory();
+});
+
+function handleSort(column, thElement) {
+    if (sortColumn === column) {
+        sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
+    } else {
+        sortColumn = column;
+        sortOrder = 'ASC';
+    }
+
+    document.querySelectorAll('.sw-table th.sortable').forEach(th => {
+        th.classList.remove('active');
+        const icon = th.querySelector('i');
+        if (icon) icon.className = 'fas fa-sort sort-icon';
+    });
+
+    thElement.classList.add('active');
+    const icon = thElement.querySelector('i');
+    if (icon) {
+        icon.className = `fas fa-sort-${sortOrder === 'ASC' ? 'up' : 'down'} sort-icon`;
+    }
+
+    loadHistory();
+}
+
+function changePage(page) {
+    currentPage = page;
+    loadHistory();
+}
+
+function setDefaultDateRange() {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const formatDate = (date) => {
+        const d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        const year = d.getFullYear();
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+        return [year, month, day].join('-');
+    };
+    document.getElementById('startDate').value = formatDate(firstDay);
+    document.getElementById('endDate').value = formatDate(now);
+}
+
+function toggleFilterModal() {
+    const modal = document.getElementById('filterModal');
+    modal.classList.toggle('show');
+}
+
+async function loadHistory() {
+    const schoolSelect = document.getElementById('schoolSelect');
+    const schoolId = schoolSelect ? schoolSelect.value : '';
+    const tbody = document.getElementById('historyTableBody');
+    const noData = document.getElementById('noData');
+    
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 60px; color: var(--text-muted);"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>Retrieving transaction archives...</td></tr>';
+    noData.style.display = 'none';
+
+    try {
+        const response = await fetch(`/subscription/my/data/?school_id=${schoolId}&page=${currentPage}&page_size=${pageSize}&sort_column=${sortColumn}&sort_order=${sortOrder}`);
+        const data = await response.json();
+        
+        if (data.status === 'SUCCESS') {
+            allHistory = data.subscriptions;
+            populatePlanFilter(allHistory);
+            updateSummaryStats(allHistory, data.summary);
+            renderHistory(allHistory);
+            renderPagination(data.pagination);
+        } else {
+            tbody.innerHTML = '';
+            noData.style.display = 'block';
+            updateSummaryStats([], {total: 0, active: 0, paid: 0});
+        }
+    } catch (error) {
+        console.error('Fetch Error:', error);
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 60px; color: #ef4444;"><i class="fas fa-exclamation-triangle fa-2x"></i><br><br>Failed to connect to transaction server.</td></tr>';
+    }
+}
+
+function updateSummaryStats(items, summary = null) {
+    if (summary) {
+        document.getElementById('statTotal').textContent = summary.total || 0;
+        document.getElementById('statActive').textContent = summary.active || 0;
+        document.getElementById('statPaid').textContent = summary.paid || 0;
+    } else {
+        document.getElementById('statTotal').textContent = items.length;
+        document.getElementById('statActive').textContent = items.filter(x => x.IsActive).length;
+        document.getElementById('statPaid').textContent = items.filter(x => x.PaymentStatus === 'Paid').length;
+    }
+}
+
+function renderHistory(items) {
+    const tbody = document.getElementById('historyTableBody');
+    const noData = document.getElementById('noData');
+    
+    if (items.length === 0) {
+        tbody.innerHTML = '';
+        noData.style.display = 'block';
+        return;
+    }
+    
+    noData.style.display = 'none';
+    tbody.innerHTML = items.map((sub, index) => {
+        const isActive = sub.IsActive;
+        const statusClass = isActive ? 'status-active' : 'status-expired';
+        const paymentClass = sub.PaymentStatus === 'Paid' ? 'status-paid' : 'status-pending';
+        const serialNo = (currentPage - 1) * pageSize + index + 1;
+        
+        return `
+            <tr>
+                <td><span class="text-sub" style="font-weight:800;">${serialNo}</span></td>
+                <td>
+                    <div style="display: flex; justify-content: center;">
+                        <a href="/subscription/invoice/${sub.SubscriberID}/" class="btn-action" style="width: 32px; height: 32px; border-radius: 8px; padding: 0; display: flex; align-items: center; justify-content: center;" title="View Invoice">
+                            <i class="fas fa-file-invoice"></i>
+                        </a>
+                    </div>
+                </td>
+                <td><span class="trans-id" style="font-size: 0.85rem;">#${sub.SubscriptionNo}</span></td>
+                <td><span class="text-sub-mono" style="font-size: 0.75rem;">${sub.ReferenceNo || 'N/A'}</span></td>
+                
+                <td><span class="text-main" style="font-weight:800;">${sub.SchoolName || 'N/A'}</span></td>
+                <td><span class="text-sub" style="font-weight:700;">${sub.SchoolCode || 'N/A'}</span></td>
+                
+                <td><span class="text-main">${sub.PlanName || 'N/A'}</span></td>
+                <td><span class="text-sub" style="background: var(--bg-main); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-weight:800;">${sub.PlanType || 'Standard'}</span></td>
+                
+                <td><span class="text-main" style="font-size: 0.8rem;"><i class="far fa-calendar-check" style="margin-right:4px; opacity:0.6;"></i>${sub.StartDate || '-'}</span></td>
+                <td><span class="text-main" style="font-size: 0.8rem;"><i class="far fa-calendar-times" style="margin-right:4px; opacity:0.6;"></i>${sub.EndDate || '-'}</span></td>
+                <td><span class="text-sub" style="color: var(--primary-color); font-weight: 900;">${sub.DurationMonths || 0} MO</span></td>
+                
+                <td><span class="text-main-lg" style="color:var(--primary-color);">₹${(sub.FinalAmount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span></td>
+                <td><span class="status-pill ${paymentClass}"><i class="fas ${sub.PaymentStatus === 'Paid' ? 'fa-check-circle' : 'fa-clock'}"></i> ${sub.PaymentStatus}</span></td>
+                <td><span class="text-sub" style="font-weight:700; font-size: 0.7rem;">${sub.PaymentMethod || 'N/A'}</span></td>
+                
+                <td><span class="text-main" style="font-size: 0.75rem;"><i class="fas fa-file-invoice" style="margin-right:4px; opacity:0.6;"></i>${sub.InvoiceNo || 'PENDING'}</span></td>
+                
+                <td>
+                    ${sub.PartnerName ? 
+                        `<div class="text-stack"><span class="text-main">${sub.PartnerName}</span><span class="text-sub">₹${(sub.IncentiveAmount || 0).toFixed(2)}</span></div>` : 
+                        `<span class="text-muted" style="font-size: 0.65rem; font-weight: 600;">-- Direct --</span>`}
+                </td>
+                
+                <td>
+                    <div class="text-stack">
+                        <span class="text-main" style="font-size: 0.75rem;">${sub.AccountName || 'Direct'}</span>
+                        <span class="text-sub" style="font-size: 0.6rem;">${sub.BankName || ''}</span>
+                    </div>
+                </td>
+                
+                <td>
+                    <span class="status-pill ${statusClass}">
+                        <i class="fas ${isActive ? 'fa-shield-check' : 'fa-history'}"></i>
+                        ${isActive ? 'Active' : 'Expired'}
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function populatePlanFilter(items) {
+    const planSelect = document.getElementById('histPlan');
+    const plans = [...new Set(items.map(i => i.PlanName))];
+    const currentValue = planSelect.value;
+    
+    planSelect.innerHTML = '<option value="all">All Plan Packages</option>' + 
+        plans.map(p => `<option value="${p}" ${p === currentValue ? 'selected' : ''}>${p}</option>`).join('');
+}
+
+function applyFilters() {
+    filterHistory();
+    toggleFilterModal();
+}
+
+function resetFilters() {
+    document.getElementById('histStatus').value = 'all';
+    document.getElementById('histPlan').value = 'all';
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    document.getElementById('histSearch').value = '';
+    filterHistory();
+    toggleFilterModal();
+}
+
+function filterHistory() {
+    const search = document.getElementById('histSearch').value.toLowerCase();
+    const status = document.getElementById('histStatus').value;
+    const planName = document.getElementById('histPlan').value;
+    const startStr = document.getElementById('startDate').value;
+    const endStr = document.getElementById('endDate').value;
+    
+    const startTime = startStr ? new Date(startStr).getTime() : null;
+    const endTime = endStr ? new Date(endStr).getTime() : null;
+    
+    const filtered = allHistory.filter(h => {
+        const matchesSearch = h.PlanName.toLowerCase().includes(search) || 
+                             h.SubscriptionNo.toLowerCase().includes(search);
+                             
+        const matchesStatus = status === 'all' || 
+                             (status === 'active' && h.IsActive) || 
+                             (status === 'expired' && !h.IsActive);
+                             
+        const matchesPlan = planName === 'all' || h.PlanName === planName;
+        
+        // Date Logic
+        const hDate = new Date(h.StartDate).getTime();
+        let matchesDate = true;
+        if (startTime && hDate < startTime) matchesDate = false;
+        if (endTime && hDate > endTime) matchesDate = false;
+        
+        return matchesSearch && matchesStatus && matchesPlan && matchesDate;
+    });
+    renderHistory(filtered);
+    updateSummaryStats(filtered);
+}
+
+function renderPagination(pagination) {
+    const info = document.getElementById('paginationInfo');
+    const start = (pagination.current_page - 1) * pagination.page_size + 1;
+    const end = Math.min(pagination.current_page * pagination.page_size, pagination.total_records);
+    info.innerText = `Showing ${pagination.total_records > 0 ? start : 0} to ${end} of ${pagination.total_records} records`;
+
+    const totalPages = pagination.total_pages;
+    const currentPage = pagination.current_page;
+    const controls = document.getElementById('paginationControls');
+    let html = '';
+
+    if (totalPages > 1) {
+        html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            } else if (i === 2 || i === totalPages - 1) {
+                html += `<span class="px-1 text-muted" style="align-self: center; display: flex; align-items: center;">...</span>`;
+            }
+        }
+
+        html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
+    }
+    controls.innerHTML = html;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,208 @@
+<!-- Student Details Modal -->
+{% if user.profile_id == 2 or user.profile_id == 3 %}
+<div id="studentModal" class="stats-modal">
+    <div class="stats-modal-container sw-elite-modal-container">
+        <!-- Modal Header -->
+        <div class="stats-modal-header">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="header-text">
+                    <h2>Student Statistics</h2>
+                    <p>Filter and analyze student data</p>
+                </div>
+            </div>
+            <button onclick="closeStudentModal()" class="modal-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="stats-modal-content">
+            <!-- Filters Card -->
+            <div class="stats-card">
+                <div class="sw-elite-filter-row">
+                    <div class="sw-elite-filter-group">
+                        <label>From Date</label>
+                        <input type="date" id="modalFromDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>To Date</label>
+                        <input type="date" id="modalToDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Class</label>
+                        <select id="modalClass" class="filter-input">
+                            <option value="">All Classes</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Section</label>
+                        <select id="modalSection" class="filter-input">
+                            <option value="">All Sections</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Gender</label>
+                        <select id="modalGender" class="filter-input">
+                            <option value="">All</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Category</label>
+                        <select id="modalCategory" class="filter-input">
+                            <option value="">All Categories</option>
+                            <option value="General">General</option>
+                            <option value="OBC">OBC</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-action-group">
+                        <button onclick="Dashboard.applyStudentFilters()" class="btn-apply" style="flex: 1; height: 100%;">
+                            <i class="fas fa-search"></i> Apply
+                        </button>
+                        <button onclick="Dashboard.loadStudentFilters()" class="btn-reset" style="flex: 1; height: 100%;">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Pulse (Actionable Insights) -->
+            <div class="sw-elite-pulse-row">
+                <div class="sw-pulse-spotlight pulse-admission-velocity">
+                    <span class="pulse-label">Admission Velocity</span>
+                    <div class="pulse-value" id="pulseAdmissionMomentum">0%</div>
+                    <div class="pulse-trend trend-up">
+                        <i class="fas fa-arrow-up"></i> vs last month
+                    </div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-attendance-compliance">
+                    <span class="pulse-label">Gender Parity Index</span>
+                    <div class="pulse-value" id="pulseGenderRatio">1:1</div>
+                    <div class="pulse-trend trend-neutral">M/F Ratio</div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-risk-alert">
+                    <span class="pulse-label">Active Enrollment</span>
+                    <div class="pulse-value" id="pulseActiveStrength">0%</div>
+                    <div class="pulse-trend trend-up">Retention Rate</div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="stats-card">
+                <h3>Student Statistics</h3>
+                <div class="sw-elite-stats-grid">
+                    <div class="sw-elite-stat-card compact stat-primary">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Total Active</p>
+                                <h2 class="stat-value" id="modalTotal">{{ dashboard_stats.total_students }}</h2>
+                            </div>
+                            <i class="fas fa-user-check stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-male">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Male</p>
+                                <h2 class="stat-value" id="modalMale">{{ dashboard_stats.male_students }}</h2>
+                            </div>
+                            <i class="fas fa-male stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-female">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Female</p>
+                                <h2 class="stat-value" id="modalFemale">{{ dashboard_stats.female_students }}</h2>
+                            </div>
+                            <i class="fas fa-female stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-general">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">General</p>
+                                <h2 class="stat-value" id="modalGeneral">{{ dashboard_stats.general_category }}</h2>
+                            </div>
+                            <i class="fas fa-users stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-obc">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">OBC</p>
+                                <h2 class="stat-value" id="modalOBC">{{ dashboard_stats.obc_category }}</h2>
+                            </div>
+                            <i class="fas fa-users stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-sc">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">SC</p>
+                                <h2 class="stat-value" id="modalSC">{{ dashboard_stats.sc_category }}</h2>
+                            </div>
+                            <i class="fas fa-users stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-st">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">ST</p>
+                                <h2 class="stat-value" id="modalST">{{ dashboard_stats.st_category }}</h2>
+                            </div>
+                            <i class="fas fa-users stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-inactive">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Inactive</p>
+                                <h2 class="stat-value" id="modalInactive">{{ dashboard_stats.inactive_students }}</h2>
+                            </div>
+                            <i class="fas fa-user-times stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admission Trend Card -->
+            <div class="stats-card">
+                <div class="chart-header">
+                    <h3>Admission Trend <span id="admissionTrendPeriod"></span></h3>
+                </div>
+                <div class="chart-container" style="min-height: 250px;">
+                    <canvas id="admissionTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="sw-elite-modal-grid-2-col">
+                <!-- Class-wise Distribution Card -->
+                <div class="stats-card">
+                    <div class="chart-header">
+                        <h3>Class-Wise Distribution</h3>
+                    </div>
+                    <div id="classDistributionGrid" class="sw-elite-class-grid">
+                        <!-- Dynamic tiles will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Admission Revenue Card -->
+                <div class="stats-card">
+                    <div class="chart-header">
+                        <h3>Admission Revenue by Class</h3>
+                    </div>
+                    <div class="chart-container" style="min-height: 250px;">
+                        <canvas id="classRevenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

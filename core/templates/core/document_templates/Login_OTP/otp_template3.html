@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f0f4f8">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:30px 0">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px">
+<tr><td style="background:#1e3a8a;padding:30px;text-align:center">
+<h1 style="margin:0;color:#fff;font-size:26px">{% if school_name %}{{ school_name }}{% else %}ShikshaWave{% endif %}</h1>
+</td></tr>
+<tr><td style="padding:40px 30px">
+<p style="margin:0 0 20px;color:#333;font-size:16px">Hello <strong>{{ user_name }}</strong>,</p>
+<div style="background:#eff6ff;border:2px solid #1e3a8a;border-radius:8px;padding:20px;text-align:center;margin:20px 0">
+<span style="font-size:40px;font-weight:bold;color:#1e3a8a;letter-spacing:10px;font-family:monospace">{{ otp }}</span>
+</div>
+<p style="margin:20px 0;color:#666;font-size:13px">⏱️ {{ valid_minutes }} min | 📍 {{ ip_address }}</p>
+</td></tr>
+<tr><td style="background:#f8fafc;padding:20px;text-align:center">
+<p style="margin:0;color:#64748b;font-size:11px">© 2024 {% if school_name %}{{ school_name }}{% else %}ShikshaWave{% endif %}</p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>

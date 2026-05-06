@@ -1,0 +1,404 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Update School | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/school_forms.css' %}">
+<style>
+    /* Use Global Theme Variables and inherit background from base.html */
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Controls Row -->
+<div class="controls-row">
+    <div class="controls-left">
+        <h2>
+            <i class="fas fa-edit" style="color: var(--primary-color);"></i>
+            Update School
+        </h2>
+    </div>
+    <div class="controls-right">
+        <a href="{% url 'schools_list' %}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+            <i class="fas fa-list"></i> View Schools
+        </a>
+    </div>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'success' %}
+<div
+    style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success-color); color: var(--success-color); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+    <i class="fas fa-check-circle"></i> {{ message }}
+</div>
+{% else %}
+<div
+    style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error-color); color: var(--error-color); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+    <i class="fas fa-exclamation-circle"></i> {{ message }}
+</div>
+{% endif %}
+{% endfor %}
+{% endif %}
+
+<!-- Main Form Section -->
+<div class="form-section">
+    <form method="post" enctype="multipart/form-data"
+        action="{% url 'school_update_submit' encrypted_id=encrypted_id %}" id="updateSchoolForm" novalidate>
+        {% csrf_token %}
+
+        <!-- Basic Information -->
+        <div class="section-title"><i class="fas fa-info-circle"></i> Basic Information</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="school_name">School Name <span style="color: var(--error-color)">*</span></label>
+                <input type="text" id="school_name" name="school_name" value="{{ school_data.SchoolName }}" required
+                    class="form-control" maxlength="100" placeholder="Enter school name">
+            </div>
+            <div class="form-group">
+                <label for="registration_number">Registration Number</label>
+                <input type="text" id="registration_number" name="registration_number"
+                    value="{{ school_data.RegistrationNumber|default:'' }}" class="form-control"
+                    placeholder="Enter registration number">
+            </div>
+            <div class="form-group">
+                <label for="establish_date">Establish Date</label>
+                <input type="date" id="establish_date" name="establish_date"
+                    value="{{ school_data.EstablishDate|date:'Y-m-d' }}" class="form-control" max="{% now 'Y-m-d' %}">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="board">Board</label>
+                <select id="board" name="board" class="form-control"
+                    data-selected="{{ school_data.BoardID|default:school_data.BoardName|default:'' }}">
+                    <option value="">Select Board</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="medium">Medium of Instruction</label>
+                <select id="medium" name="medium" class="form-control"
+                    data-selected="{{ school_data.MediumID|default:school_data.MediumName|default:'' }}">
+                    <option value="">Select Medium</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>School Logo</label>
+                <input type="file" id="logo" name="logo" accept="image/*" style="display: none;">
+                <label for="logo" class="file-upload {% if school_data.SchoolLogo %}has-preview{% endif %}"
+                    id="logoDropZone">
+                    <div class="upload-content">
+                        <i class="fas fa-image" style="color: var(--primary-color);"></i>
+                        <span>Upload Logo (Max 5MB)</span>
+                    </div>
+                    <img id="imagePreview" class="preview-image" alt="Preview"
+                        src="{{ school_data.SchoolLogo|default:'' }}">
+                </label>
+            </div>
+        </div>
+
+        <!-- Address Information -->
+        <div class="section-title"><i class="fas fa-map-marker-alt"></i> Address Information</div>
+        <div class="form-row">
+            <div class="form-group full-width">
+                <label for="address">Address</label>
+                <textarea id="address" name="address" class="form-control" rows="2"
+                    placeholder="Enter full address">{{ school_data.Address|default:'' }}</textarea>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="country">Country <span style="color: var(--error-color)">*</span></label>
+                <select id="country" name="country" required class="form-control"
+                    data-selected="{{ school_data.CountryID|default:school_data.Country|default:'' }}">
+                    <option value="">Select Country</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="state">State <span style="color: var(--error-color)">*</span></label>
+                <select id="state" name="state" required class="form-control"
+                    data-selected="{{ school_data.StateID|default:school_data.State|default:'' }}">
+                    <option value="">Select State</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="district">District <span style="color: var(--error-color)">*</span></label>
+                <select id="district" name="district" required class="form-control"
+                    data-selected="{{ school_data.DistrictID|default:school_data.District|default:'' }}">
+                    <option value="">Select District</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="pincode">Pincode</label>
+                <input type="text" id="pincode" name="pincode" value="{{ school_data.Pincode|default:'' }}"
+                    class="form-control" placeholder="6-digit pincode" pattern="\d{6}" maxlength="6">
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="section-title"><i class="fas fa-phone"></i> Contact Information</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="phone">Phone <span style="color: var(--error-color)">*</span></label>
+                <input type="tel" id="phone" name="phone" value="{{ school_data.Phone|default:'' }}" required
+                    class="form-control" pattern="[0-9]{5}-[0-9]{5}" maxlength="11" placeholder="99999-99999"
+                    class="phone-input">
+            </div>
+            <div class="form-group">
+                <label for="email">Email <span style="color: var(--error-color)">*</span></label>
+                <input type="email" id="email" name="email" value="{{ school_data.Email|default:'' }}" required
+                    class="form-control" placeholder="school@example.com">
+            </div>
+            <div class="form-group">
+                <label for="website">Website</label>
+                <input type="url" id="website" name="website" value="{{ school_data.Website|default:'' }}"
+                    class="form-control" placeholder="https://www.school.com">
+            </div>
+        </div>
+
+        <!-- Principal Information -->
+        <div class="section-title"><i class="fas fa-user-tie"></i> Principal Information</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="principal_name">Principal Name</label>
+                <input type="text" id="principal_name" name="principal_name"
+                    value="{{ school_data.PrincipalName|default:'' }}" class="form-control" maxlength="50"
+                    placeholder="Enter principal name">
+            </div>
+            <div class="form-group">
+                <label for="principal_contact_phone">Principal Phone</label>
+                <input type="tel" id="principal_contact_phone" name="principal_contact_phone"
+                    value="{{ school_data.PrincipalPhone|default:'' }}" class="form-control" pattern="[0-9]{5}-[0-9]{5}"
+                    maxlength="11" placeholder="99999-99999" class="phone-input">
+            </div>
+            <div class="form-group">
+                <label for="principal_contact_mail">Principal Email</label>
+                <input type="email" id="principal_contact_mail" name="principal_contact_mail"
+                    value="{{ school_data.PrincipalEmail|default:'' }}" class="form-control"
+                    placeholder="principal@example.com">
+            </div>
+        </div>
+
+        <!-- Director Information -->
+        <div class="section-title"><i class="fas fa-user-shield"></i> Director Information</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="director_name">Director Name</label>
+                <input type="text" id="director_name" name="director_name"
+                    value="{{ school_data.DirectorName|default:'' }}" class="form-control" maxlength="50"
+                    placeholder="Enter director name">
+            </div>
+            <div class="form-group">
+                <label for="director_contact_phone">Director Phone</label>
+                <input type="tel" id="director_contact_phone" name="director_contact_phone"
+                    value="{{ school_data.DirectorPhone|default:'' }}" class="form-control" pattern="[0-9]{5}-[0-9]{5}"
+                    maxlength="11" placeholder="99999-99999" class="phone-input">
+            </div>
+            <div class="form-group">
+                <label for="director_contact_email">Director Email</label>
+                <input type="email" id="director_contact_email" name="director_contact_email"
+                    value="{{ school_data.DirectorEmail|default:'' }}" class="form-control"
+                    placeholder="director@example.com">
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 15px;">
+            <a href="{% url 'schools_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Update School
+            </button>
+        </div>
+    </form>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const countrySelect = document.getElementById('country');
+        const stateSelect = document.getElementById('state');
+        const districtSelect = document.getElementById('district');
+        const boardSelect = document.getElementById('board');
+        const mediumSelect = document.getElementById('medium');
+        const form = document.getElementById('updateSchoolForm');
+        const logoInput = document.getElementById('logo');
+        const phoneInputs = document.querySelectorAll('input[type="tel"]');
+
+        // Phone Formatting
+        function formatPhone(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 5) value = value.substring(0, 5) + '-' + value.substring(5, 10);
+            input.value = value;
+        }
+
+        phoneInputs.forEach(input => {
+            input.addEventListener('input', function () { formatPhone(this); });
+        });
+
+        // Logo Handling
+        logoInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const imagePreview = document.getElementById('imagePreview');
+                const logoDropZone = document.getElementById('logoDropZone');
+
+                if (file.size > 5 * 1024 * 1024) { alert('File too large (Max 5MB)'); this.value = ''; return; }
+                if (!file.type.startsWith('image/')) { alert('Invalid image file.'); this.value = ''; return; }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    if (imagePreview) imagePreview.src = e.target.result;
+                    if (logoDropZone) logoDropZone.classList.add('has-preview');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Helper to populate select
+        function populateSelect(selectElement, data, defaultText = "Select Option", keyName = null) {
+            selectElement.innerHTML = `<option value="">${defaultText}</option>`;
+
+            let items = [];
+            if (Array.isArray(data)) {
+                items = data;
+            } else if (typeof data === 'object' && data !== null) {
+                if (keyName && data[keyName]) {
+                    items = data[keyName];
+                } else {
+                    const keys = Object.keys(data);
+                    for (const key of keys) {
+                        if (Array.isArray(data[key])) {
+                            items = data[key];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name;
+                selectElement.appendChild(option);
+            });
+
+            // Auto-select if data-selected matches
+            const selectedVal = selectElement.dataset.selected;
+            if (selectedVal && selectedVal !== 'None' && selectedVal !== 'null') {
+                selectElement.value = selectedVal;
+
+                // Try Name matching if value is empty (reverse lookup)
+                if (!selectElement.value && items.length > 0) {
+                    const targetName = String(selectedVal).trim().toLowerCase();
+                    const match = items.find(item =>
+                        (item.name && String(item.name).trim().toLowerCase() === targetName) ||
+                        (item.Name && String(item.Name).trim().toLowerCase() === targetName)
+                    );
+                    if (match) {
+                        selectElement.value = match.id;
+                    }
+                }
+
+                // Trigger change to load dependent dropdowns
+                if (selectElement.value) {
+                    setTimeout(() => selectElement.dispatchEvent(new Event('change')), 0);
+                }
+            }
+        }
+
+        // Generic Fetch with Fallback
+        function fetchWithFallback(url1, url2, successCallback, errorLabel) {
+            fetch(url1)
+                .then(response => {
+                    if (!response.ok) throw new Error(`${response.status}`);
+                    return response.json();
+                })
+                .then(data => successCallback(data))
+                .catch(err1 => {
+                    if (url2) {
+                        fetch(url2)
+                            .then(response => {
+                                if (!response.ok) throw new Error(`${response.status}`);
+                                return response.json();
+                            })
+                            .then(data => successCallback(data))
+                            .catch(err2 => console.error(`${errorLabel} failed.`, err2));
+                    } else {
+                        console.error(`${errorLabel} failed.`, err1);
+                    }
+                });
+        }
+
+        // Fetch countries
+        fetchWithFallback('/api/geo/countries/', '/api/countries/',
+            (data) => populateSelect(countrySelect, data, "Select Country", "countries"), "Countries");
+
+        // Country change -> load states
+        countrySelect.addEventListener('change', function () {
+            if (!this.value) {
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                stateSelect.disabled = true;
+                districtSelect.disabled = true;
+                return;
+            }
+
+            stateSelect.disabled = false;
+            fetchWithFallback(`/api/geo/states/?country_id=${this.value}`, `/api/states/${this.value}/`,
+                (data) => populateSelect(stateSelect, data, "Select State", "states"), "States");
+        });
+
+        // State change -> load districts
+        stateSelect.addEventListener('change', function () {
+            if (!this.value) {
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                districtSelect.disabled = true;
+                return;
+            }
+
+            districtSelect.disabled = false;
+            fetchWithFallback(`/api/geo/districts/?state_id=${this.value}`, `/api/districts/${this.value}/`,
+                (data) => populateSelect(districtSelect, data, "Select District", "districts"), "Districts");
+        });
+
+        // Fetch boards & mediums
+        fetchWithFallback('/api/boards/', null, (data) => populateSelect(boardSelect, data, "Select Board", "boards"), "Boards");
+        fetchWithFallback('/api/mediums/', null, (data) => populateSelect(mediumSelect, data, "Select Medium", "mediums"), "Mediums");
+
+        // Form submission
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    form.reportValidity();
+                    return;
+                }
+                const btn = form.querySelector('button[type=submit]');
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                    btn.style.opacity = '0.7';
+                    setTimeout(() => btn.disabled = true, 50);
+                }
+            });
+        }
+    });
+
+</script>
+{% endblock %}

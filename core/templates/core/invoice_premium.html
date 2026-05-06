@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice - {{ invoice.InvoiceNumber }} | ShikshaWave Elite</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-indigo: #004aad;
+            --primary-gradient: linear-gradient(135deg, #004aad 0%, #003070 100%);
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-400: #94a3b8;
+            --slate-600: #475569;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html, body {
+            height: 100vh;
+            overflow: hidden; /* Zero Scroll Enforcement */
+            background: #cbd5e1;
+            font-family: 'Inter', sans-serif;
+            color: var(--slate-800);
+        }
+
+        .controls-strip {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-action {
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-close { background: white; color: var(--slate-800); }
+        .btn-print { background: var(--slate-900); color: white; }
+
+        /* Scroller Wrapper for Screen */
+        .viewport-wrapper {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* The Scalable Page */
+        .page-container {
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            padding: 35px 45px;
+            position: relative;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            transform-origin: center center;
+            border-radius: 4px;
+        }
+
+        .decoration-strip {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: var(--primary-gradient);
+        }
+
+        /* Ultra-Compact Layout */
+        .header-layout {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px; /* Reduced */
+        }
+
+        .brand-block img {
+            height: 50px; /* Reduced */
+            margin-bottom: 10px;
+        }
+
+        .brand-meta {
+            font-size: 0.7rem;
+            color: var(--slate-600);
+            line-height: 1.4;
+        }
+
+        .kpi-summary {
+            background: var(--slate-900);
+            padding: 18px 25px;
+            border-radius: 16px;
+            color: white;
+            text-align: right;
+            min-width: 240px;
+        }
+
+        .kpi-label { font-size: 0.6rem; color: var(--slate-400); letter-spacing: 0.1em; }
+        .kpi-value { font-size: 1.5rem; font-weight: 900; font-family: 'JetBrains Mono'; margin-top: 2px; }
+
+        .billing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 20px 25px;
+            background: var(--slate-50);
+            border: 1px solid var(--slate-200);
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            font-size: 0.65rem;
+            font-weight: 900;
+            color: var(--primary-indigo);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .client-info .name { font-size: 1.1rem; font-weight: 900; margin-bottom: 4px; }
+        .client-info .address { font-size: 0.75rem; color: var(--slate-600); line-height: 1.4; }
+
+        .meta-list { display: flex; flex-direction: column; gap: 8px; }
+        .meta-item { display: flex; justify-content: space-between; font-size: 0.75rem; }
+        .meta-item .label { color: var(--slate-400); font-weight: 600; }
+        .meta-item .value { color: var(--slate-900); font-weight: 800; }
+
+        /* Items Table - High Density */
+        .table-container { flex-grow: 1; margin-bottom: 25px; }
+        .elite-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+        .elite-table th {
+            padding: 10px 20px;
+            background: var(--slate-900);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .elite-table th:first-child { border-radius: 8px 0 0 8px; }
+        .elite-table th:last-child { border-radius: 0 8px 8px 0; text-align: right; }
+
+        .elite-table td {
+            background: white;
+            padding: 12px 20px;
+            border-top: 1px solid var(--slate-100);
+            border-bottom: 1px solid var(--slate-100);
+            font-size: 0.85rem;
+        }
+        .elite-table tr td:first-child { border-left: 1px solid var(--slate-100); border-radius: 8px 0 0 8px; }
+        .elite-table tr td:last-child { border-right: 1px solid var(--slate-100); border-radius: 0 8px 8px 0; text-align: right; font-weight: 800; }
+
+        /* Summary & Bottom */
+        .bottom-layout {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+        }
+
+        .totals-block {
+            width: 260px;
+            padding: 15px 20px;
+            background: var(--slate-50);
+            border-radius: 16px;
+            border: 1px solid var(--slate-200);
+        }
+
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem; }
+        .total-row.grand {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px dashed var(--slate-200);
+            font-size: 1.1rem;
+            font-weight: 950;
+            color: var(--primary-indigo);
+        }
+
+        .signature-portal { text-align: right; margin-bottom: 20px; }
+        .glass-seal {
+            display: inline-block;
+            background: rgba(0, 74, 173, 0.03);
+            backdrop-filter: blur(8px);
+            padding: 15px;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 74, 173, 0.1);
+        }
+        .sig-file { height: 45px; filter: grayscale(1); margin-bottom: 8px; }
+        .sig-name { font-weight: 900; font-size: 0.65rem; text-transform: uppercase; }
+
+        .disclaimer-footer {
+            padding-top: 20px;
+            border-top: 1px solid var(--slate-100);
+            text-align: center;
+            font-size: 0.6rem;
+            color: var(--slate-400);
+        }
+
+        @page { size: A4; margin: 0; }
+        @media print {
+            html, body { 
+                height: 297mm; width: 210mm;
+                background: white; overflow: visible; 
+            }
+            .controls-strip { display: none; }
+            .viewport-wrapper { padding: 0; align-items: flex-start; }
+            .page-container { 
+                box-shadow: none !important; margin: 0 !important; 
+                transform: none !important; /* No scaling in print */
+                padding: 30mm 20mm !important;
+            }
+            .kpi-summary { background: #0f172a !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body onload="autoScale()">
+
+    <div class="controls-strip">
+        <button class="btn-action btn-close" onclick="window.close()"><i class="fas fa-arrow-left"></i> Exit</button>
+        <button class="btn-action btn-print" onclick="window.print()"><i class="fas fa-print"></i> PDF</button>
+    </div>
+
+    <div class="viewport-wrapper">
+        <div id="invoicePanel" class="page-container">
+            <div class="decoration-strip"></div>
+
+            <div class="header-layout">
+                <div class="brand-block">
+                    {% if brand.logo %}<img src="{{ brand.logo }}" alt="{{ brand.name }}">{% else %}
+                    <h2 style="color:var(--primary-indigo); font-weight:900;">{{ brand.name }}</h2>{% endif %}
+                    <div class="brand-meta">
+                        <p>{{ brand.address }}</p>
+                        <p style="font-weight:800; color:var(--slate-900);">GSTIN: {{ brand.gstin }}</p>
+                    </div>
+                </div>
+                <div class="kpi-summary">
+                    <div class="kpi-label">TOTAL PAYABLE</div>
+                    <div class="kpi-value">₹{{ invoice.FinalAmount|floatformat:2 }}</div>
+                </div>
+            </div>
+
+            <div class="billing-grid">
+                <div class="client-info">
+                    <div class="section-header"><i class="fas fa-university"></i> Recipient</div>
+                    <div class="name">{{ school.SchoolName }}</div>
+                    <div class="address">{{ school.Address }}<br>{{ school.District }}, {{ school.State }}</div>
+                </div>
+                <div class="meta-list">
+                    <div class="section-header"><i class="fas fa-info-circle"></i> Meta Info</div>
+                    <div class="meta-item"><span class="label">Invoice #</span><span class="value">{{ invoice.InvoiceNumber }}</span></div>
+                    <div class="meta-item"><span class="label">Issue Date</span><span class="value">{{ invoice.FormattedDate }}</span></div>
+                    <div class="meta-item"><span class="label">Status</span><span class="value" style="color:green;">PAID</span></div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="elite-table">
+                    <thead><tr><th>Description</th><th style="text-align:center;">Period</th><th style="text-align:right;">Amount</th></tr></thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td><strong>{{ item.ItemName }}</strong><br><small style="color:var(--slate-400);">SaaS Subscription License</small></td>
+                            <td style="text-align:center; font-size:0.75rem;">{{ plan.FormattedStart }} - {{ plan.FormattedEnd }}</td>
+                            <td style="text-align:right;">₹{{ item.TotalPrice|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bottom-layout">
+                <div style="max-width:300px;">
+                    <div class="section-header">Payment Mode</div>
+                    <div style="font-size:0.75rem; color:var(--slate-600);">
+                        Processed via Digitally Verified Settlement.<br>
+                        Ref: SW-{{ subscription_id }}-INV
+                    </div>
+                </div>
+                <div class="totals-block">
+                    <div class="total-row"><span>Subtotal</span><span>₹{{ invoice.TotalAmount|floatformat:2 }}</span></div>
+                    <div class="total-row"><span>Tax (Included)</span><span>₹{{ invoice.TaxAmount|floatformat:0 }}</span></div>
+                    <div class="total-row grand"><span>Total</span><span>₹{{ invoice.FinalAmount|floatformat:2 }}</span></div>
+                </div>
+            </div>
+
+            <div class="signature-portal">
+                <div class="glass-seal">
+                    {% if brand.signature %}<img src="{{ brand.signature }}" class="sig-file">{% endif %}
+                    <div style="height:1px; background:var(--slate-200); margin:4px 0;"></div>
+                    <div class="sig-name">Authorized Signatory</div>
+                </div>
+            </div>
+
+            <div class="disclaimer-footer">
+                <p>{{ footer.Disclaimer|default:"This is an electronically generated tax invoice." }}</p>
+                <p style="margin-top:4px;">{{ footer.CopyrightNotice|default:"© 2026 ShikshaWave Pvt Ltd." }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function autoScale() {
+            const panel = document.getElementById('invoicePanel');
+            const wrapper = panel.parentElement;
+            
+            const availableHeight = wrapper.clientHeight - 40;
+            const availableWidth = wrapper.clientWidth - 40;
+            
+            const panelHeight = panel.offsetHeight;
+            const panelWidth = panel.offsetWidth;
+            
+            const scaleH = availableHeight / panelHeight;
+            const scaleW = availableWidth / panelWidth;
+            
+            const finalScale = Math.min(scaleH, scaleW, 1.0); // Don't scale UP, only DOWN
+            
+            panel.style.transform = `scale(${finalScale})`;
+        }
+        window.onresize = autoScale;
+    </script>
+</body>
+</html>

@@ -1,0 +1,1326 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Promote Students{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<style>
+    /* =========================================================
+       Promote Students — Page-specific overrides only
+       Global header, sidebar, controls-row, theme from stylesheet
+       ========================================================= */
+
+    /* 3–panel flex layout */
+    .three-panel-layout {
+        max-width: 100%;
+        margin: 18px auto 0;
+        display: flex;
+        gap: 15px;
+        align-items: stretch;
+        padding: 0 15px 20px;
+    }
+
+
+
+    /* Panel cards */
+    .panel {
+        background: var(--bg-color, white);
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.dark-mode .panel {
+        background: var(--secondary-color);
+    }
+
+    .search-panel  { flex: 0 1 230px; }
+    .results-panel { flex: 1; min-width: 300px; }
+    .promote-panel { flex: 0 1 250px; }
+    
+    .three-panel-layout {
+        flex-wrap: nowrap !important;
+    }
+
+
+    /* Panel headers */
+    .panel-header {
+        background: linear-gradient(135deg, var(--primary-color, #004aad) 0%, var(--primary-hover, #7c3aed) 100%);
+        padding: 0 18px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .panel-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .panel-header i,
+    .panel-header h3 {
+        color: white;
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .panel-header-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .per-page-selector {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .per-page-select {
+        padding: 4px 28px 4px 10px !important;
+        border: 1px solid rgba(255,255,255,0.25) !important;
+        border-radius: 6px !important;
+        background: rgba(255,255,255,0.18) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") no-repeat right 10px center !important;
+        background-size: 11px !important;
+        color: white !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        min-width: 65px !important;
+        height: auto !important;
+        width: auto !important;
+        transition: all 0.2s !important;
+        outline: none !important;
+        line-height: normal !important;
+    }
+
+    .per-page-select:hover {
+        background-color: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.5);
+    }
+
+    .per-page-select:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.25);
+    }
+
+    .total-count {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* Panel body */
+    .panel-content {
+        padding: 16px;
+        overflow-y: auto;
+        flex: 1;
+        background: var(--bg-card);
+    }
+
+    body.dark-mode .panel-content {
+        background: var(--secondary-color);
+    }
+
+    .panel-content.compact-form { padding: 12px 16px; }
+
+    /* Form elements — match global design */
+    .form-group { margin-bottom: 10px; }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        color: var(--text-light);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 0.95rem;
+        background-color: #ffffff !important;
+        color: #1a1a2e !important;
+        transition: all 0.2s;
+        -webkit-appearance: auto;
+        appearance: auto;
+        color-scheme: light !important;
+    }
+
+    body.dark-mode .form-group input,
+    body.dark-mode .form-group select,
+    body.dark-mode .form-group textarea {
+        background-color: #1A2035 !important;
+        border-color: #4b5563;
+        color: #f1f5f9 !important;
+        color-scheme: light !important;
+    }
+
+    /* Force options to be readable - absolutely broad */
+    select option, 
+    .form-group select option {
+        background-color: #ffffff !important;
+        color: #1a1a2e !important;
+    }
+
+    body.dark-mode select option, 
+    body.dark-mode .form-group select option,
+    body.dark-mode .per-page-select option {
+        background-color: #1A2035 !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Ensure specific search selects are covered */
+    #filter-school, #filter-class, #filter-section, #to-class, #to-section, #academic-year {
+        background-color: #ffffff !important;
+        color: #1a1a2e !important;
+    }
+
+    body.dark-mode #filter-school, 
+    body.dark-mode #filter-class, 
+    body.dark-mode #filter-section,
+    body.dark-mode #to-class,
+    body.dark-mode #to-section,
+    body.dark-mode #academic-year {
+        background-color: #1A2035 !important;
+        color: #f1f5f9 !important;
+    }
+
+
+
+
+    /* Controls row — keep Back button text visible and icon aligned */
+    .controls-right .btn-secondary {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        text-decoration: none;
+    }
+
+    .controls-right .btn-secondary .btn-label {
+        display: inline !important;
+    }
+
+
+
+
+    /* Buttons */
+    .search-actions,
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .search-actions button,
+    .form-actions button { flex: none; width: auto; min-width: 100px; }
+
+    .btn-search, .btn-save {
+        padding: 8px 14px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-search:hover, .btn-save:hover:not(:disabled) {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-reset, .btn-cancel {
+        padding: 8px 14px;
+        background: var(--light-gray);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-reset:hover, .btn-cancel:hover {
+        background: var(--border-color);
+    }
+
+    /* Summary box inside controls-left */
+    .summary-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(var(--primary-rgb), 0.05);
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        border: 1px solid rgba(var(--primary-rgb), 0.1);
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+
+
+
+    body.dark-mode .summary-box {
+        background: rgba(255,255,255,0.06);
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--text-color);
+    }
+
+    .summary-item i { color: var(--primary-color); font-size: 0.85rem; }
+
+    .summary-item:not(:last-child)::after {
+        content: "|";
+        margin-left: 14px;
+        color: var(--text-light);
+        opacity: 0.3;
+    }
+
+    /* Results table */
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .results-table th {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        padding: 10px 14px;
+        color: white;
+        font-weight: 600;
+        text-align: left;
+        font-size: 0.88rem;
+    }
+
+    .results-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+    .results-table tr:hover td {
+        background: var(--light-gray) !important;
+    }
+
+    body.dark-mode .results-table tr:hover td {
+        background: rgba(255,255,255,0.04) !important;
+    }
+
+    .student-checkbox, .select-checkbox {
+        width: 17px;
+        height: 17px;
+        accent-color: var(--primary-color);
+        cursor: pointer;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 5px 0;
+        border-top: 1px solid var(--border-color);
+        background: transparent;
+    }
+
+    body.dark-mode .pagination-container {
+        background: transparent;
+        border-top-color: rgba(255,255,255,0.1);
+    }
+
+    .pagination-info { font-size: 0.85rem; color: var(--text-light); }
+
+    .pagination { display: flex; gap: 4px; }
+
+    .pagination button {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-color, white);
+        color: var(--text-color);
+        cursor: pointer;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .pagination button.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .pagination button:hover:not(:disabled):not(.active) {
+        background: var(--light-gray);
+    }
+
+    body.dark-mode .pagination button {
+        background: var(--secondary-color);
+    }
+
+    /* Empty states */
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        border: 2px dashed var(--border-color);
+        border-radius: 12px;
+        margin: 12px 0;
+    }
+
+    .empty-state-icon { font-size: 2.5rem; color: var(--text-light); margin-bottom: 12px; }
+    .empty-state-title { font-weight: 700; font-size: 1rem; color: var(--text-color); margin-bottom: 6px; }
+    .empty-state-message { font-size: 0.85rem; color: var(--text-light); }
+
+    /* Alert toasts */
+    .alert {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        padding: 14px 22px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        z-index: 9999;
+        transform: translateX(120%);
+        transition: transform 0.35s ease;
+    }
+
+    .alert.show { transform: translateX(0); }
+    .alert-success { background: var(--success-color, #10b981); color: white; }
+    .alert-error   { background: var(--error-color, #ef4444);   color: white; }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+    /* Stacking only below 992px to ensure desktop/tablet-landscape stays in one row */
+    @media (max-width: 992px) {
+        .three-panel-layout {
+            flex-direction: column;
+            padding: 0 15px 20px;
+        }
+
+        .search-panel,
+        .results-panel,
+        .promote-panel {
+            width: 100% !important;
+            flex: none !important;
+            min-width: unset !important;
+            max-width: none !important;
+        }
+    }
+
+
+
+    @media (max-width: 768px) {
+        .controls-row {
+            margin-top: 45px;
+            margin-bottom: 10px;
+            position: static;
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 12px;
+            padding: 12px 15px;
+        }
+
+        .controls-left, 
+        .controls-right {
+            width: 100%;
+            justify-content: flex-start !important;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .summary-box {
+            width: 100%;
+            padding: 8px 12px;
+            gap: 8px 12px;
+            justify-content: space-between;
+        }
+
+
+        .summary-item:not(:last-child)::after { display: none; }
+
+        .results-table th,
+        .results-table td {
+            padding: 8px 10px;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        /* Ensure table is visible and scrollable on mobile */
+        .table-container {
+            display: block !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 15px;
+        }
+
+        .results-table {
+            min-width: 600px; /* Force scroll on very small screens */
+        }
+
+        .controls-right .btn-reset {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+
+    /* =========================================================
+       PREMIUM CARD VIEW (MOBILE)
+       ========================================================= */
+    .mobile-student-cards {
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+        padding-bottom: 15px;
+        padding-top: 5px;
+    }
+
+    .student-mobile-card {
+        background: var(--bg-card, white);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        position: relative;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    body.dark-mode .student-mobile-card {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .student-mobile-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-rgb), 0.03);
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .card-info-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .card-student-name {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--text-color);
+    }
+
+    .card-student-code {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        font-family: monospace;
+    }
+
+    .card-checkbox-wrapper {
+        padding: 2px;
+    }
+
+    .card-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    body.dark-mode .card-details-grid {
+        border-top-color: rgba(255,255,255,0.05);
+    }
+
+    .card-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .card-detail-label {
+        font-size: 0.7rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+
+    .card-detail-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    @media (max-width: 768px) {
+        .three-panel-layout {
+            padding: 0 10px 20px;
+            gap: 15px;
+        }
+
+        .panel {
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        .panel-header {
+            padding: 12px 15px;
+        }
+
+        /* Compact Table for Mobile */
+        .table-container {
+            display: block !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 10px;
+        }
+
+        .results-table {
+            min-width: 500px;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 8px 10px;
+            font-size: 0.8rem;
+        }
+
+        .student-checkbox, .select-checkbox {
+            width: 15px;
+            height: 15px;
+        }
+
+        /* Compact Pagination Footer */
+        .pagination-container {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 5px 0;
+            margin-top: 10px;
+            background: transparent;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .pagination-info {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .pagination button {
+            min-width: 30px;
+            height: 30px;
+            padding: 0 6px;
+            font-size: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- Controls Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-graduation-cap"></i> Promote Students</h3>
+            <div class="summary-box" id="promotion-summary">
+                <div class="summary-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="summary-label">Selected:</span>
+                    <span class="summary-value" id="summary-selected">0</span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span class="summary-label">To:</span>
+                    <span class="summary-value" id="summary-class">-</span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-users"></i>
+                    <span class="summary-label">Section:</span>
+                    <span class="summary-value" id="summary-section">-</span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-chevron-left"></i>
+                <span class="btn-label">Back to Dashboard</span>
+            </a>
+        </div>
+    </div>
+
+
+    <!-- 3 Panel Layout -->
+    <div class="three-panel-layout">
+        <!-- Panel 1: Search -->
+        <div class="panel search-panel mobile-collapsible">
+            <div class="panel-header">
+                <div class="panel-header-left">
+                    <i class="fas fa-sliders-h"></i>
+                    <h3>Refine Search</h3>
+                </div>
+            </div>
+            <div class="panel-content compact-form">
+                <form id="search-form" method="GET" action="{% url 'promote_students' %}">
+                    {% csrf_token %}
+                    {% if is_super_admin %}
+                    <div class="form-group">
+                        <label>Select School*</label>
+                        <select id="filter-school" name="school_id" class="form-control" required>
+                            <option value="">Select School*</option>
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>Search Student*</label>
+                        <input type="text" id="search-input" name="search" value="{{ search }}"
+                            placeholder="Search Student">
+                    </div>
+                    <div class="form-group">
+                        <label>Select Class*</label>
+                        <select id="filter-class" name="class_id">
+                            <option value="">Select*</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Section*</label>
+                        <select id="filter-section" name="section_id">
+                            <option value="">Select*</option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="page" id="page-input" value="1">
+                    <input type="hidden" name="per_page" id="per-page-input" value="10">
+                    <div class="search-actions">
+                        <button type="submit" class="btn-search" id="apply-filters">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </button>
+                        <button type="button" class="btn-reset" id="reset-filters">
+                            <i class="fas fa-undo"></i>
+                            Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel 2: Search Results -->
+        <div class="panel results-panel mobile-collapsible">
+            <div class="panel-header">
+                <div class="panel-header-left">
+                    <i class="fas fa-list-ul"></i>
+                    <h3>Student Selection</h3>
+                </div>
+                <div class="panel-header-right">
+                    <div class="per-page-selector">
+                        <select id="per-page-select" class="per-page-select">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <span class="total-count" id="total-count">{{ students|length }} students</span>
+                </div>
+            </div>
+            <div class="panel-content">
+                
+                <!-- Empty State: No Search Applied -->
+                <div class="empty-state no-search" id="no-search-state" style="display: none;">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                    <div class="empty-state-title">Ready to Promote?</div>
+                    <div class="empty-state-message">
+                        Type at least 3 characters or select a class to find students.
+                    </div>
+                </div>
+
+                <!-- Empty State: No Results Found -->
+                <div class="empty-state no-results" id="no-results-state" style="display: none;">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-user-slash"></i>
+                    </div>
+                    <div class="empty-state-title">No Matches Found</div>
+                    <div class="empty-state-message">
+                        We couldn't find any students matching those filters.
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="table-container" id="table-container">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>SN</th>
+                                <th>Code</th>
+                                <th>Student Name</th>
+                                <th>Class</th>
+                                <th>Roll Number</th>
+                                <th>
+                                    <input type="checkbox" id="select-all" class="select-checkbox">
+                                    <label for="select-all">All</label>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in students %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ s.StudentCode|default:"N/A" }}</td>
+                                <td><strong>{{ s.StudentName|default:"N/A" }}</strong></td>
+                                <td>{{ s.ClassName|default:"N/A" }}</td>
+                                <td>{{ s.RollNumber|default:"N/A" }}</td>
+                                <td>
+                                    <input type="checkbox" class="student-checkbox" data-student-id="{{ s.StudentID }}"
+                                        data-student-name="{{ s.StudentName }}">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="no-data">No students found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Showing <span id="showing-start">1</span> to <span id="showing-end">{{ students|length }}</span>
+                        of <span id="total-students">{{ students|length }}</span> students
+                    </div>
+                    <div class="pagination">
+                        <button id="prev-page" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="active" id="current-page">1</button>
+                        <button id="next-page" disabled>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 3: Promote -->
+        <div class="panel promote-panel mobile-collapsible">
+            <div class="panel-header">
+                <div class="panel-header-left">
+                    <i class="fas fa-rocket"></i>
+                    <h3>Promote To</h3>
+                </div>
+            </div>
+            <div class="panel-content compact-form">
+                <form id="promotion-submit-form">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group compact">
+                            <label>Target Class*</label>
+                            <select id="to-class" name="to_class_id" required>
+                                <option value="">Select*</option>
+                            </select>
+                        </div>
+                        <div class="form-group compact">
+                            <label>Target Section*</label>
+                            <select id="to-section" name="to_section_id" required>
+                                <option value="">Select*</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group compact">
+                        <label>Academic Year*</label>
+                        <select id="academic-year" name="academic_year_id" required>
+                            <option value="">Select*</option>
+                        </select>
+                    </div>
+                    <div class="form-group compact">
+                        <label>Remarks</label>
+                        <textarea id="remarks" name="remarks" placeholder="Enter remarks..." rows="2"></textarea>
+                    </div>
+                    <div class="form-group compact" style="margin-top: 10px; display: flex; align-items: center;">
+                        <input type="checkbox" id="send-email-checkbox" checked style="width: auto; margin-right: 8px;">
+                        <label for="send-email-checkbox" style="margin: 0; font-weight: normal;">Send Email Notification
+                            to Students</label>
+                    </div>
+                    <div class="form-actions compact">
+                        <button type="button" class="btn-cancel" id="cancel-promotion">Cancel</button>
+                        <button type="submit" class="btn-save" id="promote-btn" disabled>
+                            <i class="fas fa-rocket"></i>
+                            Promote (0)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Notification Handled by ShikshaWave.Dialog -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+(function () {
+
+'use strict';
+
+// --- Configuration & State ---
+const API = {
+SCHOOLS: '/api/school-list/',
+CLASSES: '/api/classes/',
+SECTIONS: '/api/sections/',
+ACADEMIC_YEARS: '/api/academic-years/',
+PROMOTE_SUBMIT: '{% url "promote_students_submit" %}'
+};
+
+const DOM = {
+searchPanel: {
+schoolData: document.getElementById('filter-school'),
+classData: document.getElementById('filter-class'),
+sectionData: document.getElementById('filter-section'),
+searchInput: document.getElementById('search-input'),
+applyBtn: document.getElementById('apply-filters'),
+resetBtn: document.getElementById('reset-filters'),
+form: document.getElementById('search-form')
+},
+promotePanel: {
+toClass: document.getElementById('to-class'),
+toSection: document.getElementById('to-section'),
+academicYear: document.getElementById('academic-year'),
+remarks: document.getElementById('remarks'),
+form: document.getElementById('promotion-submit-form'),
+submitBtn: document.getElementById('promote-btn'),
+cancelBtn: document.getElementById('cancel-promotion')
+},
+        results: {
+            selectAll: document.getElementById('select-all'),
+            checkboxes: () => document.querySelectorAll('.student-checkbox'),
+            totalCount: document.getElementById('total-count')
+        }
+    };
+
+// Context Data from Django
+const CONTEXT = {
+isSuperAdmin: "{{ is_super_admin|yesno:'true,false' }}" === "true",
+selectedSchoolId: "{{ selected_school_id|default:'' }}",
+currentClassId: "{{ class_id|default:'' }}",
+currentSectionId: "{{ section_id|default:'' }}",
+sessionSchoolId: "{{ request.session.SchoolID|default:'' }}"
+};
+
+// --- Utility Functions ---
+
+function showAlert(type, message) {
+    if (type === 'success') {
+        ShikshaWave.Dialog.success('Success', message);
+    } else {
+        ShikshaWave.Dialog.error('Error', message);
+    }
+}
+
+async function fetchData(url, params = {}) {
+try {
+const queryString = new URLSearchParams(params).toString();
+const fullUrl = queryString ? `${url}?${queryString}` : url;
+
+console.log(`DEBUG: Fetching ${fullUrl}`);
+const response = await fetch(fullUrl, {
+headers: { 'X-Requested-With': 'XMLHttpRequest' }
+});
+
+if (!response.ok) {
+throw new Error(`HTTP Error: ${response.status}`);
+}
+
+const contentType = response.headers.get("content-type");
+if (!contentType || !contentType.includes("application/json")) {
+throw new Error("Received non-JSON response from server");
+}
+
+return await response.json();
+} catch (error) {
+console.error("API Error:", error);
+showAlert('error', `Failed to load data: ${error.message}`);
+throw error;
+}
+}
+
+// --- Core Logic ---
+
+async function loadSchools() {
+if (!DOM.searchPanel.schoolData) return;
+
+try {
+const data = await fetchData(API.SCHOOLS);
+const schools = data.schools || data; // Handle both structures
+
+DOM.searchPanel.schoolData.innerHTML = '<option value="">Select School*</option>';
+
+schools.forEach(school => {
+const opt = new Option(school.display_name || school.name, school.id);
+if (String(school.id) === String(CONTEXT.selectedSchoolId)) {
+opt.selected = true;
+}
+DOM.searchPanel.schoolData.add(opt);
+});
+} catch (e) {
+console.error("Failed to load schools", e);
+}
+}
+
+async function loadClasses(schoolId, selectedId = null) {
+if (!schoolId) return;
+
+try {
+const data = await fetchData(API.CLASSES, { school_id: schoolId });
+const classes = data.classes || data;
+
+if (!Array.isArray(classes)) {
+console.warn("API for classes did not return an array", data);
+return;
+}
+
+// Populate Filter Class Dropdown
+if (DOM.searchPanel.classData) {
+DOM.searchPanel.classData.innerHTML = '<option value="">Select Class*</option>';
+classes.forEach(c => {
+const id = c.ClassID || c.id;
+const name = c.ClassName || c.name;
+const opt = new Option(name, id);
+if (selectedId && String(id) === String(selectedId)) opt.selected = true;
+DOM.searchPanel.classData.add(opt);
+});
+}
+
+// Populate Target Class Dropdown
+if (DOM.promotePanel.toClass) {
+DOM.promotePanel.toClass.innerHTML = '<option value="">Select Class*</option>';
+classes.forEach(c => {
+const id = c.ClassID || c.id;
+const name = c.ClassName || c.name;
+DOM.promotePanel.toClass.add(new Option(name, id));
+});
+}
+
+} catch (e) {
+console.error("Failed to load classes", e);
+}
+}
+
+async function loadSections(classId, selectedId = null, targetElement = null) {
+if (!classId) return;
+
+try {
+const data = await fetchData(API.SECTIONS, { class_id: classId });
+const sections = data.sections || data;
+
+if (!Array.isArray(sections)) {
+console.warn("API for sections did not return an array", data);
+return;
+}
+
+if (targetElement) {
+targetElement.innerHTML = '<option value="">Select Section*</option>';
+sections.forEach(s => {
+const id = s.SectionID || s.id;
+const name = s.SectionName || s.name;
+const opt = new Option(name, id);
+if (selectedId && String(id) === String(selectedId)) opt.selected = true;
+targetElement.add(opt);
+});
+}
+
+} catch (e) {
+console.error("Failed to load sections", e);
+}
+}
+
+
+async function loadAcademicYears(schoolId) {
+if (!schoolId) return;
+
+try {
+const data = await fetchData(API.ACADEMIC_YEARS, { school_id: schoolId });
+const years = data.years || data;
+
+if (DOM.promotePanel.academicYear) {
+DOM.promotePanel.academicYear.innerHTML = '<option value="">Select Year*</option>';
+years.forEach(y => {
+const opt = new Option(y.name, y.id);
+if (y.is_current) opt.selected = true;
+DOM.promotePanel.academicYear.add(opt);
+});
+}
+
+} catch (e) {
+console.error("Failed to load academic years", e);
+}
+}
+
+// --- Event Handlers ---
+
+function handleSchoolChange() {
+const schoolId = this.value;
+if (schoolId) {
+loadClasses(schoolId);
+loadAcademicYears(schoolId);
+} else {
+if (DOM.searchPanel.classData) DOM.searchPanel.classData.innerHTML = '<option value="">Select Class*</option>';
+if (DOM.promotePanel.toClass) DOM.promotePanel.toClass.innerHTML = '<option value="">Select Class*</option>';
+if (DOM.promotePanel.academicYear) DOM.promotePanel.academicYear.innerHTML = '<option value="">Select Year*</option>';
+}
+}
+
+function handleClassChange(e) {
+const classId = e.target.value;
+const targetSectionSelect = (e.target === DOM.searchPanel.classData)
+? DOM.searchPanel.sectionData
+: DOM.promotePanel.toSection;
+
+loadSections(classId, null, targetSectionSelect);
+}
+
+function updatePromoteButtonState() {
+    const allChecked = document.querySelectorAll('.student-checkbox:checked');
+    const checkedCount = allChecked.length;
+    
+    const btn = DOM.promotePanel.submitBtn;
+
+    // Update Promotion Button
+    if (btn) {
+        btn.disabled = checkedCount === 0;
+        btn.innerHTML = `<i class="fas fa-rocket"></i> Promote (${checkedCount})`;
+    }
+
+    // Update Summary Dashboard
+    const summarySelected = document.getElementById('summary-selected');
+    if (summarySelected) {
+        summarySelected.textContent = checkedCount;
+    }
+
+    // Handle Select All indeterminate state
+    const totalCount = DOM.results.checkboxes().length;
+    if (DOM.results.selectAll) {
+        DOM.results.selectAll.checked = (totalCount > 0 && totalCount === checkedCount);
+        DOM.results.selectAll.indeterminate = (checkedCount > 0 && checkedCount < totalCount);
+    }
+}
+
+function updateSummaryLabels() {
+    const classLabel=document.getElementById('summary-class'); const
+    sectionLabel=document.getElementById('summary-section'); if (classLabel && DOM.promotePanel.toClass) { const
+    text=DOM.promotePanel.toClass.options[DOM.promotePanel.toClass.selectedIndex]?.text; classLabel.textContent=text &&
+    text !=='Select*' ? text : '-' ; } if (sectionLabel && DOM.promotePanel.toSection) { const
+    text=DOM.promotePanel.toSection.options[DOM.promotePanel.toSection.selectedIndex]?.text;
+    sectionLabel.textContent=text && text !=='Select*' ? text : '-' ; } } function handleSelectAll(e) {
+    const isChecked = e.target.checked;
+    DOM.results.checkboxes().forEach(cb => cb.checked = isChecked);
+    updatePromoteButtonState();
+}
+
+    async function handlePromotionSubmit(e) {
+    e.preventDefault();
+
+    const selectedCheckboxes = document.querySelectorAll('.student-checkbox:checked');
+    const studentIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.studentId);
+
+    if (studentIds.length === 0) {
+    showAlert('error', 'Please select at least one student.');
+    return;
+    }
+
+    const formData = new FormData(DOM.promotePanel.form);
+    formData.append('student_ids', studentIds.join(','));
+
+    // Append email notification flag
+    const sendEmail = document.getElementById('send-email-checkbox')?.checked || false;
+    formData.append('send_email', sendEmail);
+
+    // Add School ID for Super Admin
+    const schoolId = DOM.searchPanel.schoolData ? DOM.searchPanel.schoolData.value : CONTEXT.sessionSchoolId;
+    if (schoolId) formData.append('school_id', schoolId);
+
+    const btn = DOM.promotePanel.submitBtn;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    try {
+    const response = await fetch(API.PROMOTE_SUBMIT, {
+    method: 'POST',
+    body: formData,
+    headers: {
+    'X-Requested-With': 'XMLHttpRequest'
+    }
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        await ShikshaWave.Dialog.success('Promoted!', result.message);
+        window.location.href = "{% url 'promote_students' %}";
+    } else {
+        ShikshaWave.Dialog.error('Promotion Failed', result.message || 'Promotion failed.');
+        btn.disabled = false;
+        updatePromoteButtonState();
+    }
+
+    } catch (error) {
+    console.error("Promotion Submit Error:", error);
+    ShikshaWave.Dialog.error('System Error', 'An error occurred during promotion.');
+    btn.disabled = false;
+    updatePromoteButtonState();
+    }
+    }
+
+    // --- Initialization ---
+
+    function init() {
+    console.log("DEBUG: Initializing Promote Students Page...", CONTEXT);
+
+    // 1. Initial Data Load
+    const effectiveSchoolId = CONTEXT.selectedSchoolId || CONTEXT.sessionSchoolId;
+
+    if (DOM.searchPanel.schoolData) {
+    // Super Admin Flow
+    loadSchools().then(() => {
+    if (effectiveSchoolId) {
+    loadClasses(effectiveSchoolId, CONTEXT.currentClassId);
+    loadAcademicYears(effectiveSchoolId);
+    // Load sections if class is selected
+    if (CONTEXT.currentClassId) {
+    loadSections(CONTEXT.currentClassId, CONTEXT.currentSectionId, DOM.searchPanel.sectionData);
+    loadSections(CONTEXT.currentClassId, null, DOM.promotePanel.toSection);
+    }
+    }
+    });
+    DOM.searchPanel.schoolData.addEventListener('change', handleSchoolChange);
+    } else if (effectiveSchoolId) {
+    // School Admin Flow
+    loadClasses(effectiveSchoolId, CONTEXT.currentClassId);
+    loadAcademicYears(effectiveSchoolId);
+    if (CONTEXT.currentClassId) {
+    loadSections(CONTEXT.currentClassId, CONTEXT.currentSectionId, DOM.searchPanel.sectionData);
+    loadSections(CONTEXT.currentClassId, null, DOM.promotePanel.toSection);
+    }
+    }
+
+    // 2. Class Dropdown Listeners
+    if (DOM.searchPanel.classData) DOM.searchPanel.classData.addEventListener('change', handleClassChange);
+    if (DOM.promotePanel.toClass) {
+    DOM.promotePanel.toClass.addEventListener('change', (e) => {
+    handleClassChange(e);
+    updateSummaryLabels();
+    });
+    }
+    if (DOM.promotePanel.toSection) {
+    DOM.promotePanel.toSection.addEventListener('change', updateSummaryLabels);
+    }
+
+    // 3. Search Actions
+    if (DOM.searchPanel.applyBtn) {
+    DOM.searchPanel.applyBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    DOM.searchPanel.form.submit();
+    });
+    }
+    if (DOM.searchPanel.resetBtn) {
+    DOM.searchPanel.resetBtn.addEventListener('click', () => {
+    window.location.href = "{% url 'promote_students' %}";
+    });
+    }
+
+    // 4. Checkbox Logic
+    if (DOM.results.selectAll) DOM.results.selectAll.addEventListener('change', handleSelectAll);
+    
+    document.body.addEventListener('change', (e) => {
+        if (e.target.classList.contains('student-checkbox')) {
+            updatePromoteButtonState();
+        }
+    });
+
+    // 5. Promotion Submit
+    if (DOM.promotePanel.form) DOM.promotePanel.form.addEventListener('submit', handlePromotionSubmit);
+    if (DOM.promotePanel.cancelBtn) DOM.promotePanel.cancelBtn.addEventListener('click', () => {
+    DOM.promotePanel.form.reset();
+    DOM.results.checkboxes().forEach(cb => cb.checked = false);
+    updatePromoteButtonState();
+    });
+
+    updatePromoteButtonState();
+    }
+
+    // Run Init
+    document.addEventListener('DOMContentLoaded', init);
+
+    })();
+
+    
+</script>
+{% endblock %}

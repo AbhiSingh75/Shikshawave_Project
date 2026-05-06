@@ -1,0 +1,3328 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Email Track Dashboard" }} | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #004aad;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-color: #f8fafc;
+        --border-color: #e5e7eb;
+        --text-muted: #6b7280;
+    }
+
+    body {
+        background-color: #f8fafc;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    html {
+        height: 100%;
+        overflow-x: hidden;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem 0;
+        margin-bottom: 1rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        justify-content: center;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.85rem;
+        text-decoration: none;
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+        min-width: 120px;
+        height: 40px;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-btn i {
+        font-size: 1.1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .action-btn:hover i {
+        transform: scale(1.1);
+    }
+
+    .action-btn.refresh {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(16, 185, 129, 0.8));
+        border-color: rgba(34, 197, 94, 0.6);
+    }
+
+    .action-btn.retry {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.8), rgba(245, 158, 11, 0.8));
+        border-color: rgba(251, 191, 36, 0.6);
+    }
+
+    .action-btn.cleanup {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.8), rgba(220, 38, 38, 0.8));
+        border-color: rgba(239, 68, 68, 0.6);
+    }
+
+    .action-btn.dashboard {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(79, 70, 229, 0.8));
+        border-color: rgba(99, 102, 241, 0.6);
+    }
+
+    .action-btn.activity {
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(147, 51, 234, 0.8));
+        border-color: rgba(168, 85, 247, 0.6);
+    }
+
+    /* Email Activity List Styles */
+    .email-type-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-sent, .status-completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-processing {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-failed, .status-permanentlyfailed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .error-message {
+        color: #dc2626;
+        font-size: 0.8rem;
+        cursor: help;
+    }
+
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0;
+        padding: 15px 20px;
+        background: white;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        position: sticky;
+        top: var(--header-height);
+        z-index: 999;
+        height: var(--controls-height);
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--secondary-color);
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .controls-left h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--primary-color);
+    }
+
+    .summary-box {
+        background: var(--light-gray);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        display: flex;
+        gap: 8px;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .summary-item:not(:last-child):after {
+        content: "|";
+        margin-left: 8px;
+        color: var(--text-light);
+    }
+
+    .controls-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-container input {
+        padding: 10px 12px 10px 40px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        width: 250px;
+        transition: all 0.3s;
+        background-color: var(--secondary-color);
+    }
+
+    .search-container i {
+        position: absolute;
+        left: 12px;
+        color: var(--text-light);
+    }
+
+    .search-container input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+
+    .filter-btn {
+        padding: 10px;
+        background: var(--light-gray);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .filter-btn:hover {
+        background: var(--border-color);
+    }
+
+    .download-btn {
+        background: var(--success-color);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.3s;
+    }
+
+    .download-btn:hover {
+        background: #0da271;
+    }
+
+    .filter-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .filter-content {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: var(--card-shadow);
+    }
+
+    body.dark-mode .filter-content {
+        background: var(--secondary-color);
+    }
+
+    .filter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-body {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .filter-group label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .filter-group input,
+    .filter-group select {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+    }
+
+    .filter-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+        background: var(--light-gray);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-color);
+    }
+
+    .content-area {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.dark-mode .content-area {
+        background: var(--secondary-color);
+    }
+
+    .table-header {
+        padding: 10px 15px;
+        background: var(--light-gray);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .column-visibility {
+        position: relative;
+    }
+
+    .column-toggle-btn {
+        padding: 6px 12px;
+        background: var(--light-gray);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .column-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 10px;
+        box-shadow: var(--card-shadow);
+        z-index: 10;
+        min-width: 200px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    body.dark-mode .column-menu {
+        background: var(--secondary-color);
+    }
+
+    .column-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+    }
+
+    .table-container {
+        flex: 1;
+        overflow: auto;
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: auto;
+    }
+
+    th, td {
+        padding: 10px 8px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+        font-size: 0.9rem;
+    }
+
+    th {
+        position: sticky;
+        top: 0;
+        background: var(--primary-color);
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        z-index: 2;
+        transition: background 0.3s;
+    }
+
+    th.sortable:hover {
+        background: var(--primary-hover);
+    }
+
+    th i {
+        margin-left: 5px;
+        font-size: 0.8rem;
+    }
+
+    tr:hover {
+        background: var(--light-gray);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .pagination-info {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .pagination-controls {
+        display: flex;
+        gap: 8px;
+    }
+
+    .pagination-btn {
+        padding: 8px 12px;
+        background: var(--light-gray);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        background: var(--border-color);
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .action-btn.active {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.6);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .header-actions {
+            display: flex !important;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0 0.5rem;
+            max-width: 100%;
+            align-items: stretch;
+            min-height: auto;
+            overflow: visible;
+            background: rgba(0, 0, 0, 0.1) !important;
+            border: 1px solid red !important;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            min-width: 100px;
+            height: 36px;
+            width: 100%;
+            justify-content: center;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-actions form {
+            display: flex !important;
+            width: 100% !important;
+        }
+        
+        .header-actions button {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .header-actions .action-btn.retry {
+            order: 2 !important;
+        }
+        
+        .header-actions .action-btn.cleanup {
+            order: 3 !important;
+        }
+        
+        .header-actions .action-btn.dashboard {
+            order: 4 !important;
+        }
+        
+        .header-actions .action-btn.activity {
+            order: 5 !important;
+        }
+        
+        .header-actions .action-btn.refresh {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            background: rgba(255, 165, 0, 0.8) !important;
+            border: 2px solid rgba(255, 165, 0, 1) !important;
+            position: relative !important;
+            z-index: 999 !important;
+            margin: 0 !important;
+            padding: 0.5rem 0.75rem !important;
+            width: 100% !important;
+            height: 36px !important;
+            order: 1 !important;
+        }
+        
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .container {
+            padding: 0 0.5rem;
+        }
+
+        /* Dashboard responsive */
+        .main-stats-row {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .dashboard-row {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .main-stats-row .stat-card {
+            padding: 0.75rem;
+        }
+
+        .main-stats-row .stat-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+        }
+
+        .main-stats-row .stat-number {
+            font-size: 1.25rem;
+        }
+
+        .main-stats-row .stat-label {
+            font-size: 0.75rem;
+        }
+        
+        /* Email Activity Section Mobile Styles */
+        #email-activity-section .controls-row {
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem 0.5rem;
+        }
+        
+        #email-activity-section .controls-left {
+            width: 100%;
+        }
+        
+        #email-activity-section .controls-right {
+            width: 100%;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        #email-activity-section .search-container {
+            width: 100%;
+        }
+        
+        #email-activity-section .search-container input {
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        
+        #email-activity-section .filter-btn,
+        #email-activity-section .download-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        #email-activity-section .table-header {
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 0.75rem 0.5rem;
+        }
+        
+        #email-activity-section .table-info {
+            width: 100%;
+            text-align: center;
+        }
+        
+        #email-activity-section .column-visibility {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        /* Table responsive wrapper */
+        #email-activity-section .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        #email-activity-section table {
+            min-width: 800px;
+            font-size: 0.8rem;
+        }
+        
+        #email-activity-section th,
+        #email-activity-section td {
+            padding: 0.5rem 0.4rem;
+            white-space: nowrap;
+        }
+        
+        #email-activity-section th:first-child,
+        #email-activity-section td:first-child {
+            position: sticky;
+            left: 0;
+            background: var(--light-gray);
+            z-index: 10;
+        }
+        
+        #email-activity-section .pagination {
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem 0.5rem;
+        }
+        
+        #email-activity-section .pagination-info {
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        
+        #email-activity-section .pagination-controls {
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        #email-activity-section .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            min-width: 40px;
+        }
+        
+        /* Filter Modal Mobile */
+        .filter-modal {
+            padding: 1rem 0.5rem;
+        }
+        
+        .filter-modal-content {
+            width: 95%;
+            max-width: none;
+            margin: 0.5rem;
+        }
+        
+        .filter-modal h3 {
+            font-size: 1.2rem;
+        }
+        
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+        
+        .filter-group label {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .filter-modal-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .filter-modal-actions .btn {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header-actions {
+            display: flex !important;
+            flex-direction: column;
+            gap: 0.4rem;
+            padding: 0 0.25rem;
+            align-items: stretch;
+            min-height: auto;
+            overflow: visible;
+            background: rgba(0, 0, 0, 0.1) !important;
+            border: 1px solid red !important;
+        }
+        
+        .action-btn {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.75rem;
+            min-width: 90px;
+            height: 32px;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .action-btn i {
+            font-size: 0.9rem;
+        }
+        
+        .header-actions form {
+            display: flex !important;
+            width: 100% !important;
+        }
+        
+        .header-actions button {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .header-actions .action-btn.retry {
+            order: 2 !important;
+        }
+        
+        .header-actions .action-btn.cleanup {
+            order: 3 !important;
+        }
+        
+        .header-actions .action-btn.dashboard {
+            order: 4 !important;
+        }
+        
+        .header-actions .action-btn.activity {
+            order: 5 !important;
+        }
+        
+        .header-actions .action-btn.refresh {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            background: rgba(255, 165, 0, 0.8) !important;
+            border: 2px solid rgba(255, 165, 0, 1) !important;
+            position: relative !important;
+            z-index: 999 !important;
+            margin: 0 !important;
+            padding: 0.5rem 0.75rem !important;
+            width: 100% !important;
+            height: 36px !important;
+            order: 1 !important;
+        }
+        
+        .page-header {
+            padding: 1rem 0;
+        }
+        
+        .page-header h1 {
+            font-size: 1.3rem;
+        }
+        
+        .container {
+            padding: 0 0.25rem;
+        }
+        
+        /* Further optimize table for small screens */
+        
+        /* Dashboard mobile optimizations */
+        .main-stats-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        
+        .main-stats-row .stat-card {
+            padding: 0.5rem;
+        }
+        
+        .main-stats-row .stat-number {
+            font-size: 1.1rem;
+        }
+        
+        .main-stats-row .stat-label {
+            font-size: 0.7rem;
+        }
+        
+        /* Email Activity Section Small Mobile */
+        #email-activity-section .controls-row {
+            padding: 0.75rem 0.25rem;
+        }
+        
+        #email-activity-section h3 {
+            font-size: 1.1rem;
+        }
+        
+        #email-activity-section .summary-box {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        #email-activity-section .summary-item {
+            font-size: 0.8rem;
+        }
+        
+        #email-activity-section .search-container input {
+            font-size: 0.85rem;
+            padding: 0.6rem;
+        }
+        
+        #email-activity-section .filter-btn,
+        #email-activity-section .download-btn {
+            padding: 0.6rem;
+            font-size: 0.85rem;
+        }
+        
+        #email-activity-section .table-header {
+            padding: 0.5rem 0.25rem;
+        }
+        
+        #email-activity-section table {
+            min-width: 700px;
+            font-size: 0.75rem;
+        }
+        
+        #email-activity-section th,
+        #email-activity-section td {
+            padding: 0.4rem 0.3rem;
+        }
+        
+        #email-activity-section .pagination {
+            padding: 0.75rem 0.25rem;
+        }
+        
+        #email-activity-section .pagination-info {
+            font-size: 0.8rem;
+        }
+        
+        #email-activity-section .pagination-btn {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.75rem;
+            min-width: 35px;
+        }
+        
+        /* Filter Modal Small Mobile */
+        .filter-modal {
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .filter-modal-content {
+            width: 98%;
+            margin: 0.25rem;
+            padding: 1rem 0.75rem;
+        }
+        
+        .filter-modal h3 {
+            font-size: 1.1rem;
+        }
+        
+        .filter-group label {
+            font-size: 0.85rem;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 0.6rem;
+            font-size: 0.85rem;
+        }
+        
+        .filter-modal-actions .btn {
+            padding: 0.6rem;
+            font-size: 0.85rem;
+        }
+    }
+    
+    /* Extra small screens */
+    @media (max-width: 360px) {
+        .header-actions {
+            padding: 0 0.1rem;
+        }
+        
+        .action-btn {
+            padding: 0.3rem 0.4rem;
+            font-size: 0.7rem;
+            height: 30px;
+        }
+        
+        .action-btn i {
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Large screens optimization */
+    @media (min-width: 1200px) {
+        .header-actions {
+            gap: 1rem;
+        }
+        
+        .action-btn {
+            padding: 0.7rem 1.2rem;
+            font-size: 0.9rem;
+            min-width: 140px;
+        }
+        
+        #emailListSection {
+            max-height: 75vh;
+        }
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+        background-color: #1e1e2f;
+        color: #f5f5f5;
+    }
+
+    body.dark-mode .dashboard-section {
+        background: #2b2b3d;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark-mode .main-stats-row .stat-card {
+        background: #2b2b3d;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #f5f5f5;
+    }
+
+    body.dark-mode .main-stats-row .stat-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+        border-color: rgba(255, 204, 0, 0.3);
+    }
+
+    body.dark-mode .main-stats-row .stat-number {
+        color: #f5f5f5;
+    }
+
+    body.dark-mode .main-stats-row .stat-label {
+        color: #cccccc;
+    }
+
+    body.dark-mode .section-header h4 {
+        color: #f5f5f5;
+    }
+
+    body.dark-mode .email-types-compact {
+        background: #2b2b3d;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode .email-type-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .email-type-name {
+        color: #f5f5f5;
+    }
+
+    body.dark-mode .email-type-numbers {
+        color: #cccccc;
+    }
+
+    body.dark-mode .email-type-numbers .sent {
+        color: #4ade80;
+    }
+
+    body.dark-mode .email-type-numbers .total {
+        color: #cccccc;
+    }
+
+    body.dark-mode .quick-actions {
+        background: #2b2b3d;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Dark Mode Table Styles */
+
+    body.dark-mode table {
+        background: #2b2b3d;
+        color: #f5f5f5;
+    }
+
+    body.dark-mode th {
+        background: #3a3a4f;
+        color: #f5f5f5;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-weight: 600;
+    }
+    
+    body.dark-mode .list-table th {
+        background: #4a4a5f;
+        color: #f5f5f5;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-weight: 600;
+    }
+    
+    body.dark-mode .list-table th.sortable:hover {
+        background: #5a5a6f;
+    }
+
+    body.dark-mode td {
+        color: #f5f5f5;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #2b2b3d;
+    }
+
+    body.dark-mode tr:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    body.dark-mode tr:nth-child(even) td {
+        background: #3a3a4f;
+    }
+
+    body.dark-mode tr:nth-child(even):hover td {
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Import report list design patterns */
+    .content-area {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.dark-mode .content-area {
+        background: var(--secondary-color);
+    }
+
+    .table-header {
+        padding: 10px 15px;
+        background: var(--light-gray);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .summary-box {
+        background: var(--light-gray);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        display: flex;
+        gap: 8px;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .summary-item:not(:last-child):after {
+        content: "|";
+        margin-left: 8px;
+        color: var(--text-light);
+    }
+
+    .column-visibility {
+        position: relative;
+    }
+
+    .column-toggle-btn {
+        padding: 6px 12px;
+        background: var(--light-gray);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .column-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 10px;
+        box-shadow: var(--card-shadow);
+        z-index: 10;
+        min-width: 200px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    body.dark-mode .column-menu {
+        background: var(--secondary-color);
+    }
+
+    .column-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+    }
+
+    .table-container {
+        flex: 1;
+        overflow: auto;
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .list-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: auto;
+    }
+
+    .list-table th,
+    .list-table td {
+        padding: 10px 8px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+        font-size: 0.9rem;
+    }
+
+    .list-table th {
+        position: sticky;
+        top: 0;
+        background: var(--primary-color);
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        z-index: 2;
+        transition: background 0.3s;
+    }
+    
+    #email-activity-table.list-table th {
+        background: var(--primary-color);
+        color: white;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.8rem;
+    }
+
+    .list-table th.sortable:hover {
+        background: var(--primary-hover);
+    }
+    
+    #email-activity-table.list-table th.sortable:hover {
+        background: var(--primary-hover);
+    }
+
+    .list-table th i {
+        margin-left: 5px;
+        font-size: 0.8rem;
+    }
+
+    .list-table tr:hover {
+        background: var(--light-gray);
+    }
+
+    /* Status indicators and badges */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-icon {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    .status-active {
+        background-color: var(--success-color);
+    }
+
+    .status-inactive {
+        background-color: var(--error-color);
+    }
+
+    .status-pending {
+        background-color: var(--warning-color);
+    }
+
+    .status-processing {
+        background-color: var(--primary-color);
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.status-processing {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-badge.status-sent {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.status-failed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .student-code-badge {
+        background: #e0e7ff;
+        color: #3730a3;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        border: 1px solid #c7d2fe;
+    }
+
+    .priority-badge {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: var(--light-gray);
+        color: var(--text-color);
+    }
+
+    .priority-badge.priority-1,
+    .priority-badge.priority-2 {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .priority-badge.priority-3,
+    .priority-badge.priority-4 {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .priority-badge.priority-5,
+    .priority-badge.priority-6 {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .priority-badge.priority-7,
+    .priority-badge.priority-8 {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .priority-badge.priority-9,
+    .priority-badge.priority-10 {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-light);
+    }
+
+    .no-data i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Responsive table wrapper */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+    }
+
+    /* Enhanced mobile table styles for dark mode */
+    @media (max-width: 768px) {
+
+    /* Dark mode styles for new design elements */
+    body.dark-mode .student-code-badge {
+        background: #4c1d95 !important;
+        color: #e0e7ff !important;
+        border: 1px solid #6d28d9 !important;
+    }
+
+    body.dark-mode .status-badge.status-pending {
+        background: rgba(245, 158, 11, 0.2) !important;
+        color: #fbbf24 !important;
+    }
+
+    body.dark-mode .status-badge.status-processing {
+        background: rgba(59, 130, 246, 0.2) !important;
+        color: #93c5fd !important;
+    }
+
+    body.dark-mode .status-badge.status-sent {
+        background: rgba(16, 185, 129, 0.2) !important;
+        color: #4ade80 !important;
+    }
+
+    body.dark-mode .status-badge.status-failed {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #f87171 !important;
+    }
+
+    body.dark-mode .priority-badge {
+        background: var(--light-gray) !important;
+        color: var(--text-color) !important;
+    }
+
+    body.dark-mode .priority-badge.priority-1,
+    body.dark-mode .priority-badge.priority-2 {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #f87171 !important;
+    }
+
+    body.dark-mode .priority-badge.priority-3,
+    body.dark-mode .priority-badge.priority-4 {
+        background: rgba(245, 158, 11, 0.2) !important;
+        color: #fbbf24 !important;
+    }
+
+    body.dark-mode .priority-badge.priority-5,
+    body.dark-mode .priority-badge.priority-6 {
+        background: rgba(59, 130, 246, 0.2) !important;
+        color: #93c5fd !important;
+    }
+
+    body.dark-mode .priority-badge.priority-7,
+    body.dark-mode .priority-badge.priority-8 {
+        background: rgba(99, 102, 241, 0.2) !important;
+        color: #a5b4fc !important;
+    }
+
+    body.dark-mode .priority-badge.priority-9,
+    body.dark-mode .priority-badge.priority-10 {
+        background: var(--light-gray) !important;
+        color: var(--text-light) !important;
+    }
+
+    /* Dark Mode Mobile Styles */
+    @media (max-width: 768px) {
+        body.dark-mode #email-activity-section .table-container {
+            background: #2b2b3d;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        body.dark-mode #email-activity-section th:first-child,
+        body.dark-mode #email-activity-section td:first-child {
+            background: #3a3a4f;
+        }
+        
+        body.dark-mode #email-activity-section .filter-modal-content {
+            background: #2b2b3d;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        body.dark-mode #email-activity-section .filter-group select,
+        body.dark-mode #email-activity-section .filter-group input {
+            background: #3a3a4f;
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    }
+    
+    @media (max-width: 480px) {
+        body.dark-mode #email-activity-section .table-container {
+            background: #2b2b3d;
+        }
+        
+        body.dark-mode #email-activity-section th:first-child,
+        body.dark-mode #email-activity-section td:first-child {
+            background: #3a3a4f;
+        }
+    }
+
+    }
+
+    /* Dark Mode Status Badges */
+    body.dark-mode .status-pending { 
+        background: #f59e0b; 
+        color: #1f2937; 
+    }
+    
+    body.dark-mode .status-processing { 
+        background: #3b82f6; 
+        color: white; 
+    }
+    
+    body.dark-mode .status-sent { 
+        background: #10b981; 
+        color: white; 
+    }
+    
+    body.dark-mode .status-failed { 
+        background: #ef4444; 
+        color: white; 
+    }
+
+    /* Dark Mode Alert Styles */
+    body.dark-mode .alert {
+        background: #2b2b3d;
+        color: #f5f5f5;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode .alert-danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    body.dark-mode .alert-warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    body.dark-mode .alert-info {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+        border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    /* Notification System */
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        z-index: 1000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+
+    .notification-success {
+        border-left-color: #10b981;
+        color: #065f46;
+    }
+
+    .notification-error {
+        border-left-color: #ef4444;
+        color: #991b1b;
+    }
+
+    .notification-info {
+        border-left-color: #3b82f6;
+        color: #1e40af;
+    }
+
+    .notification i {
+        font-size: 1.2rem;
+    }
+
+    .notification-success i {
+        color: #10b981;
+    }
+
+    .notification-error i {
+        color: #ef4444;
+    }
+
+    .notification-info i {
+        color: #3b82f6;
+    }
+
+    .dashboard-section {
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        animation: slideDown 0.3s ease;
+    }
+
+    .dashboard-content {
+        padding: 1rem;
+    }
+
+    /* Main Statistics Row */
+    .main-stats-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .main-stats-row .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .main-stats-row .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .main-stats-row .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-color);
+    }
+
+    .main-stats-row .stat-card.total::before { background: var(--primary-color); }
+    .main-stats-row .stat-card.pending::before { background: var(--warning-color); }
+    .main-stats-row .stat-card.processing::before { background: var(--info-color); }
+    .main-stats-row .stat-card.completed::before { background: var(--success-color); }
+    .main-stats-row .stat-card.failed::before { background: var(--danger-color); }
+
+    .main-stats-row .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .main-stats-row .stat-icon.total { background: var(--primary-color); }
+    .main-stats-row .stat-icon.pending { background: var(--warning-color); }
+    .main-stats-row .stat-icon.processing { background: var(--info-color); }
+    .main-stats-row .stat-icon.completed { background: var(--success-color); }
+    .main-stats-row .stat-icon.failed { background: var(--danger-color); }
+
+    .main-stats-row .stat-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .main-stats-row .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+        line-height: 1;
+    }
+
+    .main-stats-row .stat-label {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.25rem;
+    }
+
+    /* Dashboard Row */
+    .dashboard-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    /* Section Headers */
+    .section-header {
+        margin-bottom: 0.75rem;
+    }
+
+    .section-header h4 {
+        margin: 0;
+        color: var(--dark-color);
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Email Types Compact */
+    .email-types-compact {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-color);
+    }
+
+    .email-types-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .email-type-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: background-color 0.2s ease;
+    }
+
+    .email-type-item:hover {
+        background: var(--light-color);
+    }
+
+    .email-type-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .email-type-icon i.fa-user-graduate { background: var(--primary-color); }
+    .email-type-icon i.fa-receipt { background: var(--success-color); }
+    .email-type-icon i.fa-envelope { background: var(--text-muted); }
+
+    .email-type-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .email-type-name {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .email-type-numbers {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .email-type-numbers .sent {
+        color: var(--success-color);
+        font-weight: 600;
+    }
+
+    .email-type-numbers .total {
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-color);
+    }
+
+    .action-buttons-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .quick-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .quick-action-btn.refresh {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .quick-action-btn.refresh:hover {
+        background: #0da271;
+        transform: translateY(-1px);
+    }
+
+    .quick-action-btn.retry {
+        background: var(--warning-color);
+        color: white;
+    }
+
+    .quick-action-btn.retry:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+    }
+
+    .quick-action-btn.cleanup {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .quick-action-btn.cleanup:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .page-header .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        opacity: 0.9;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .breadcrumb a {
+        color: white;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+
+    .breadcrumb a:hover {
+        opacity: 0.7;
+    }
+
+    .container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-color);
+    }
+
+    .stat-card.pending::before { background: var(--warning-color); }
+    .stat-card.processing::before { background: var(--info-color); }
+    .stat-card.completed::before { background: var(--success-color); }
+    .stat-card.failed::before { background: var(--danger-color); }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-icon.pending { background: var(--warning-color); }
+    .stat-icon.processing { background: var(--info-color); }
+    .stat-icon.completed { background: var(--success-color); }
+    .stat-icon.failed { background: var(--danger-color); }
+    .stat-icon.total { background: var(--primary-color); }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+        line-height: 1;
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.5rem;
+    }
+
+    .stat-change {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+
+    .stat-change.positive { color: var(--success-color); }
+    .stat-change.negative { color: var(--danger-color); }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #4338ca;
+        transform: translateY(-1px);
+    }
+
+    .btn-warning {
+        background: var(--warning-color);
+        color: white;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: var(--text-muted);
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        transform: translateY(-1px);
+    }
+
+    .refresh-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-left: auto;
+    }
+
+    .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--border-color);
+        border-top: 2px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .email-types {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-color);
+    }
+
+    .email-types h3 {
+        margin: 0 0 1rem 0;
+        color: var(--dark-color);
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .email-type-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .email-type-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .email-type-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .email-type-header {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .email-type-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .email-type-stat {
+        text-align: center;
+        padding: 0.75rem 0.5rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .email-type-stat:hover {
+        background: var(--light-color);
+    }
+
+    .email-type-stat-number {
+        font-weight: 700;
+        color: var(--dark-color);
+        font-size: 1.2rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .email-type-stat-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    /* Email list section styles - simplified */
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .email-list-header {
+        background: var(--light-color);
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .email-list-header:hover {
+        background: #f1f5f9;
+    }
+
+    .email-list-header h3 {
+        margin: 0;
+        color: var(--dark-color);
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .email-list-toggle {
+        color: var(--text-muted);
+        transition: transform 0.2s ease;
+    }
+
+    .email-list-toggle.expanded {
+        transform: rotate(180deg);
+    }
+
+    .email-list-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .email-list-content.expanded {
+        max-height: 600px;
+    }
+
+    .email-list-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .email-list-table th,
+    .email-list-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .email-list-table th {
+        background: var(--light-color);
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .email-list-table td {
+        color: var(--dark-color);
+        font-size: 0.85rem;
+    }
+
+    .email-list-table tr:hover {
+        background: var(--light-color);
+    }
+
+    .email-table-container {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color);
+    }
+
+    .table-header {
+        background: var(--light-color);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table-header h3 {
+        margin: 0;
+        color: var(--dark-color);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .table-content {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+        background: var(--light-color);
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    td {
+        color: var(--dark-color);
+        font-size: 0.875rem;
+    }
+
+    tr:hover {
+        background: var(--light-color);
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-processing { background: #dbeafe; color: #1e40af; }
+    .status-sent { background: #d1fae5; color: #065f46; }
+    .status-failed { background: #fee2e2; color: #991b1b; }
+    .status-permanentlyfailed { background: #f3f4f6; color: #374151; }
+
+    .priority-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .priority-1, .priority-2 { background: #fee2e2; color: #991b1b; }
+    .priority-3, .priority-4 { background: #fef3c7; color: #92400e; }
+    .priority-5, .priority-6 { background: #dbeafe; color: #1e40af; }
+    .priority-7, .priority-8 { background: #e0e7ff; color: #3730a3; }
+    .priority-9, .priority-10 { background: #f3f4f6; color: #6b7280; }
+
+    .error-details {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .error-details:hover {
+        white-space: normal;
+        overflow: visible;
+        background: var(--light-color);
+        padding: 0.5rem;
+        border-radius: 6px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .error-message {
+        background: #fef2f2;
+        color: #991b1b;
+        padding: 0.5rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-muted);
+    }
+
+    .no-data i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        color: #991b1b;
+        border-color: #fecaca;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        color: #92400e;
+        border-color: #fed7aa;
+    }
+
+    .alert-info {
+        background: #eff6ff;
+        color: #1e40af;
+        border-color: #bfdbfe;
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .email-type-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .email-type-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>
+            <i class="fas fa-envelope-open-text"></i>
+            {{ page_title|default:"Email Track Dashboard" }}
+        </h1>
+        
+        <!-- Action Buttons -->
+        <div class="header-actions">
+            <button class="action-btn refresh" onclick="refreshStatus()" id="refreshBtn">
+                <i class="fas fa-sync-alt" id="refreshSpinner" style="display: none;"></i>
+                <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                Refresh Status
+            </button>
+            
+            <form method="post" action="{% url 'retry_failed_emails' %}" style="display: contents;">
+                {% csrf_token %}
+                <button type="submit" class="action-btn retry" onclick="return confirm('Retry all failed emails?')">
+                    <i class="fas fa-redo"></i>
+                    Retry Failed Emails
+                </button>
+            </form>
+            
+            <form method="post" action="{% url 'cleanup_old_emails' %}" style="display: contents;">
+                {% csrf_token %}
+                <button type="submit" class="action-btn cleanup" onclick="return confirm('Clean up old emails? This action cannot be undone.')">
+                    <i class="fas fa-trash"></i>
+                    Cleanup Old Emails
+                </button>
+            </form>
+            
+            <button class="action-btn dashboard active" onclick="toggleDashboard()" id="dashboardBtn">
+                <i class="fas fa-chart-bar"></i>
+                Dashboard
+            </button>
+            
+            <button class="action-btn activity" onclick="toggleEmailActivityList();" id="emailActivityBtn">
+                <i class="fas fa-list"></i>
+                Email Activity List
+            </button>
+            
+        </div>
+
+    </div>
+</div>
+
+<!-- Email Activity List Section -->
+<div class="container" id="email-activity-section" style="display: none;">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Email Activity List</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Total: {{ total_records|default:0 }}</span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Page: {{ page_number|default:1 }} of {{ total_pages|default:1 }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" value="{{ search_term|default:'' }}" placeholder="Search emails...">
+            </div>
+            <button class="filter-btn" id="filter-btn">
+                <i class="fas fa-filter"></i> <span>Filters</span>
+            </button>
+            <button class="download-btn" id="downloadBtn">
+                <i class="fas fa-file-export"></i> <span class="download-text">Export</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3>Filter Email Activities</h3>
+                <button class="action-btn" id="close-filter-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-body">
+                <div class="filter-group">
+                    <label for="filter-search">Search</label>
+                    <input type="text" id="filter-search" value="{{ search_term|default:'' }}" placeholder="Search (email, student code, status)">
+                </div>
+                {% if is_super_admin %}
+                <div class="filter-group">
+                    <label for="filter-school">School</label>
+                    <select id="filter-school">
+                        <option value="">All Schools</option>
+                        {% for school in available_schools %}
+                        <option value="{{ school.school_id }}" {% if selected_school_id == school.school_id %}selected{% endif %}>
+                            {{ school.school_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="filter-group">
+                    <label for="filter-status">Status</label>
+                    <select id="filter-status">
+                        <option value="">All Status</option>
+                        {% for status in available_statuses %}
+                        <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>
+                            {{ status }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-email-type">Email Type</label>
+                    <select id="filter-email-type">
+                        <option value="">All Types</option>
+                        {% for email_type in available_email_types %}
+                        <option value="{{ email_type }}" {% if selected_email_type == email_type %}selected{% endif %}>
+                            {{ email_type }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-is-active">Active Status</label>
+                    <select id="filter-is-active">
+                        <option value="">All</option>
+                        <option value="true" {% if selected_is_active == True %}selected{% endif %}>Active</option>
+                        <option value="false" {% if selected_is_active == False %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-footer">
+                <button class="btn btn-secondary" id="reset-filters">Reset</button>
+                <button class="btn btn-primary" id="apply-filters">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="table-header">
+            <div class="table-info">
+                Showing {{ page_number|default:1 }} to {{ total_pages|default:1 }} of {{ total_records|default:0 }} entries
+            </div>
+            <div class="column-visibility">
+                <button class="column-toggle-btn" id="activity-column-toggle">
+                    <i class="fas fa-columns"></i> Columns
+                </button>
+                <div class="column-menu" id="activity-column-menu">
+                    <!-- Column visibility toggles will be generated dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="email-activity-table" class="list-table">
+                <thead>
+                    <tr>
+                        <th data-sort="EmailTrackingId" class="sortable">ID <i class="fas fa-sort"></i></th>
+                        <th data-sort="EmailCode" class="sortable" data-column="email-code">Email Code <i class="fas fa-sort"></i></th>
+                        <th data-sort="StudentCode" class="sortable" data-column="student-code">Student Code <i class="fas fa-sort"></i></th>
+                        <th data-sort="ToEmail" class="sortable" data-column="to-email">To Email <i class="fas fa-sort"></i></th>
+                        <th data-sort="Status" class="sortable" data-column="status">Status <i class="fas fa-sort"></i></th>
+                        <th data-sort="Priority" class="sortable" data-column="priority">Priority <i class="fas fa-sort"></i></th>
+                        <th data-sort="AttemptCount" class="sortable" data-column="attempts">Attempts <i class="fas fa-sort"></i></th>
+                        <th data-sort="CreatedAt" class="sortable" data-column="created">Created <i class="fas fa-sort"></i></th>
+                        <th data-sort="CompletedAt" class="sortable" data-column="completed">Completed <i class="fas fa-sort"></i></th>
+                        <th data-column="processing-time">Processing Time</th>
+                        <th data-sort="SchoolName" class="sortable" data-column="school">School <i class="fas fa-sort"></i></th>
+                        <th data-column="error">Error Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in email_activities %}
+                    <tr>
+                        <td>{{ activity.EmailTrackingId }}</td>
+                        <td data-column="email-code">
+                            <span class="email-type-badge">{{ activity.EmailTypeDisplay|default:activity.EmailCode }}</span>
+                        </td>
+                        <td data-column="student-code">{{ activity.StudentCode|default:"N/A" }}</td>
+                        <td data-column="to-email">{{ activity.ToEmail|default:"N/A" }}</td>
+                        <td data-column="status">
+                            <span class="status-badge status-{{ activity.Status|lower|default:'unknown' }}">
+                                {{ activity.DisplayStatus|default:activity.Status }}
+                            </span>
+                        </td>
+                        <td data-column="priority">{{ activity.Priority|default:"N/A" }}</td>
+                        <td data-column="attempts">{{ activity.AttemptCount|default:0 }}/{{ activity.MaxAttempts|default:0 }}</td>
+                        <td data-column="created">
+                            {% if activity.CreatedAt %}
+                                {{ activity.CreatedAt|date:"Y-m-d H:i" }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td data-column="completed">
+                            {% if activity.CompletedAt %}
+                                {{ activity.CompletedAt|date:"Y-m-d H:i" }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td data-column="processing-time">
+                            {% if activity.ProcessingTimeMinutes %}
+                                {{ activity.ProcessingTimeMinutes }} min
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td data-column="school">{{ activity.SchoolName|default:"N/A" }}</td>
+                        <td data-column="error">
+                            {% if activity.ErrorMessage %}
+                                <span class="error-message" title="{{ activity.ErrorMessage }}">
+                                    {{ activity.ErrorMessage|truncatechars:50 }}
+                                </span>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="12" style="text-align: center; padding: 20px;">
+                            <i class="fas fa-inbox" style="font-size: 2rem; color: var(--text-light); margin-bottom: 10px; display: block;"></i>
+                            No email activities found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        
+        
+        <div class="pagination">
+            <div class="pagination-controls">
+                {% if page_number|add:'-1' > 0 %}
+                    <button class="pagination-btn" data-page="1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="pagination-btn" data-page="{{ page_number|add:'-1' }}">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                {% else %}
+                    <button class="pagination-btn" disabled>
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="pagination-btn" disabled>
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                {% endif %}
+                
+                <button class="pagination-btn active" data-page="{{ page_number|default:1 }}">{{ page_number|default:1 }}</button>
+
+                {% if next_page %}
+                    <button class="pagination-btn" data-page="{{ page_number|add:'1' }}">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                {% else %}
+                    <button class="pagination-btn" disabled>
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Error Alert -->
+    {% if queue_status.error %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Database Connection Error:</strong> {{ queue_status.error }}
+        <br><small>Please check your database connection and EmailTracking table setup.</small>
+    </div>
+    {% endif %}
+
+    <!-- Dashboard Section (Collapsible) -->
+    <div class="dashboard-section" id="dashboardSection" style="display: block;">
+        <div class="dashboard-content">
+            <!-- Main Statistics Row -->
+            <div class="main-stats-row">
+                <div class="stat-card total">
+                    <div class="stat-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    <div class="stat-content">
+                    <div class="stat-number">{{ queue_status.total_tasks|default:0 }}</div>
+                        <div class="stat-label">Total Emails</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card pending">
+                    <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    <div class="stat-content">
+                    <div class="stat-number">{{ queue_status.pending|default:0 }}</div>
+                    <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card processing">
+                    <div class="stat-icon">
+                            <i class="fas fa-spinner"></i>
+                        </div>
+                    <div class="stat-content">
+                    <div class="stat-number">{{ queue_status.processing|default:0 }}</div>
+                    <div class="stat-label">Processing</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card completed">
+                    <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    <div class="stat-content">
+                    <div class="stat-number">{{ queue_status.completed|default:0 }}</div>
+                    <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card failed">
+                    <div class="stat-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                    <div class="stat-content">
+                    <div class="stat-number">{{ queue_status.failed|default:0 }}</div>
+                    <div class="stat-label">Failed</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Email Types and Recent Activity Row -->
+            <div class="dashboard-row">
+            <!-- Email Types Statistics -->
+            {% if email_stats %}
+                <div class="email-types-compact">
+                    <div class="section-header">
+                        <h4><i class="fas fa-chart-pie"></i> Email Types</h4>
+                    </div>
+                    <div class="email-types-grid">
+                    {% for email_type, stats in email_stats.items %}
+                        <div class="email-type-item">
+                            <div class="email-type-icon">
+                            {% if email_type == 'ADMISSION_ACKNOWLEDGMENT' %}
+                                    <i class="fas fa-user-graduate"></i>
+                            {% elif email_type == 'PAYMENT_RECEIPT' %}
+                                    <i class="fas fa-receipt"></i>
+                            {% else %}
+                                    <i class="fas fa-envelope"></i>
+                            {% endif %}
+                        </div>
+                            <div class="email-type-info">
+                                <div class="email-type-name">
+                                    {% if email_type == 'ADMISSION_ACKNOWLEDGMENT' %}
+                                        Admission
+                                    {% elif email_type == 'PAYMENT_RECEIPT' %}
+                                        Payment
+                                    {% else %}
+                                        {{ email_type }}
+                                    {% endif %}
+                            </div>
+                                <div class="email-type-numbers">
+                                    <span class="sent">{{ stats.sent }}</span> / 
+                                    <span class="total">{{ stats.total }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="section-header">
+                        <h4><i class="fas fa-bolt"></i> Quick Actions</h4>
+                    </div>
+                    <div class="action-buttons-grid">
+                        <button class="quick-action-btn refresh" onclick="refreshStatus()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Refresh</span>
+                        </button>
+                        <form method="post" action="{% url 'retry_failed_emails' %}" style="display: contents;">
+                            {% csrf_token %}
+                            <button type="submit" class="quick-action-btn retry" onclick="return confirm('Retry all failed emails?')">
+                                <i class="fas fa-redo"></i>
+                                <span>Retry Failed</span>
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'cleanup_old_emails' %}" style="display: contents;">
+                            {% csrf_token %}
+                            <button type="submit" class="quick-action-btn cleanup" onclick="return confirm('Clean up old emails?')">
+                                <i class="fas fa-trash"></i>
+                                <span>Cleanup</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    
+</div>
+
+<script>
+function refreshStatus() {
+    const spinner = document.getElementById('refreshSpinner');
+    const refreshBtn = document.getElementById('refreshBtn');
+    
+    // Show loading state
+    spinner.style.display = 'inline-block';
+    refreshBtn.classList.add('active');
+    refreshBtn.disabled = true;
+    
+    fetch('{% url "email_queue_status_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateStatistics(data.status);
+                showNotification('Status refreshed successfully!', 'success');
+            } else {
+                console.error('API Error:', data.error);
+                showNotification('Failed to refresh status', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing status:', error);
+            showNotification('Error refreshing status', 'error');
+        })
+        .finally(() => {
+            spinner.style.display = 'none';
+            refreshBtn.classList.remove('active');
+            refreshBtn.disabled = false;
+        });
+}
+
+function updateStatistics(status) {
+    // Update stat cards
+    const statCards = document.querySelectorAll('.stat-number');
+    if (statCards.length >= 5) {
+        statCards[0].textContent = status.total_tasks || 0;
+        statCards[1].textContent = status.pending || 0;
+        statCards[2].textContent = status.processing || 0;
+        statCards[3].textContent = status.completed || 0;
+        statCards[4].textContent = status.failed || 0;
+    }
+}
+
+
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
+}
+
+// Auto-refresh every 30 seconds
+setInterval(refreshStatus, 30000);
+
+// Add loading states to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            const button = form.querySelector('button[type="submit"]');
+            if (button) {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                button.disabled = true;
+            }
+        });
+    });
+    
+    // Initialize sections as collapsed
+    const dashboardSection = document.getElementById('dashboardSection');
+    const dashboardBtn = document.getElementById('dashboardBtn');
+    
+    if (dashboardSection && dashboardBtn) {
+        dashboardSection.style.display = 'none';
+        dashboardBtn.classList.remove('active');
+    }
+    
+    // Initialize email activity section (this is now handled by the toggle functions)
+    const emailActivitySection = document.getElementById('email-activity-section');
+    const emailActivityBtn = document.getElementById('emailActivityBtn');
+    
+    if (emailActivitySection && emailActivityBtn) {
+        // Email activity section is already hidden by default in HTML
+        console.log('Email activity section initialized');
+    } else {
+        console.error('Failed to initialize email activity section');
+        console.error('Section found:', !!emailActivitySection);
+        console.error('Button found:', !!emailActivityBtn);
+    }
+
+    // Column visibility functionality
+    const columnToggle = document.getElementById('email-column-toggle');
+    const emailColumnMenu = document.getElementById('email-column-menu');
+    
+    if (columnToggle && emailColumnMenu) {
+        columnToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            emailColumnMenu.style.display = emailColumnMenu.style.display === 'block' ? 'none' : 'block';
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function() {
+            emailColumnMenu.style.display = 'none';
+        });
+        
+        // Handle column visibility toggles
+        const columnCheckboxes = emailColumnMenu.querySelectorAll('input[type="checkbox"]');
+        columnCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const columnName = this.id.replace('col-', '');
+                const table = document.getElementById('email-activity-table');
+                const columnElements = table.querySelectorAll(`[data-column="${columnName}"]`);
+                
+                columnElements.forEach(element => {
+                    element.style.display = this.checked ? '' : 'none';
+                });
+            });
+        });
+    }
+    
+    // Initialize Email Activity List functionality
+    initializeEmailActivityList();
+    
+    // Check if we should show email activity list after page load (e.g., after applying filters)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('show_activity') === 'true') {
+        // Remove the show_activity parameter from URL without reloading
+        urlParams.delete('show_activity');
+        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+        window.history.replaceState({}, '', newUrl);
+        
+        // Show email activity list
+        toggleEmailActivityList();
+    }
+});
+
+// Email Activity List functionality
+function initializeEmailActivityList() {
+    // Generate column visibility menu items
+    const columnMenu = document.getElementById("activity-column-menu");
+    if (columnMenu) {
+        const tableHeaders = document.querySelectorAll("#email-activity-table th[data-column]");
+        
+        tableHeaders.forEach(header => {
+            const column = header.getAttribute("data-column");
+            const label = header.textContent.trim();
+            
+            const menuItem = document.createElement("div");
+            menuItem.className = "column-menu-item";
+            menuItem.innerHTML = `
+                <input type="checkbox" id="toggle-${column}" checked data-column="${column}">
+                <label for="toggle-${column}">${label}</label>
+            `;
+            columnMenu.appendChild(menuItem);
+        });
+    }
+
+    // Column visibility toggle
+    const columnToggle = document.getElementById("activity-column-toggle");
+    if (columnToggle) {
+        columnToggle.addEventListener("click", function(e) {
+            e.stopPropagation();
+            if (columnMenu) {
+                columnMenu.style.display = columnMenu.style.display === "block" ? "none" : "block";
+            }
+        });
+    }
+    
+    document.addEventListener("click", function() {
+        if (columnMenu) {
+            columnMenu.style.display = "none";
+        }
+    });
+    
+    if (columnMenu) {
+        columnMenu.addEventListener("click", function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    // Handle column visibility changes
+    document.querySelectorAll("#activity-column-menu input[type='checkbox']").forEach(checkbox => {
+        checkbox.addEventListener("change", function() {
+            const column = this.getAttribute("data-column");
+            const isVisible = this.checked;
+            
+            // Show/hide table columns
+            document.querySelectorAll(`#email-activity-table th[data-column="${column}"], #email-activity-table td[data-column="${column}"]`).forEach(el => {
+                el.style.display = isVisible ? "" : "none";
+            });
+            
+            // Save preference to localStorage
+            const preferences = JSON.parse(localStorage.getItem("emailActivityColumnPreferences") || "{}");
+            preferences[column] = isVisible;
+            localStorage.setItem("emailActivityColumnPreferences", JSON.stringify(preferences));
+        });
+    });
+    
+    // Load column preferences
+    const preferences = JSON.parse(localStorage.getItem("emailActivityColumnPreferences") || "{}");
+    Object.keys(preferences).forEach(column => {
+        const checkbox = document.querySelector(`#activity-column-menu input[data-column="${column}"]`);
+        if (checkbox) {
+            checkbox.checked = preferences[column];
+            checkbox.dispatchEvent(new Event("change"));
+        }
+    });
+
+    // Filter modal functionality
+    const filterModal = document.getElementById("filter-modal");
+    const filterBtn = document.getElementById("filter-btn");
+    const closeFilterModal = document.getElementById("close-filter-modal");
+    const applyFiltersBtn = document.getElementById("apply-filters");
+    const resetFiltersBtn = document.getElementById("reset-filters");
+
+    if (filterBtn) {
+        filterBtn.addEventListener("click", function() {
+            if (filterModal) {
+                filterModal.style.display = "flex";
+            }
+        });
+    }
+
+    if (closeFilterModal) {
+        closeFilterModal.addEventListener("click", function() {
+            if (filterModal) {
+                filterModal.style.display = "none";
+            }
+        });
+    }
+
+    // Close modal when clicking outside
+    if (filterModal) {
+        filterModal.addEventListener("click", function(e) {
+            if (e.target === filterModal) {
+                filterModal.style.display = "none";
+            }
+        });
+    }
+
+    // Reset filters
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener("click", function() {
+            const filterSearch = document.getElementById("filter-search");
+            const filterSchool = document.getElementById("filter-school");
+            const filterStatus = document.getElementById("filter-status");
+            const filterEmailType = document.getElementById("filter-email-type");
+            const filterIsActive = document.getElementById("filter-is-active");
+            
+            if (filterSearch) filterSearch.value = "";
+            if (filterSchool) filterSchool.value = "";
+            if (filterStatus) filterStatus.value = "";
+            if (filterEmailType) filterEmailType.value = "";
+            if (filterIsActive) filterIsActive.value = "";
+        });
+    }
+
+    // Apply filters
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener("click", function() {
+            applyEmailActivityFilters();
+            if (filterModal) {
+                filterModal.style.display = "none";
+            }
+        });
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById("search-input");
+    if (searchInput) {
+        let searchTimeout;
+        
+        searchInput.addEventListener("input", function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(applyEmailActivityFilters, 500);
+        });
+    }
+
+    // Pagination
+    document.querySelectorAll("#email-activity-section .pagination-btn").forEach(btn => {
+        if (!btn.disabled) {
+            btn.addEventListener("click", function() {
+                const page = this.getAttribute("data-page");
+                const searchParams = new URLSearchParams(window.location.search);
+                searchParams.set("page", page);
+                // Add parameter to show email activity list after page reload
+                searchParams.set("show_activity", "true");
+                window.location.search = searchParams.toString();
+            });
+        }
+    });
+
+    // Sorting
+    document.querySelectorAll("#email-activity-table th.sortable").forEach(header => {
+        header.addEventListener("click", function () {
+            const column = this.getAttribute("data-sort");
+            let sortDirection = "ASC";
+            
+            if ("{{ sort_column }}" === column) {
+                sortDirection = "{{ sort_direction }}" === "ASC" ? "DESC" : "ASC";
+            }
+            
+            const searchParams = new URLSearchParams(window.location.search);
+            searchParams.set("sort_column", column);
+            searchParams.set("sort_direction", sortDirection);
+            // Add parameter to show email activity list after page reload
+            searchParams.set("show_activity", "true");
+            window.location.search = searchParams.toString();
+        });
+    });
+
+    // Download functionality
+    const downloadBtn = document.getElementById("downloadBtn");
+    if (downloadBtn) {
+        downloadBtn.addEventListener("click", function() {
+            exportEmailActivityToCSV();
+        });
+    }
+}
+
+// Apply filters function for email activity
+function applyEmailActivityFilters() {
+    const searchParams = new URLSearchParams();
+    
+    // Search input
+    const searchInput = document.getElementById("search-input");
+    if (searchInput) {
+        const searchValue = searchInput.value.trim();
+        if (searchValue) searchParams.set('search', searchValue);
+    }
+    
+    // Filter values
+    const filterSearch = document.getElementById("filter-search");
+    const filterSchool = document.getElementById("filter-school");
+    const filterStatus = document.getElementById("filter-status");
+    const filterEmailType = document.getElementById("filter-email-type");
+    const filterIsActive = document.getElementById("filter-is-active");
+    
+    if (filterSearch && filterSearch.value.trim()) {
+        searchParams.set('search', filterSearch.value.trim());
+    }
+    if (filterSchool && filterSchool.value) {
+        searchParams.set('school_id', filterSchool.value);
+    }
+    if (filterStatus && filterStatus.value) {
+        searchParams.set('status', filterStatus.value);
+    }
+    if (filterEmailType && filterEmailType.value) {
+        searchParams.set('email_type', filterEmailType.value);
+    }
+    if (filterIsActive && filterIsActive.value) {
+        searchParams.set('is_active', filterIsActive.value);
+    }
+    
+    // Keep existing sort parameters if not changing
+    if (!searchParams.has('sort_column')) {
+        searchParams.set('sort_column', "{{ sort_column }}");
+        searchParams.set('sort_direction', "{{ sort_direction }}");
+    }
+    
+    // Add a parameter to indicate we want to show email activity list after reload
+    searchParams.set('show_activity', 'true');
+    
+    window.location.search = searchParams.toString();
+}
+
+// Export to CSV functionality for email activity
+function exportEmailActivityToCSV() {
+    const table = document.querySelector('#email-activity-table');
+    if (!table) return;
+    
+    const rows = table.querySelectorAll('tr');
+    let csv = [];
+
+    // Get visible headers only
+    const headers = [];
+    const visibleColumns = [];
+    rows[0].querySelectorAll('th').forEach((th, index) => {
+        // Only include columns that are visible (not hidden)
+        if (th.style.display !== 'none') {
+            headers.push('"' + th.textContent.trim() + '"');
+            visibleColumns.push(index);
+        }
+    });
+    csv.push(headers.join(','));
+
+    // Get data rows - only for visible columns
+    for (let i = 1; i < rows.length; i++) {
+        const row = [];
+        rows[i].querySelectorAll('td').forEach((td, index) => {
+            // Only include cells from visible columns
+            if (visibleColumns.includes(index)) {
+                let cellText = td.textContent.trim();
+                // Handle status badges
+                if (td.querySelector('.status-badge')) {
+                    cellText = td.querySelector('.status-badge').textContent.trim();
+                }
+                // Escape quotes and wrap in quotes
+                cellText = cellText.replace(/"/g, '""');
+                row.push('"' + cellText + '"');
+            }
+        });
+        csv.push(row.join(','));
+    }
+
+    // Create and download file
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'email_activity_' + new Date().toISOString().split('T')[0] + '.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Global toggle functions for buttons
+function toggleDashboard() {
+    const section = document.getElementById('dashboardSection');
+    const btn = document.getElementById('dashboardBtn');
+    const emailActivitySection = document.getElementById('email-activity-section');
+    const emailActivityBtn = document.getElementById('emailActivityBtn');
+    
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+        if (emailActivitySection) emailActivitySection.style.display = 'none';
+        if (btn) btn.classList.add('active');
+        if (emailActivityBtn) emailActivityBtn.classList.remove('active');
+    } else {
+        section.style.display = 'none';
+        if (emailActivitySection) emailActivitySection.style.display = 'block';
+        if (btn) btn.classList.remove('active');
+        if (emailActivityBtn) emailActivityBtn.classList.add('active');
+    }
+}
+
+function toggleEmailActivityList() {
+    const section = document.getElementById('email-activity-section');
+    const btn = document.getElementById('emailActivityBtn');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const dashboardBtn = document.getElementById('dashboardBtn');
+    
+    if (!section) {
+        console.error('Email activity section not found!');
+        return;
+    }
+    
+    if (section.style.display === 'none' || section.style.display === '') {
+        section.style.display = 'block';
+        if (dashboardSection) dashboardSection.style.display = 'none';
+        if (btn) btn.classList.add('active');
+        if (dashboardBtn) dashboardBtn.classList.remove('active');
+    } else {
+        section.style.display = 'none';
+        if (dashboardSection) dashboardSection.style.display = 'block';
+        if (btn) btn.classList.remove('active');
+        if (dashboardBtn) dashboardBtn.classList.add('active');
+    }
+}
+</script>
+{% endblock %}

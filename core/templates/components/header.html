@@ -1,0 +1,729 @@
+{% load static %}
+<header class="sw-header">
+    <div class="sw-brand-wrapper">
+        <div class="sw-logo-box" onclick="window.location.href='/dashboard/'">
+            <img src="{% static 'images/ShikshaWave_Logo.png' %}" alt="Logo" class="sw-logo" height="40">
+            <h2 class="sw-brand-name">ShikshaWave</h2>
+        </div>
+    </div>
+
+    {% if school_name and profile_id != 1 %}
+    <div class="sw-school-badge">
+        {% if school_logo_src %}
+        <img src="{{ school_logo_src }}" alt="School" height="40">
+        {% endif %}
+        <span>{{ school_name }}</span>
+    </div>
+    {% endif %}
+
+    <div class="sw-header-actions">
+        <div class="sw-user-profile" data-sw-dropdown="userDropdown">
+            {% if user_photo_src %}
+            <img src="{{ user_photo_src }}" alt="User" height="36">
+            {% else %}
+            <div class="sw-user-avatar"><i class="fas fa-user"></i></div>
+            {% endif %}
+            <div class="sw-user-meta hide-mobile">
+                <span class="sw-user-name">{{ user_name|default:"User" }}</span>
+                <span class="sw-user-role">{{ profile_name|default:"Staff" }}</span>
+            </div>
+        </div>
+
+        <div class="sw-notification-trigger" id="notificationBell" data-sw-dropdown="notificationDropdown"
+            title="Notifications">
+            <i class="fas fa-bell" id="bellIcon"></i>
+            <span class="sw-badge-dot" id="notificationBadge" style="display: none;"></span>
+        </div>
+
+        <!-- Session expiration calculation -->
+        <div id="sessionExpiresData" data-expires="" style="display: none;"></div>
+        <script>
+            (function () {
+                var remaining = parseInt("{{ session_remaining_seconds|default:3600 }}", 10);
+                if (remaining <= 0) remaining = 3600;
+                var localExpiresAt = Date.now() + (remaining * 1000);
+                document.getElementById('sessionExpiresData').dataset.expires = localExpiresAt;
+            })();
+        </script>
+        {% include 'components/session_timer.html' %}
+
+        <div class="sw-notification-trigger" title="Calendar View" onclick="openHolidayCalendarModal()">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+
+        <div class="sw-notification-trigger" id="settingsBtn" data-sw-dropdown="settingsDropdown" title="Settings">
+            <i class="fas fa-cog"></i>
+        </div>
+
+        <!-- User Dropdown (Logout only for now) -->
+        <div class="sw-dropdown" id="userDropdown">
+            <div class="sw-dropdown-menu">
+                <a href="{% url 'logout' %}" class="sw-dropdown-item text-danger">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Notifications Dropdown -->
+        <div class="sw-dropdown" id="notificationDropdown" style="right: 80px; width: 350px; padding: 0; overflow: hidden;">
+            <div class="sw-dropdown-header" style="background: var(--primary-color); color: white; border-bottom: none; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
+                <span style="font-weight: 700; font-size: 1rem;">Notifications</span>
+                <button id="markAllReadBtn" class="sw-btn-icon-mini" title="Mark all as read" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 6px; cursor: pointer;">
+                    <i class="fas fa-check-double"></i>
+                </button>
+            </div>
+            
+            <div id="notificationList" class="sw-notifications-scroll" style="max-height: 400px; overflow-y: auto;">
+                <div class="sw-notifications-empty" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-bell-slash" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                    <p>No new notifications</p>
+                </div>
+            </div>
+
+            <div class="sw-dropdown-footer" style="padding: 8px; border-top: 1px solid var(--border-color); background: var(--bg-color);">
+                <button id="loadMoreBtn" class="sw-btn-full" style="display: none; width: 100%; padding: 8px; font-size: 0.85rem; background: transparent; border: 1px solid var(--border-color); color: var(--primary-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                    Load More
+                </button>
+            </div>
+        </div>
+
+        <!-- Settings Dropdown - Redesigned to be MORE COMPACT -->
+        <div class="sw-dropdown compact-dropdown" id="settingsDropdown">
+            <div class="sw-dropdown-header-mini">
+                <i class="fas fa-cog"></i> <span>Settings</span>
+            </div>
+            <div class="sw-dropdown-menu-compact">
+                <button class="sw-dropdown-item-compact" id="themeToggle">
+                    <i class="fas {% if dark_mode %}fa-sun{% else %}fa-moon{% endif %}"></i>
+                    <span>{% if dark_mode %}Light Mode{% else %}Dark Mode{% endif %}</span>
+                </button>
+                <button class="sw-dropdown-item-compact" id="fullscreenToggle">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                    <span>Fullscreen</span>
+                </button>
+                <button class="sw-dropdown-item-compact" data-sw-modal="timeoutModal">
+                    <i class="fas fa-clock"></i>
+                    <span>Timeout</span>
+                </button>
+                <button class="sw-dropdown-item-compact" data-sw-modal="themeModal">
+                    <i class="fas fa-palette"></i>
+                    <span>Themes</span>
+                </button>
+                <div class="sw-dropdown-divider"></div>
+                <a href="{% url 'logout' %}" class="sw-dropdown-item-compact text-danger">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+{% include "components/timeout_modal.html" %}
+{% include "components/theme_modal.html" %}
+
+<!-- Holiday Calendar Modal -->
+<div class="sw-modal-container" id="holidayCalendarModal">
+    <div class="sw-modal" style="max-width: 800px;">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-calendar-day text-white"></i>
+                <h2>School Holiday Calendar</h2>
+            </div>
+            <button class="sw-modal-close" onclick="closeModal('holidayCalendarModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body" id="holidayCalendarModalBody" style="min-height: 300px; padding: 20px;">
+            <div style="text-align: center; padding: 50px;">
+                <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary-color); opacity: 0.5;"></i>
+                <p style="margin-top: 15px; color: var(--text-muted); font-weight: 600;">Fetching holiday data...</p>
+            </div>
+        </div>
+        <div class="sw-modal-footer">
+            <a href="{% url 'holiday_list' %}" class="btn btn-primary">
+                <i class="fas fa-cog"></i> Manage Holidays
+            </a>
+            <button class="btn btn-warning" onclick="closeModal('holidayCalendarModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openHolidayCalendarModal() {
+        openModal('holidayCalendarModal');
+        // If content is empty or spinner is showing, load it. 
+        // Otherwise it's already pre-fetched.
+        if (document.querySelector('#holidayCalendarModalBody .fa-spin')) {
+            loadCalendarModal();
+        }
+    }
+
+    function loadCalendarModal(month, year) {
+        const body = document.getElementById('holidayCalendarModalBody');
+        let url = '{% url "holiday_calendar" %}?ajax=1';
+        if (month) url += '&month=' + month;
+        if (year) url += '&year=' + year;
+        
+        // Only show dim/loader if it's a manual month switch
+        if (month || year) body.style.opacity = '0.5';
+        
+        return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.text())
+            .then(html => {
+                body.innerHTML = html;
+                body.style.opacity = '1';
+            })
+            .catch(err => {
+                console.error("Calendar load error:", err);
+                if (month || year) body.innerHTML = '<div class="alert alert-danger">Error loading calendar.</div>';
+                body.style.opacity = '1';
+            });
+    }
+
+    // Pre-fetch on load for instant access
+    document.addEventListener('DOMContentLoaded', () => {
+        // Delay slightly to prioritize main page content
+        setTimeout(() => loadCalendarModal(), 800);
+    });
+</script>
+
+<style>
+    .sw-brand-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+    }
+
+    .sw-logo {
+        height: 40px;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sw-logo:hover {
+        transform: scale(1.1);
+    }
+
+    .sw-brand-name {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+    }
+
+    .sw-school-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .sw-school-badge img {
+        height: 40px;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    }
+
+    .sw-school-badge img:hover {
+        transform: scale(1.1);
+    }
+
+    .sw-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .sw-user-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 10px;
+        transition: var(--transition);
+    }
+
+    .sw-user-profile:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sw-user-profile img {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .sw-user-meta {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .sw-user-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .sw-user-role {
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+
+    /* Dropdown Enhancements */
+    .sw-dropdown {
+        position: absolute;
+        top: var(--header-height);
+        right: 24px;
+        min-width: 220px;
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: var(--transition);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        z-index: 1000;
+    }
+
+    .sw-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .sw-dropdown-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.85rem;
+    }
+
+    .sw-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        text-decoration: none;
+        color: inherit;
+        width: 100%;
+        border: none;
+        background: none;
+        text-align: left;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .sw-dropdown-item:hover {
+        background: var(--bg-color);
+        color: var(--primary-color);
+    }
+
+    .sw-dropdown-divider {
+        height: 1px;
+        background: var(--border-color);
+        margin: 4px 0;
+    }
+
+    /* COMPACT SETTINGS DROPDOWN VISIBILITY FIXES */
+    .sw-dropdown.compact-dropdown {
+        background: #ffffff !important;
+        border: 1.5px solid #e2e8f0 !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    body.dark-mode .sw-dropdown.compact-dropdown {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .sw-dropdown-item-compact {
+        color: #1e293b !important; /* Force visibility in Light Mode */
+        opacity: 0;
+    }
+
+    .sw-dropdown-item-compact i,
+    .sw-dropdown-item-compact span {
+        color: #1e293b !important;
+    }
+
+    body.dark-mode .sw-dropdown-item-compact,
+    body.dark-mode .sw-dropdown-item-compact i,
+    body.dark-mode .sw-dropdown-item-compact span {
+        color: #f1f5f9 !important;
+    }
+
+    .sw-dropdown.show .sw-dropdown-item-compact {
+        opacity: 1 !important;
+        animation: sw-slide-in-right 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    }
+
+    .sw-dropdown-item-compact:hover {
+        background: #f1f5f9 !important;
+    }
+
+    body.dark-mode .sw-dropdown-item-compact:hover {
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .sw-notification-trigger {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: #fff;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 1.1rem;
+    }
+
+    .sw-notification-trigger i {
+        display: inline-block;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .sw-notification-trigger:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .sw-notification-trigger:hover .fa-bell {
+        animation: sw-ring-premium 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .sw-notification-trigger:hover .fa-calendar-alt {
+        animation: sw-pop-premium 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .sw-notification-trigger:hover .fa-cog, 
+    .sw-notification-trigger:hover .fa-gear {
+        animation: sw-spin-elastic 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) infinite !important;
+        transform-origin: center center;
+    }
+    
+    .sw-notification-trigger .fa-bell.active-notify {
+        animation: sw-ring-pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes sw-ring-premium {
+        0% { transform: rotate(0); }
+        20% { transform: rotate(25deg); }
+        40% { transform: rotate(-20deg); }
+        60% { transform: rotate(15deg); }
+        80% { transform: rotate(-8deg); }
+        100% { transform: rotate(0); }
+    }
+
+    @keyframes sw-pop-premium {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2) translateY(-4px); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes sw-spin-elastic {
+        0% { transform: rotate(0); }
+        70% { transform: rotate(200deg); }
+        100% { transform: rotate(180deg); }
+    }
+
+    @keyframes sw-ring-pulse {
+        0%, 100% { transform: rotate(0); }
+        10%, 30% { transform: rotate(5deg); }
+        20%, 40% { transform: rotate(-5deg); }
+        50% { transform: rotate(0); }
+    }
+
+    .sw-badge-dot {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #ef4444;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--primary-color);
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+        z-index: 10;
+        animation: sw-pulse-red 2s infinite;
+    }
+
+    @keyframes sw-pulse-red {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* High-Density Notification Dropdown */
+    .sw-notification-item {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        gap: 12px;
+        cursor: pointer;
+        transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .sw-notification-item:hover {
+        background: rgba(var(--primary-rgb), 0.03);
+    }
+
+    .sw-notification-item.unread {
+        background: rgba(var(--primary-rgb), 0.05);
+    }
+
+    .sw-notification-item.unread::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: var(--primary-color);
+    }
+
+    .sw-notification-icon-mini {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    .sw-notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sw-notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 2px;
+    }
+
+    .sw-notification-title {
+        font-size: 0.8125rem;
+        font-weight: 750;
+        color: var(--text-main);
+        opacity: 0.85;
+    }
+
+    .sw-notification-code {
+        font-size: 0.875rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin: 1px 0 3px;
+        display: block;
+        letter-spacing: 0.02em;
+    }
+
+    .sw-notification-time {
+        font-size: 0.6875rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    .sw-notification-message {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .sw-notification-meta {
+        font-size: 0.6875rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        opacity: 0.7;
+    }
+
+    .sw-notification-actor {
+        color: var(--primary-color);
+        font-weight: 750;
+    }
+
+    .sw-notification-unread-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        margin-left: 8px;
+        align-self: center;
+    }
+
+    @media (max-width: 768px) {
+        :root {
+            /* Increased header height to prevent action row clipping */
+            --header-height: 175px;
+        }
+
+        .sw-header {
+            padding: 20px 0 10px;
+            width: 100vw;
+            max-width: 100vw;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sw-brand-wrapper {
+            order: 1;
+            /* Keep brand top */
+            width: 100%;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sw-logo {
+            height: 40px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .sw-brand-name {
+            font-size: 1.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            /* Lots of space on row 1! */
+        }
+
+        .sw-school-badge {
+            order: 2;
+            /* Drop badge to second row */
+            width: 100%;
+            justify-content: center;
+            margin-top: 0px;
+            padding: 0 10px;
+            font-size: 1.3rem;
+            /* Match brand name exactly */
+            font-weight: 800;
+            color: #fff;
+            max-width: 100vw;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+
+        .sw-school-badge span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            /* Truncate text before it pushes logo out */
+        }
+
+        .sw-school-badge img {
+            height: 40px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .sw-header-actions {
+            order: 3;
+            /* Drop actions to third row */
+            width: 100%;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .sw-user-profile {
+            gap: 12px;
+            padding: 4px 10px;
+        }
+
+        .sw-user-profile img {
+            width: 42px;
+            /* Enlarge user photo */
+            height: 42px;
+        }
+
+        .hide-mobile {
+            display: flex;
+            max-width: 160px;
+            /* Allow more horizontal space for names */
+        }
+
+        .sw-user-name {
+            font-size: 1.15rem;
+            /* Enlarge user name */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sw-user-role {
+            display: block;
+            /* Bring back the profile role! */
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.8;
+        }
+
+        .sw-notification-trigger {
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+        }
+
+        .sw-dropdown {
+            position: fixed;
+            /* Detach from header structure and mount directly to the viewport */
+            top: var(--header-height);
+            left: 10px !important;
+            right: 10px !important;
+            width: auto !important;
+            min-width: 0 !important;
+            z-index: 10000;
+        }
+    }
+</style>

@@ -1,0 +1,121 @@
+
+
+<div class="sw-stats-grid sw-elite-stats-grid">
+    {% if user.profile_id == 2 or user.profile_id == 3 %}
+    <!-- Active Students Card -->
+    <div class="sw-stat-card sw-elite-stat-card theme-students" onclick="openStudentModal()">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Active Students</p>
+                <h2 class="stat-value" id="totalStudents">{{ dashboard_stats.total_students }}</h2>
+            </div>
+            <i class="fas fa-user-graduate stat-icon"></i>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.profile_id == 2 %}
+    <!-- Total Teachers Card -->
+    <div class="sw-stat-card sw-elite-stat-card theme-teachers" onclick="openTeacherModal()">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Total Teachers</p>
+                <h2 class="stat-value">{{ employee_stats.total_employees }}</h2>
+            </div>
+            <i class="fas fa-chalkboard-teacher stat-icon"></i>
+        </div>
+    </div>
+    {% elif user.profile_id == 3 %}
+    <div class="sw-stat-card sw-elite-stat-card theme-teachers">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Total Teachers</p>
+                <h2 class="stat-value">{{ employee_stats.total_employees }}</h2>
+            </div>
+            <i class="fas fa-chalkboard-teacher stat-icon"></i>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.profile_id == 2 or user.profile_id == 3 %}
+    <!-- Student Attendance Card -->
+    <div class="sw-stat-card sw-elite-stat-card theme-attendance" onclick="openAttendanceModal()">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Today's Student Attendance</p>
+                <h2 class="stat-value" id="todayAttendance">0%</h2>
+                <div class="stat-label-small" id="todayAbsent">Absent: 0% | Late: 0%</div>
+            </div>
+            <i class="fas fa-calendar-check stat-icon"></i>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.profile_id == 2 or user.profile_id == 3 %}
+    <!-- Staff Attendance Card -->
+    <div class="sw-stat-card sw-elite-stat-card theme-attendance" onclick="openStaffAttendanceModal()">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Today's Staff Attendance</p>
+                <h2 class="stat-value" id="staffAttendancePercent">0%</h2>
+                <div class="stat-label-small" id="staffAttendanceLabel">Absent: 0% | Late: 0%</div>
+            </div>
+            <i class="fas fa-user-check stat-icon"></i>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.profile_id == 2 or user.profile_id == 5 %}
+    <!-- Expense Card -->
+    <div class="sw-stat-card sw-elite-stat-card theme-expense" onclick="openExpenseModal()">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Today's Expense</p>
+                <h2 class="stat-value" id="totalExpense">₹0</h2>
+                <div class="stat-label-small" id="expensePending">Pending: ₹0</div>
+            </div>
+            <i class="fas fa-money-bill-wave stat-icon"></i>
+        </div>
+    </div>
+
+    <!-- Revenue Card -->
+    <div class="sw-stat-card sw-elite-stat-card theme-revenue" onclick="openRevenueModal()">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Today's Revenue</p>
+                <h2 class="stat-value" id="totalRevenue">₹0</h2>
+                <div class="stat-label-small" id="pendingAmount">Pending: ₹0</div>
+            </div>
+            <i class="fas fa-rupee-sign stat-icon"></i>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.profile_id == 1 %}
+    <!-- Subscription Revenue Card -->
+    <div class="sw-stat-card sw-elite-stat-card theme-revenue" onclick="window.location.href='{% url 'subscription_report' %}'">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Subscription Revenue</p>
+                <h2 class="stat-value" id="subscriptionRevenue">₹0</h2>
+                <div class="stat-label-small" id="subscriptionStatus">Paid: ₹0 | Unpaid: ₹0</div>
+            </div>
+            <i class="fas fa-file-invoice-dollar stat-icon"></i>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.profile_id == 1 or user.profile_id == 2 or user.profile_name == 'Support Executive' %}
+    <!-- Tickets Card -->
+    <div class="sw-stat-card sw-elite-stat-card theme-tickets" onclick="openTicketInsightsModal()">
+        <div class="stat-content">
+            <div class="stat-info">
+                <p class="stat-label">Ticket Efficiency</p>
+                <h2 class="stat-value" id="ticketSlaValue">0%</h2>
+                <div class="stat-label-small" id="ticketStatsSub">Avg Resolution: 0h</div>
+            </div>
+            <i class="fas fa-ticket-alt stat-icon"></i>
+        </div>
+    </div>
+    {% endif %}
+</div>

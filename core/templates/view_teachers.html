@@ -1,0 +1,716 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Staff List | ShikshaWave ERP{% endblock %}
+
+{% block extra_head %}
+<meta name="cache-buster" content="v1.6-clean-production">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.6">
+<style>
+    /* Staff List Specific Responsive Overrides */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 8px 10px !important;
+        }
+
+        .controls-row {
+            padding: 12px 15px !important;
+            gap: 10px !important;
+            margin-top: 5px !important;
+            position: relative !important;
+            top: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            border-radius: 8px !important;
+            background: var(--card-bg) !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+
+        .controls-left, .controls-right {
+            width: 100% !important;
+            gap: 8px !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .summary-box {
+            padding: 8px 12px !important;
+            font-size: 0.85rem !important;
+            width: 100% !important;
+            background: rgba(var(--primary-rgb), 0.05) !important;
+            border-radius: 8px !important;
+        }
+
+        .search-container {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+
+        .search-container input {
+            width: 100% !important;
+            height: 42px !important;
+        }
+
+        .control-buttons {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
+
+        .btn {
+            height: 42px !important;
+            justify-content: center !important;
+            width: 100% !important;
+        }
+        
+        /* Ensure the global mobile trigger is always on top */
+        #mobileTrigger {
+            z-index: 9999 !important;
+            display: flex !important; /* Force visibility on mobile if hidden by any list-specific rule */
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Staff List</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-users"></i>
+                    <span>Total: <strong>{{ total_count|default:0 }}</strong></span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" name="search" value="{{ search }}" placeholder="Search staff...">
+            </div>
+
+            <div class="control-buttons">
+                <button class="btn btn-secondary" id="filter-btn">
+                    <i class="fas fa-filter"></i>
+                    <span class="btn-label">Filters</span>
+                </button>
+
+                <!-- Export Button -->
+                <div class="export-dropdown-container">
+                    <button class="export-btn" id="exportBtn">
+                        <i class="fas fa-file-export"></i>
+                        <span class="btn-label">Export</span>
+                    </button>
+                    <div class="export-menu" id="exportMenu" data-export-url="{% url 'export_teachers' %}">
+                        <div class="export-menu-header">Download As</div>
+                        <button class="export-item excel" data-format="excel">
+                            <span class="export-icon"><i class="fas fa-file-excel"></i></span>
+                            Excel (.xlsx)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="comma">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Comma ,)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="pipe">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Pipe |)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="tab">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Tab)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Standard Filter Modal -->
+    <div class="sw-modal-container" id="filter-modal">
+        <div class="sw-modal">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title">
+                    <i class="fas fa-filter"></i>
+                    <h2>Filter Staff</h2>
+                </div>
+                <button type="button" class="sw-modal-close" id="close-filter" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="sw-modal-body">
+                <form id="filter-form">
+                    {% if is_super_admin %}
+                    <div class="filter-row full">
+                        <div class="filter-group">
+                            <label for="filter-school"><i class="fas fa-university"></i> School</label>
+                            <select name="school_id" id="filter-school">
+                                <option value="">All Schools</option>
+                                {% for s in schools %}
+                                <option value="{{ s.SchoolID }}" {% if selected_school_id|stringformat:"s" == s.SchoolID|stringformat:"s" %}selected{% endif %}>
+                                    {{ s.SchoolName }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-dropdown" data-target="filter-school">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">
+                                        {% if selected_school_id %}
+                                            {% for s in schools %}
+                                                {% if selected_school_id|stringformat:"s" == s.SchoolID|stringformat:"s" %}
+                                                    {{ s.SchoolName }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            All Schools
+                                        {% endif %}
+                                    </span>
+                                    <span class="custom-dropdown-arrow">▼</span>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Schools</div>
+                                    {% for s in schools %}
+                                    <div class="custom-dropdown-option" data-value="{{ s.SchoolID }}">{{ s.SchoolName }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="filter-row full">
+                        <div class="filter-group">
+                            <label for="filter-employee-name"><i class="fas fa-user"></i> Employee Name</label>
+                            <input type="text" id="filter-employee-name" name="employee_name" value="{{ employee_name }}"
+                                placeholder="Search by Name" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-employee-code"><i class="fas fa-id-badge"></i> Employee Code</label>
+                            <input type="text" id="filter-employee-code" name="employee_code" value="{{ employee_code }}"
+                                placeholder="Search by Code" autocomplete="off">
+                        </div>
+                        <div class="filter-group">
+                            <label>Designation</label>
+                            <input type="text" name="profile_name" value="{{ filter_profile_name }}" class="sw-form-control" placeholder="Search by designation...">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-email"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" id="filter-email" name="email" value="{{ email }}" placeholder="Search by Email" autocomplete="off">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-mobile"><i class="fas fa-phone"></i> Mobile No</label>
+                            <input type="text" id="filter-mobile" name="mobile_no" value="{{ mobile_no }}" placeholder="Search by Mobile" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-status"><i class="fas fa-toggle-on"></i> Status</label>
+                            <select name="status" id="filter-status">
+                                <option value="">All Statuses</option>
+                                <option value="Active" {% if status == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Inactive" {% if status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                            <div class="custom-dropdown" data-target="filter-status">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if status %}{{ status }}{% else %}All Statuses{% endif %}</span>
+                                    <span class="custom-dropdown-arrow">▼</span>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Statuses</div>
+                                    <div class="custom-dropdown-option" data-value="Active">Active</div>
+                                    <div class="custom-dropdown-option" data-value="Inactive">Inactive</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                            <select name="gender" id="filter-gender">
+                                <option value="">All Genders</option>
+                                <option value="Male" {% if gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if gender == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                            <div class="custom-dropdown" data-target="filter-gender">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if gender %}{{ gender }}{% else %}All Genders{% endif %}</span>
+                                    <span class="custom-dropdown-arrow">▼</span>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Genders</div>
+                                    <div class="custom-dropdown-option" data-value="Male">Male</div>
+                                    <div class="custom-dropdown-option" data-value="Female">Female</div>
+                                    <div class="custom-dropdown-option" data-value="Other">Other</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-religion"><i class="fas fa-pray"></i> Religion</label>
+                            <select name="religion" id="filter-religion">
+                                <option value="">All Religions</option>
+                                <option value="Hindu" {% if religion == 'Hindu' %}selected{% endif %}>Hindu</option>
+                                <option value="Muslim" {% if religion == 'Muslim' %}selected{% endif %}>Muslim</option>
+                                <option value="Sikh" {% if religion == 'Sikh' %}selected{% endif %}>Sikh</option>
+                                <option value="Christian" {% if religion == 'Christian' %}selected{% endif %}>Christian</option>
+                                <option value="Jain" {% if religion == 'Jain' %}selected{% endif %}>Jain</option>
+                                <option value="Other" {% if religion == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                            <div class="custom-dropdown" data-target="filter-religion">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if religion %}{{ religion }}{% else %}All Religions{% endif %}</span>
+                                    <span class="custom-dropdown-arrow">▼</span>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Religions</div>
+                                    <div class="custom-dropdown-option" data-value="Hindu">Hindu</div>
+                                    <div class="custom-dropdown-option" data-value="Muslim">Muslim</div>
+                                    <div class="custom-dropdown-option" data-value="Sikh">Sikh</div>
+                                    <div class="custom-dropdown-option" data-value="Christian">Christian</div>
+                                    <div class="custom-dropdown-option" data-value="Jain">Jain</div>
+                                    <div class="custom-dropdown-option" data-value="Other">Other</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-national-id"><i class="fas fa-address-card"></i> National ID</label>
+                            <input type="text" id="filter-national-id" name="national_id" value="{{ national_id }}" placeholder="Aadhaar/PAN" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-country"><i class="fas fa-globe"></i> Country</label>
+                            <select name="country" id="filter-country" data-selected="{{ country }}">
+                                <option value="">Select Country</option>
+                                {% for c in countries_list %}
+                                <option value="{{ c.name }}" data-id="{{ c.id }}" {% if country == c.name %}selected{% endif %}>{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-dropdown" data-target="filter-country">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if country %}{{ country }}{% else %}Select Country{% endif %}</span>
+                                    <span class="custom-dropdown-arrow">▼</span>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">Select Country</div>
+                                    {% for c in countries_list %}
+                                    <div class="custom-dropdown-option" data-value="{{ c.name }}">{{ c.name }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-state"><i class="fas fa-map"></i> State</label>
+                            <select name="state" id="filter-state" data-selected="{{ state }}">
+                                <option value="">Select State</option>
+                            </select>
+                            <div class="custom-dropdown" data-target="filter-state">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if state %}{{ state }}{% else %}Select State{% endif %}</span>
+                                    <span class="custom-dropdown-arrow">▼</span>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">Select State</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-district"><i class="fas fa-city"></i> District</label>
+                            <select name="district" id="filter-district" data-selected="{{ district }}">
+                                <option value="">Select District</option>
+                            </select>
+                            <div class="custom-dropdown" data-target="filter-district">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if district %}{{ district }}{% else %}Select District{% endif %}</span>
+                                    <span class="custom-dropdown-arrow">▼</span>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">Select District</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-pincode"><i class="fas fa-map-marker-alt"></i> Pincode</label>
+                            <input type="text" id="filter-pincode" name="pincode" value="{{ pincode }}" placeholder="Search by Pincode" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-from-date"><i class="fas fa-calendar-alt"></i> Joining From</label>
+                            <input type="date" id="filter-from-date" name="from_date" value="{{ from_date }}">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-to-date"><i class="fas fa-calendar-check"></i> Joining To</label>
+                            <input type="date" id="filter-to-date" name="to_date" value="{{ to_date }}">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="filter-footer">
+                <button type="button" class="btn btn-secondary" id="reset-filters">
+                    <i class="fas fa-undo"></i> Clear All
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <!-- Desktop Table View -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>Actions</th>
+                        <th>Code</th>
+                        <th>Name</th>
+                        {% if is_super_admin %}<th> School</th>{% endif %}
+                        <th>Designation</th>
+                        <th>Core Subjects</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                        <th>Date of Joining</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in teachers %}
+                    <tr>
+                        <td>{{ forloop.counter0|add:start_index }}</td>
+                        <td>
+                            <a href="{% url 'staff_detail' t.EmployeeCode|encrypt_id %}" class="action-btn"
+                                title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                        <td>{{ t.EmployeeCode }}</td>
+                        <td>
+                            <div class="user-info-cell">
+                                {% if t.PhotoBase64 %}
+                                <img src="data:image/jpeg;base64,{{ t.PhotoBase64 }}" alt="Photo" class="user-avatar">
+                                {% else %}
+                                <div class="default-avatar small">
+                                    {{ t.EmployeeName|slice:":1" }}
+                                </div>
+                                {% endif %}
+                                <span class="user-name-text">{{ t.EmployeeName }}</span>
+                            </div>
+                        </td>
+                        {% if is_super_admin %}<td>{{ t.SchoolName|default:"N/A" }}</td>{% endif %}
+                        <td>{{ t.ProfileName }}</td>
+                        <td>{{ t.CoreSubjects|default:"N/A" }}</td>
+                        <td>{{ t.MobileNo }}</td>
+                        <td>{{ t.Email }}</td>
+                        <td>{{ t.DateOfJoiningFormatted }}</td>
+                        <td>
+                            {% if t.Status == 'Active' %}
+                            <span class="status-badge status-active">Active</span>
+                            {% else %}
+                            <span class="status-badge status-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if is_super_admin %}10{% else %}9{% endif %}"
+                            style="text-align: center; padding: 40px;">
+                            <div style="color: var(--text-light);">
+                                {% if show_school_filter_message %}
+                                <i class="fas fa-school" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <div>Please select a school to view staff members</div>
+                                {% else %}
+                                <i class="fas fa-users-slash" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <div>No staff members found</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if total_count %}
+        <div class="pagination">
+            <span class="pagination-info">
+                Showing {{ start_index }} to {{ end_index }} of {{ total_count }} entries
+            </span>
+            <div class="pagination-controls">
+                {% if has_prev %}
+                <button class="pagination-btn" data-page="{{ page|add:'-1' }}" onclick="changePage(this.dataset.page)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                {% endif %}
+
+                {% for p in pagination_range %}
+                <button class="pagination-btn {% if p == page %}active{% endif %}" data-page="{{ p }}"
+                    onclick="changePage(this.dataset.page)">
+                    {{ p }}
+                </button>
+                {% endfor %}
+
+                {% if has_next %}
+                <button class="pagination-btn" data-page="{{ page|add:'1' }}" onclick="changePage(this.dataset.page)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled><i class="fas fa-chevron-right"></i></button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="user-cards">
+        {% for t in teachers %}
+        <div class="user-card">
+            <div class="user-card-header">
+                {% if t.PhotoBase64 %}
+                <img src="data:image/jpeg;base64,{{ t.PhotoBase64 }}" alt="Photo" class="user-avatar-mobile">
+                {% else %}
+                <div class="user-avatar-mobile">
+                    {{ t.EmployeeName|slice:":1" }}
+                </div>
+                {% endif %}
+                <div class="user-card-info">
+                    <div class="user-card-name">{{ t.EmployeeName }}</div>
+                    <div class="user-card-code">#{{ t.EmployeeCode }}</div>
+                </div>
+            </div>
+
+            <div class="user-card-details">
+                {% if is_super_admin %}
+                <div class="user-card-detail">
+                    <span class="detail-label">School</span>
+                    <span class="detail-value">{{ t.SchoolName|default:"N/A" }}</span>
+                </div>
+                {% endif %}
+                <div class="user-card-detail">
+                    <span class="detail-label">Designation</span>
+                    <span class="detail-value">{{ t.ProfileName }}</span>
+                </div>
+                {% if t.CoreSubjects %}
+                <div class="user-card-detail">
+                    <span class="detail-label">Core Subjects</span>
+                    <span class="detail-value">{{ t.CoreSubjects }}</span>
+                </div>
+                {% endif %}
+                <div class="user-card-detail">
+                    <span class="detail-label">Mobile</span>
+                    <span class="detail-value">{{ t.MobileNo }}</span>
+                </div>
+                <div class="user-card-detail">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value">{{ t.Email }}</span>
+                </div>
+                <div class="user-card-detail">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value">
+                        {% if t.Status == 'Active' %}
+                        <span class="status-badge status-active">Active</span>
+                        {% else %}
+                        <span class="status-badge status-inactive">Inactive</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="user-card-actions">
+                <a href="{% url 'staff_detail' t.EmployeeCode|encrypt_id %}" class="action-btn"
+                    style="display:flex; align-items:center; gap:5px;">
+                    <i class="fas fa-eye"></i> View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if not teachers %}
+        <div class="mobile-empty-state">
+            {% if show_school_filter_message %}
+            <i class="fas fa-school"></i>
+            <p>Please select a school</p>
+            <small>Choose a school from the filter to view staff members</small>
+            {% else %}
+            <i class="fas fa-users-slash"></i>
+            <p>No staff members found</p>
+            <small>Try adjusting your filters or search</small>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Modal and Filter logic is handled by global shikshawave-list.js
+
+        // Location Dropdown Logic
+        const countrySelect = document.getElementById('filter-country');
+        const stateSelect = document.getElementById('filter-state');
+        const districtSelect = document.getElementById('filter-district');
+
+        if (countrySelect && stateSelect && districtSelect) {
+            // Load Countries
+            async function loadCountries() {
+                try {
+                    const response = await fetch('/api/geo/countries/');
+                    const data = await response.json();
+
+                    countrySelect.innerHTML = '<option value="">Select Country</option>';
+                    const selectedCountry = countrySelect.dataset.selected;
+
+                    data.forEach(country => {
+                        const option = document.createElement('option');
+                        option.value = country.name;
+                        option.textContent = country.name;
+                        option.dataset.id = country.id;
+                        countrySelect.appendChild(option);
+
+                        if (selectedCountry && selectedCountry === country.name) {
+                            option.selected = true;
+                        }
+                    });
+
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns('filter-country');
+
+                    if (countrySelect.value) {
+                        const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+                        if (selectedOption.dataset.id) {
+                            loadStates(selectedOption.dataset.id);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading countries:', error);
+                }
+            }
+
+            // Load States
+            async function loadStates(countryId) {
+                try {
+                    const response = await fetch(`/api/geo/states/?country_id=${countryId}`);
+                    const data = await response.json();
+
+                    stateSelect.innerHTML = '<option value="">Select State</option>';
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+
+                    const selectedState = stateSelect.dataset.selected;
+
+                    data.forEach(state => {
+                        const option = document.createElement('option');
+                        option.value = state.name;
+                        option.textContent = state.name;
+                        option.dataset.id = state.id;
+                        stateSelect.appendChild(option);
+
+                        if (selectedState && selectedState === state.name) {
+                            option.selected = true;
+                        }
+                    });
+
+                    if (window.refreshCustomDropdowns) {
+                        window.refreshCustomDropdowns('filter-state');
+                        window.refreshCustomDropdowns('filter-district');
+                    }
+
+                    if (stateSelect.value) {
+                        const selectedOption = stateSelect.options[stateSelect.selectedIndex];
+                        if (selectedOption.dataset.id) {
+                            loadDistricts(selectedOption.dataset.id);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading states:', error);
+                }
+            }
+
+            // Load Districts
+            async function loadDistricts(stateId) {
+                try {
+                    const response = await fetch(`/api/geo/districts/?state_id=${stateId}`);
+                    const data = await response.json();
+
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    const selectedDistrict = districtSelect.dataset.selected;
+
+                    data.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.name;
+                        option.textContent = district.name;
+                        districtSelect.appendChild(option);
+
+                        if (selectedDistrict && selectedDistrict === district.name) {
+                            option.selected = true;
+                        }
+                    });
+
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns('filter-district');
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                }
+            }
+
+            countrySelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                const countryId = selectedOption.dataset.id;
+
+                if (countryId) {
+                    loadStates(countryId);
+                } else {
+                    stateSelect.innerHTML = '<option value="">Select State</option>';
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    if (window.refreshCustomDropdowns) {
+                        window.refreshCustomDropdowns('filter-state');
+                        window.refreshCustomDropdowns('filter-district');
+                    }
+                }
+            });
+
+            stateSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                const stateId = selectedOption.dataset.id;
+
+                if (stateId) {
+                    loadDistricts(stateId);
+                } else {
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns('filter-district');
+                }
+            });
+
+            loadCountries();
+        }
+    });
+
+</script>
+<script src="{% static 'js/shikshawave-list.js' %}?v=2.2"></script>
+{% endblock %}

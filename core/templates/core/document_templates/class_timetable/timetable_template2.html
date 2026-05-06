@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Class Timetable - Template 2</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0.8cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, 'Segoe UI', sans-serif;
+            background: white;
+            font-size: 11px;
+        }
+
+        .no-print {
+            padding: 8px 12px;
+            background: #eff6ff;
+            border-bottom: 2px solid #2563eb;
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: white;
+            padding: 7px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 6px;
+        }
+
+        .btn-close {
+            background: #6b7280;
+            color: white;
+            padding: 7px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .container {
+            padding: 10px 12px;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-left: 7px solid #2563eb;
+            border-bottom: 3px solid #2563eb;
+            border-radius: 0 8px 0 0;
+            background: #f8faff;
+            margin-bottom: 12px;
+            gap: 16px;
+        }
+
+        .school-block {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .school-logo {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 3px solid #2563eb;
+            padding: 2px;
+            flex-shrink: 0;
+        }
+
+        .school-text h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e3a8a;
+            letter-spacing: 0.3px;
+        }
+
+        .school-text p {
+            font-size: 11px;
+            color: #4b5563;
+            margin-top: 3px;
+        }
+
+        .class-block {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .class-block h1 {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        .class-block p {
+            font-size: 10.5px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* ── Table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #2563eb;
+            color: white;
+            padding: 9px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid #1d4ed8;
+        }
+
+        td {
+            padding: 7px 5px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .period-col {
+            background: #eff6ff;
+            font-weight: 600;
+            color: #1e40af;
+            width: 108px;
+        }
+
+        .period-col small {
+            color: #3b82f6;
+            font-size: 10px;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .subject {
+            font-weight: 700;
+            color: #0f172a;
+            display: block;
+            margin-bottom: 2px;
+            font-size: 11px;
+        }
+
+        .teacher {
+            color: #64748b;
+            font-size: 10px;
+        }
+
+        .break {
+            background: #fef3c7;
+            color: #92400e;
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        tr:nth-child(even) td:not(.period-col) {
+            background: #f8faff;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            body {
+                font-size: 10px;
+            }
+
+            th {
+                padding: 7px 4px;
+                font-size: 10px;
+            }
+
+            td {
+                padding: 5px 4px;
+            }
+
+            .school-logo {
+                width: 60px;
+                height: 60px;
+            }
+
+            .school-text h2 {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-close" onclick="window.close()">✕ Close</button>
+    </div>
+    <div class="container">
+        <div class="header">
+            <div class="school-block">
+                <img src="{{ SchoolLogo }}" alt="School Logo" class="school-logo">
+                <div class="school-text">
+                    <h2>{{ SchoolName }}</h2>
+                    {% if SchoolAddress %}<p>{{ SchoolAddress }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="class-block">
+                <h1>{{ timetable.ClassName }}{% if timetable.SectionName %} – Section {{ timetable.SectionName }}{% endif %} Timetable</h1>
+                <p>📅 {{ timetable.AcademicYear }} &nbsp;|&nbsp; {{ timetable.EffectiveFrom|date:"d M Y" }} to {{ timetable.EffectiveTo|date:"d M Y" }}</p>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:108px;">Period / Day</th>
+                    <th>Monday</th>
+                    <th>Tuesday</th>
+                    <th>Wednesday</th>
+                    <th>Thursday</th>
+                    <th>Friday</th>
+                    <th>Saturday</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for period in periods %}
+                <tr>
+                    <td class="period-col">
+                        <strong>{{ period.PeriodName }}</strong>
+                        <small>{{ period.StartTime|slice:":5" }} – {{ period.EndTime|slice:":5" }}</small>
+                    </td>
+                    {% for day in "123456" %}
+                    <td {% if period.PeriodType == 'Break' or period.PeriodType == 'Assembly' %}class = "break" {% endif %}>
+                        {% for s in slots %}{% if s.DayOfWeek == day|add:0 and s.PeriodID == period.PeriodID %}
+                        {% if period.PeriodType == 'Break' or period.PeriodType == 'Assembly' %}{{ period.PeriodType }}
+                        {% else %}<span class = "subject">{{ s.SubjectName|default:'—' }}</span><span class = "teacher">{{ s.TeacherName|default:'' }}</span>{% endif %}
+                        {% endif %}{% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

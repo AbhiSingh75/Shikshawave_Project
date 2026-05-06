@@ -1,0 +1,244 @@
+<!-- Salary History Modal -->
+<div class="sw-modal-container" id="salaryModal">
+    <div class="sw-modal-backdrop" onclick="closeSalaryModal()"></div>
+    <div class="sw-modal" style="max-width: 1100px;">
+        <div class="sw-modal-header" style="background: linear-gradient(135deg, var(--primary-color, #004aad), var(--primary-hover, #003a8c)); display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
+            <h3 class="sw-modal-title" style="margin: 0; color: white; display: flex; align-items: center; gap: 10px; font-size: 1.25rem;">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Salary Records</span>
+            </h3>
+            <div class="sw-modal-controls" style="display: flex; align-items: center; gap: 15px;">
+                <div class="sw-year-filter-wrapper" style="position: relative;">
+                    <select id="salaryYearFilter" onchange="filterSalaryByYear()" 
+                            style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 30px 6px 12px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; outline: none; appearance: none;">
+                    </select>
+                    <i class="fas fa-chevron-down" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: white; pointer-events: none;"></i>
+                    <input type="number" id="customYearInput" placeholder="Year" min="2000" max="2100" class="sw-input-sm" style="display: none;" />
+                </div>
+                <button onclick="closeSalaryModal()" class="sw-modal-close" 
+                        style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 1.2rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="sw-modal-body" style="background: var(--card-bg); color: var(--text-main);">
+            <div class="sw-table-responsive">
+                <table class="sw-table-modern">
+                    <thead style="background: var(--primary-light, rgba(0, 74, 173, 0.1));">
+                        <tr>
+                            <th style="color: var(--text-main); font-weight: 600;">SN</th>
+                            <th class="text-center" style="color: var(--text-main); font-weight: 600;">Actions</th>
+                            <th style="color: var(--text-main); font-weight: 600;">Month</th>
+                            <th style="color: var(--text-main); font-weight: 600;">Salary Ref ID</th>
+                            <th class="text-right" style="color: var(--text-main); font-weight: 600;">Gross Salary</th>
+                            <th class="text-right" style="color: var(--text-main); font-weight: 600;">Deductions</th>
+                            <th class="text-right" style="color: var(--text-main); font-weight: 600;">Net Salary</th>
+                            <th class="text-center" style="color: var(--text-main); font-weight: 600;">Status</th>
+                            <th style="color: var(--text-main); font-weight: 600;">Payment Date</th>
+                            <th class="text-center" style="color: var(--text-main); font-weight: 600;">Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salaryTableBody" style="color: var(--text-main);"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Viewer Modal -->
+<div class="sw-modal-container" id="documentModal">
+    <div class="sw-modal-backdrop" onclick="closeDocumentModal()"></div>
+    <div class="sw-modal" style="max-width: 900px; width: 95%;">
+        <div class="sw-modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
+            <h3 class="sw-modal-title" id="docTitle" style="margin: 0; color: white; display: flex; align-items: center; gap: 10px; font-size: 1.25rem;">
+                <i class="fas fa-file"></i>
+                <span>Document Viewer</span>
+            </h3>
+            <button onclick="closeDocumentModal()" class="sw-modal-close" 
+                    style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="docContent" class="sw-modal-body document-viewer-body" style="background: var(--card-bg); padding: 0; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+    </div>
+</div>
+
+<!-- Timetable Modal -->
+<div class="sw-modal-container" id="timetableModal">
+    <div class="sw-modal-backdrop" onclick="closeTimetableModal()"></div>
+    <div class="sw-modal" style="max-width: 95%; width: 1200px;">
+        <div class="sw-modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
+            <h3 class="sw-modal-title" style="margin: 0; color: white; display: flex; align-items: center; gap: 10px; font-size: 1.25rem;">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Class Timetable - <span id="timetableTeacherName"></span></span>
+            </h3>
+            <button type="button" class="sw-modal-close" onclick="closeTimetableModal()"
+                    style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body" style="background: var(--card-bg); color: var(--text-main);">
+            <!-- Loading State -->
+            <div id="timetableLoading" style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                <p style="margin-top: 15px; color: var(--text-muted);">Loading timetable data...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="timetableError" style="display: none; text-align: center; padding: 40px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--danger); margin-bottom: 15px;"></i>
+                <p>Error loading timetable data</p>
+            </div>
+
+            <!-- Timetable Content -->
+            <div id="timetableContent" style="display: none;">
+                <!-- Dynamic timetable cards will be inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Dark mode enhancements for salary table */
+    body.dark-mode .sw-table-modern thead th {
+        color: #e5e7eb !important;
+        border-bottom-color: #4b5563;
+    }
+    body.dark-mode .sw-table-modern tbody td {
+        color: #d1d5db !important;
+        border-bottom-color: #374151;
+    }
+    .sw-modal-close:hover {
+        background: rgba(0,0,0,0.2) !important;
+        transform: rotate(90deg);
+        transition: all 0.3s;
+    }
+    .sw-modal-header .sw-modal-close:hover {
+        background: rgba(255,255,255,0.4) !important;
+    }
+    #salaryYearFilter option {
+        background: white;
+        color: #333;
+    }
+    body.dark-mode #salaryYearFilter option {
+        background: #1f2937;
+        color: #f3f4f6;
+    }
+    
+    /* Document viewer enhancements */
+    .sw-modal-container {
+        pointer-events: none;
+        display: none !important;
+    }
+    .sw-modal-container.show {
+        pointer-events: auto;
+        display: flex !important;
+    }
+    .document-viewer-body img,
+    .document-viewer-body embed,
+    .document-viewer-body iframe {
+        width: 100%;
+        height: auto;
+        min-height: 600px;
+        max-height: 85vh;
+        border: none;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    /* Action Buttons in Tables */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        background: var(--card-bg, #ffffff);
+        color: var(--text-main, #1e293b);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.85rem;
+        padding: 0;
+        text-decoration: none;
+        outline: none;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1;
+    }
+
+    .action-btn i {
+        transition: transform 0.2s;
+    }
+
+    .action-btn:hover i {
+        transform: scale(1.1);
+    }
+
+    /* Success/Download Style (Blue/Eye) */
+    .action-btn.download-btn {
+        color: var(--info, #3b82f6);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .action-btn.download-btn:hover {
+        background: var(--info, #3b82f6);
+        color: white;
+        border-color: var(--info, #3b82f6);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Warning/Resend Style (Orange/Envelope) */
+    .action-btn.resend-btn {
+        color: var(--warning, #f59e0b);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+
+    .action-btn.resend-btn:hover {
+        background: var(--warning, #f59e0b);
+        color: white;
+        border-color: var(--warning, #f59e0b);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Dark mode specific adjustments for action buttons */
+    body.dark-mode .action-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode .action-btn:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    body.dark-mode .action-btn.download-btn {
+        color: #60a5fa;
+        border-color: rgba(96, 165, 250, 0.3);
+    }
+
+    body.dark-mode .action-btn.download-btn:hover {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+
+    body.dark-mode .action-btn.resend-btn {
+        color: #fbbf24;
+        border-color: rgba(251, 191, 36, 0.3);
+    }
+
+    body.dark-mode .action-btn.resend-btn:hover {
+        background: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+    }
+    
+    body.dark-mode .document-viewer-body {
+        background: #0f172a !important;
+    }
+</style>

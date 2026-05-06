@@ -1,0 +1,82 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block extra_css %}
+<style>
+    .calendar-container { padding: 20px; background: var(--card-bg, white); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin: 10px; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+    .calendar-nav { display: flex; align-items: center; gap: 15px; }
+    .nav-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-hover); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--primary-color); text-decoration: none; }
+    .nav-btn:hover { background: var(--primary-color); color: white; transform: translateY(-2px); }
+    .month-display { font-size: 1.4rem; font-weight: 800; color: var(--primary-color); min-width: 180px; text-align: center; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+    .day-name { text-align: center; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: #64748b; padding: 10px; }
+    .calendar-day { min-height: 100px; background: var(--bg-hover); border-radius: 12px; padding: 8px; transition: all 0.2s; border: 1px solid transparent; position: relative; }
+    .calendar-day.other-month { opacity: 0.3; background: transparent; }
+    .calendar-day.today { border-color: var(--primary-color); background: var(--primary-light); }
+    .day-number { font-weight: 800; font-size: 1.1rem; margin-bottom: 8px; color: var(--text-color); }
+    .holiday-tag { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; margin-bottom: 4px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .holiday-tag.public { background: rgba(var(--primary-rgb), 0.1); color: var(--danger); border-left: 3px solid var(--danger); }
+    .holiday-tag.weeklyoff { background: var(--bg-hover); color: var(--text-muted); border-left: 3px solid var(--text-muted); }
+    .holiday-tag.schoolevent { background: rgba(var(--primary-rgb), 0.05); color: var(--success); border-left: 3px solid var(--success); }
+    @media (max-width: 768px) { .calendar-grid { gap: 4px; } .calendar-day { min-height: 60px; padding: 4px; } .day-number { font-size: 0.9rem; } .holiday-tag { font-size: 0.6rem; padding: 2px 4px; } .month-display { font-size: 1.1rem; min-width: 120px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-container">
+    <div class="calendar-header">
+        <div class="calendar-nav">
+            <a href="?month={{ prev_month }}&year={{ prev_year }}{% if selected_school_id %}&school_id={{ selected_school_id }}{% endif %}" class="nav-btn">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <div class="month-display">{{ month_name }} {{ year }}</div>
+            <a href="?month={{ next_month }}&year={{ next_year }}{% if selected_school_id %}&school_id={{ selected_school_id }}{% endif %}" class="nav-btn">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        <div class="header-tools">
+            {% if is_super_admin %}
+            <form id="schoolFilter" method="GET" style="display: flex; gap: 10px;">
+                <input type="hidden" name="month" value="{{ month }}">
+                <input type="hidden" name="year" value="{{ year }}">
+                <select name="school_id" class="sw-form-control" style="width: 250px;" onchange="this.form.submit()">
+                    {% for s in schools %}
+                    <option value="{{ s.SchoolID }}" {% if s.SchoolID == selected_school_id %}selected{% endif %}>{{ s.DisplayName }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="calendar-grid">
+        <div class="day-name">Sun</div>
+        <div class="day-name">Mon</div>
+        <div class="day-name">Tue</div>
+        <div class="day-name">Wed</div>
+        <div class="day-name">Thu</div>
+        <div class="day-name">Fri</div>
+        <div class="day-name">Sat</div>
+
+        {% for week in processed_days %}
+            {% for day_data in week %}
+                {% if day_data.day == 0 %}
+                <div class="calendar-day other-month"></div>
+                {% else %}
+                <div class="calendar-day {% if day_data.is_today %}today{% endif %}">
+                    <div class="day-number">{{ day_data.day }}</div>
+                    {% for h in day_data.holidays %}
+                    <div class="holiday-tag {{ h.HolidayType|lower|cut:' ' }}" title="{{ h.Description }}">
+                        <i class="fas {% if h.HolidayType == 'Weekly Off' %}fa-bed{% elif h.IsRecurring %}fa-redo{% else %}fa-umbrella-beach{% endif %}"></i>
+                        {{ h.HolidayName }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

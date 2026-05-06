@@ -1,0 +1,191 @@
+{% block extra_js %}
+<script>
+const classIdFromServer = "{{ class_id|default:'' }}";
+const sectionIdFromServer = "{{ section_id|default:'' }}";
+const baseUrl = window.location.origin;
+
+function applyFilters() {
+    const searchParams = new URLSearchParams(window.location.search);
+    const searchValue = document.getElementById("search-input").value.trim();
+    
+    if (searchValue) {
+        searchParams.set('search', searchValue);
+    } else {
+        searchParams.delete('search');
+    }
+    searchParams.set('page', '1');
+    window.location.search = searchParams.toString();
+}
+
+function changePage(page) {
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set("page", page);
+    window.location.search = searchParams.toString();
+}
+
+function viewIDCard(studentId) {
+    window.open(`/student/idcard/${studentId}/`, '_blank');
+}
+
+function editStudent(studentId) {
+    alert(`Edit student ${studentId} - Feature coming soon!`);
+}
+
+function deleteStudent(studentId) {
+    if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+        alert(`Delete student ${studentId} - Feature coming soon!`);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("search-input");
+    const perPageSelector = document.getElementById("per-page-selector");
+    const filterModal = document.getElementById("filter-modal");
+    const filterBtn = document.getElementById("filter-btn");
+    const closeFilterModal = document.getElementById("close-filter-modal");
+    const applyFiltersBtn = document.getElementById("apply-filters");
+    const resetFiltersBtn = document.getElementById("reset-filters");
+    
+    let searchTimeout;
+    
+    if (searchInput) {
+        searchInput.addEventListener("input", function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(applyFilters, 500);
+        });
+    }
+    
+    if (perPageSelector) {
+        perPageSelector.addEventListener("change", function() {
+            const searchParams = new URLSearchParams(window.location.search);
+            searchParams.set("per_page", this.value);
+            searchParams.set("page", "1");
+            window.location.search = searchParams.toString();
+        });
+    }
+    
+    if (filterBtn && filterModal) {
+        filterBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            filterModal.style.display = "flex";
+        });
+    }
+    
+    if (closeFilterModal && filterModal) {
+        closeFilterModal.addEventListener("click", function(e) {
+            e.preventDefault();
+            filterModal.style.display = "none";
+        });
+    }
+    
+    if (filterModal) {
+        filterModal.addEventListener("click", function(e) {
+            if (e.target === filterModal) {
+                filterModal.style.display = "none";
+            }
+        });
+    }
+    
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener("click", function() {
+            document.getElementById("filter-search").value = "";
+            document.getElementById("filter-class").value = "";
+            document.getElementById("filter-section").value = "";
+            document.getElementById("filter-gender").value = "";
+            document.getElementById("filter-category").value = "";
+            document.getElementById("filter-from-date").value = "";
+            document.getElementById("filter-to-date").value = "";
+        });
+    }
+    
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener("click", function() {
+            const searchParams = new URLSearchParams();
+            
+            const search = document.getElementById("filter-search").value.trim();
+            const classId = document.getElementById("filter-class").value;
+            const sectionId = document.getElementById("filter-section").value;
+            const gender = document.getElementById("filter-gender").value;
+            const category = document.getElementById("filter-category").value;
+            const fromDate = document.getElementById("filter-from-date").value;
+            const toDate = document.getElementById("filter-to-date").value;
+            
+            if (search) searchParams.set('search', search);
+            if (classId) searchParams.set('class_id', classId);
+            if (sectionId) searchParams.set('section_id', sectionId);
+            if (gender) searchParams.set('gender', gender);
+            if (category) searchParams.set('category', category);
+            if (fromDate) searchParams.set('from_date', fromDate);
+            if (toDate) searchParams.set('to_date', toDate);
+            
+            const currentPerPage = new URLSearchParams(window.location.search).get('per_page');
+            if (currentPerPage) searchParams.set('per_page', currentPerPage);
+            
+            filterModal.style.display = "none";
+            window.location.search = searchParams.toString();
+        });
+    }
+    
+    const classSelect = document.getElementById('filter-class');
+    const sectionSelect = document.getElementById('filter-section');
+    
+    if (classSelect && sectionSelect) {
+        fetch(`${baseUrl}/api/classes/`)
+            .then(r => r.json())
+            .then(classes => {
+                classSelect.innerHTML = '<option value="">All Classes</option>';
+                classes.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls.id;
+                    option.textContent = cls.name;
+                    classSelect.appendChild(option);
+                });
+                if (classIdFromServer) {
+                    classSelect.value = classIdFromServer;
+                    return fetch(`${baseUrl}/api/sections/?class_id=${classIdFromServer}`);
+                }
+            })
+            .then(r => r ? r.json() : null)
+            .then(data => {
+                if (data) {
+                    const sections = data.sections || data;
+                    sectionSelect.innerHTML = '<option value="">All Sections</option>';
+                    sections.forEach(section => {
+                        const option = document.createElement('option');
+                        option.value = section.id;
+                        option.textContent = section.name;
+                        sectionSelect.appendChild(option);
+                    });
+                    if (sectionIdFromServer) {
+                        sectionSelect.value = sectionIdFromServer;
+                    }
+                    sectionSelect.disabled = false;
+                }
+            });
+        
+        classSelect.addEventListener('change', function() {
+            const classId = this.value;
+            sectionSelect.innerHTML = '<option value="">All Sections</option>';
+            sectionSelect.disabled = true;
+            
+            if (classId) {
+                fetch(`${baseUrl}/api/sections/?class_id=${classId}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const sections = data.sections || data;
+                        sections.forEach(section => {
+                            const option = document.createElement('option');
+                            option.value = section.id;
+                            option.textContent = section.name;
+                            sectionSelect.appendChild(option);
+                        });
+                        sectionSelect.disabled = false;
+                    });
+            }
+        });
+    }
+    
+    window.changePage = changePage;
+});
+</script>
+{% endblock %}

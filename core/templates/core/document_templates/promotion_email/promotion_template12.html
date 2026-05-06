@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background: #dedede;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: white;
+            border: 15px solid #222;
+            padding: 60px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .border-inner {
+            border: 2px solid #555;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 36px;
+            color: #222;
+            text-decoration: underline;
+        }
+
+        .content {
+            text-align: center;
+            color: #333;
+            line-height: 2;
+        }
+
+        .student-name {
+            font-size: 28px;
+            font-weight: bold;
+            border-bottom: 2px solid #333;
+            display: inline-block;
+            padding: 0 20px;
+            margin: 15px 0;
+        }
+
+        .details-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 1px solid #333;
+            margin: 30px 0;
+        }
+
+        .details-box div {
+            padding: 15px;
+            border: 1px solid #333;
+        }
+
+        .label {
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            display: block;
+        }
+
+        .val {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .footer {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sign {
+            text-align: center;
+            width: 150px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="border-inner">
+            <div class="header">
+                <img src="https://cdn-icons-png.flaticon.com/512/3233/3233508.png" width="80"
+                    style="margin-bottom: 20px;">
+                <h1>Certificate of Promotion</h1>
+            </div>
+            <div class="content">
+                <p>This document serves as proof that</p>
+                <div class="student-name">{{ student_name }}</div>
+                <p>has satisfied all academic requirements for the session <strong>{{ academic_year }}</strong> and is
+                    advanced to the state of</p>
+                <p style="font-size: 22px; font-weight: bold; color: #b71c1c;">GRADE {{ new_class }}</p>
+
+                <div class="details-box">
+                    <div>
+                        <span class="label">Section</span>
+                        <span class="val">{{ new_section }}</span>
+                    </div>
+                    <div>
+                        <span class="label">Roll Number</span>
+                        <span class="val">{{ roll_no }}</span>
+                    </div>
+                    <div>
+                        <span class="label">From Class</span>
+                        <span class="val">{{ prev_class }}</span>
+                    </div>
+                    <div>
+                        <span class="label">School</span>
+                        <span class="val">{{ school_name }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <div class="sign">
+                    Authorized Signatory
+                </div>
+                <div style="font-style: italic; color: #777;">
+                    Verified on {{ current_date }}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

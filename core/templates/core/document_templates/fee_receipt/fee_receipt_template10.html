@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fee Receipt - Crimson Elite</title>
+    <style>
+        @page { size: A4; margin: 10mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Garamond', serif; padding: 10px; background: #fef2f2; font-size: 11px; }
+        .action-buttons { position: fixed; top: 5px; left: 5px; z-index: 1000; }
+        .action-buttons button { padding: 6px 12px; margin-right: 5px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .btn-print { background: #991b1b; color: white; }
+        .btn-close { background: #374151; color: white; }
+        .receipt { max-width: 210mm; margin: 40px auto 0; background: white; border: 4px double #991b1b; box-shadow: 0 0 25px rgba(153,27,27,0.2); }
+        .corner-ornament { position: absolute; width: 40px; height: 40px; border: 2px solid #991b1b; }
+        .corner-ornament.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+        .corner-ornament.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+        .corner-ornament.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+        .corner-ornament.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+        .header { background: linear-gradient(to right, #7f1d1d, #991b1b, #7f1d1d); color: white; padding: 25px; text-align: center; position: relative; }
+        .school-logo { width: 70px; height: 70px; border-radius: 50%; border: 4px solid white; margin-bottom: 10px; }
+        .school-name { font-size: 28px; font-weight: bold; letter-spacing: 2px; }
+        .school-motto { font-size: 11px; font-style: italic; margin-top: 5px; opacity: 0.95; }
+        .receipt-title { background: #fee2e2; color: #991b1b; text-align: center; padding: 12px; font-size: 16px; font-weight: bold; letter-spacing: 4px; border-top: 2px solid #991b1b; border-bottom: 2px solid #991b1b; }
+        .content { padding: 25px; position: relative; }
+        .info-table { width: 100%; margin-bottom: 20px; }
+        .info-table td { padding: 8px; border-bottom: 1px solid #fecaca; }
+        .info-table td:first-child { font-weight: bold; color: #991b1b; width: 35%; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10px; }
+        th { background: #991b1b; color: white; padding: 10px; text-align: left; font-weight: bold; }
+        td { padding: 8px; border-bottom: 1px solid #fecaca; }
+        .total-row { background: #fee2e2 !important; font-weight: bold; color: #7f1d1d; border-top: 2px solid #991b1b; }
+        .footer { background: #7f1d1d; color: white; padding: 15px; text-align: center; font-size: 9px; }
+        @media print { body { padding: 0; background: white; } .receipt { box-shadow: none; margin-top: 0; } .action-buttons { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="action-buttons">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-close" onclick="window.close()">✖ Close</button>
+    </div>
+    <div class="receipt">
+        <div class="header">
+            {% if school_logo %}<img src = "{{ school_logo }}" alt = "Logo" class = "school-logo">{% endif %}
+            <div class="school-name">{{ school_name|default:"School Name" }}</div>
+            <div class="school-motto">{{ school_address|default:"Excellence Through Education" }}</div>
+        </div>
+        <div class="receipt-title">⚜ FEE RECEIPT ⚜</div>
+        <div class="content">
+            <div class="corner-ornament tl"></div>
+            <div class="corner-ornament tr"></div>
+            <div class="corner-ornament bl"></div>
+            <div class="corner-ornament br"></div>
+            <table class="info-table">
+                <tr><td>Receipt Number:</td><td>{{ receipt_no }}</td></tr>
+                <tr><td>Date:</td><td>{{ date_of_submission }}</td></tr>
+                <tr><td>Student Name:</td><td>{{ full_name }}</td></tr>
+                <tr><td>Student Code:</td><td>{{ student_code }}</td></tr>
+                <tr><td>Class & Section:</td><td>{{ class_name }} - {{ section_name }}</td></tr>
+                <tr><td>Payment Mode:</td><td>{{ payment_mode }}</td></tr>
+            </table>
+            <table>
+                <thead><tr><th style="width: 8%;">SN</th><th style="width: 62%;">Fee Particulars</th><th style="width: 30%; text-align: right;">Amount (₹)</th></tr></thead>
+                <tbody>
+                    {% if fee_breakdown %}{% for item in fee_breakdown %}{% if not item.isSummary %}
+                    <tr><td>{{ forloop.counter }}</td><td>{{ item.feeTypeName }}</td><td style="text-align: right;">{{ item.userEnterAmount|floatformat:2 }}</td></tr>
+                    {% endif %}{% endfor %}{% endif %}
+                    <tr class="total-row"><td colspan="2" style="text-align: right; font-size: 11px;">TOTAL PAID:</td><td style="text-align: right; font-size: 11px;">₹ {{ paid_amount|floatformat:2 }}</td></tr>
+                </tbody>
+            </table>
+            {% if previous_payments %}
+            <table style="font-size: 9px; margin-top: 20px;">
+                <thead><tr><th style="width: 4%;">SN</th><th style="width: 20%;">Receipt</th><th style="width: 13%;">Date</th><th style="width: 13%;">Month</th><th style="width: 9%;">Mode</th><th style="width: 14%; text-align: right;">Total</th><th style="width: 13%; text-align: right;">Discount</th><th style="width: 14%; text-align: right;">Paid</th></tr></thead>
+                <tbody>{% for payment in previous_payments %}<tr><td>{{ forloop.counter }}</td><td>{{ payment.receipt_number }}</td><td>{{ payment.payment_date }}</td><td>{{ payment.payment_month }}</td><td>{{ payment.payment_mode }}</td><td style = "text-align: right;">{{ payment.total_amount|floatformat:2 }}</td><td style = "text-align: right;">{{ payment.discount_value|floatformat:2 }}</td><td style = "text-align: right;">{{ payment.paid_amount|floatformat:2 }}</td></tr>{% endfor %}</tbody>
+            </table>
+            {% endif %}
+        </div>
+        <div class="footer">{{ school_name }} | This is a computer-generated receipt</div>
+    </div>
+</body>
+</html>

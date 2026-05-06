@@ -1,0 +1,44 @@
+{% extends "components/modal_base.html" %}
+{% load core_extras %}
+
+{% block modal_id %}timeoutModal{% endblock %}
+{% block modal_additional_class %}sw-modal-compact{% endblock %}
+{% block modal_icon %}fas fa-clock-rotate-left{% endblock %}
+{% block modal_title %}Session Timeout{% endblock %}
+
+{% block modal_body %}
+<div class="sw-modal-info mb-3">
+    <p class="text-muted" style="font-size: 0.9rem; line-height: 1.4;">Select an inactivity period before auto-logout.</p>
+</div>
+
+<form id="timeoutSettingsForm" method="POST">
+    {% csrf_token %}
+    <div class="sw-timeout-grid">
+        {% for minutes in "15,30,60,90,120,180"|split:"," %}
+        <div class="sw-timeout-card {% if timeout_minutes|is_selected:minutes %}selected{% endif %}" data-value="{{ minutes }}">
+            <input type="radio" 
+                   name="timeout_minutes" 
+                   value="{{ minutes }}" 
+                   {% if timeout_minutes|is_selected:minutes %}
+                   checked
+                   {% endif %}>
+            <span class="sw-timeout-value">{{ minutes }}</span>
+            <span class="sw-timeout-label">min</span>
+            <div class="sw-timeout-check"><i class="fas fa-check"></i></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="sw-modal-note mt-4">
+        <i class="fas fa-shield-halved"></i>
+        <span>Changes apply at next login. Recommended: 60 minutes.</span>
+    </div>
+</form>
+{% endblock %}
+
+{% block modal_footer %}
+<button type="button" class="sw-btn sw-btn-ghost sw-modal-close">Cancel</button>
+<button type="button" id="saveTimeoutBtn" class="sw-btn sw-btn-primary" style="min-width: 140px;">
+    Save Settings
+</button>
+{% endblock %}

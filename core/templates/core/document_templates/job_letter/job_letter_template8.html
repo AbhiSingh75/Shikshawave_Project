@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Letter - {{ employee.full_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #004aad; --text-dark: #1e293b; --border: #cbd5e1; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: var(--text-dark); padding: 10px; font-size: 12px; }
+        .letter-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border: 1px solid var(--border); position: relative; }
+        .centered { text-align: center; }
+        header { border-bottom: 3px double var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
+        .logo-img { max-height: 70px; margin-bottom: 8px; }
+        .school-name { font-family: 'Crimson Pro', serif; font-size: 28px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        .school-address { font-style: italic; color: #64748b; margin-bottom: 8px; font-size: 11px; }
+        .doc-title { font-size: 16px; font-weight: 700; margin: 15px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .emp-photo-classic { width: 80px; height: 100px; border: 1px solid #ccc; object-fit: cover; float: right; margin-left: 15px; margin-bottom: 10px; }
+        .meta-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
+        .meta-table td { padding: 4px 0; border-bottom: 1px solid #f1f5f9; font-size: 11px; }
+        .salary-box { border: 1px solid #000; margin: 20px 0; clear: both; }
+        .salary-header { background: #f8fafc; border-bottom: 1px solid #000; padding: 6px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-size: 11px; }
+        .salary-split { display: flex; width: 100%; }
+        .salary-col { flex: 1; border-right: 1px solid #000; }
+        .salary-col:last-child { border-right: none; }
+        .col-label { background: #f1f5f9; padding: 4px; text-align: center; font-weight: 800; font-size: 9px; border-bottom: 1px solid #eee; }
+        .salary-table { width: 100%; border-collapse: collapse; }
+        .salary-table td { padding: 5px 10px; border-bottom: 1px solid #f1f5f9; font-size: 10px; }
+        .net-row { background: var(--primary); color: #fff; font-weight: 700; font-size: 12px; }
+        .content-body { line-height: 1.5; text-align: justify; margin-bottom: 20px; clear: both; font-size: 11px; }
+        .rules-section { margin-top: 20px; padding: 12px; border-left: 4px solid var(--primary); background: #fdfaff; }
+        .footer-sig { margin-top: 40px; display: flex; justify-content: space-between; }
+        .sig-block { text-align: center; width: 220px; font-size: 11px; }
+        .sig-line { border-top: 1px solid #000; margin-bottom: 5px; }
+        @media print { .no-print { display: none !important; } body { background: #fff; padding: 0; } .letter-container { border: none; padding: 10mm; } }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 15px; text-align: right;"><button onclick="window.print()" style="padding: 8px 16px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: 700; font-size: 12px;">Print Document</button></div>
+    <div class="letter-container">
+        <header class="centered">
+            {% if employee.school_logo %}<img src = "{{ employee.school_logo }}" class = "logo-img">{% endif %}
+            <div class="school-name">{{ employee.school_name }}</div>
+            <div class="school-address">{{ employee.school_address }}</div>
+            <div class="doc-title">Letter of Appointment</div>
+        </header>
+        <table class="meta-table">
+            <tr><td><strong>Reference:</strong> SW/T08</td><td align="right"><strong>Date:</strong> {{ employee.current_date }}</td></tr>
+            <tr><td><strong>Candidate:</strong> {{ employee.full_name }}</td><td align="right"><strong>DOJ:</strong> {{ employee.date_of_joining }}</td></tr>
+        </table>
+        
+        <div style="min-height: 100px;">
+            {% if employee.user_photo %}<img src = "{{ employee.user_photo }}" class = "emp-photo-classic">{% endif %}
+            <div class="content-body">
+                Dear <strong>{{ employee.full_name }}</strong>,<br><br>
+                {{ employee.greeting_message }}
+            </div>
+        </div>
+
+        <div class="salary-box">
+            <div class="salary-header">Remuneration Structure</div>
+            <div class="salary-split">
+                <div class="salary-col">
+                    <div class="col-label">EARNINGS</div>
+                    <table class="salary-table">
+                        {% for comp in employee.earnings %}<tr><td>{{ comp.ComponentName }}</td><td align = "right">₹{{ comp.Amount|floatformat:0 }}</td></tr>{% endfor %}
+                    </table>
+                </div>
+                <div class="salary-col">
+                    <div class="col-label">DEDUCTIONS</div>
+                    <table class="salary-table">
+                        {% for comp in employee.deductions %}<tr><td>{{ comp.ComponentName }}</td><td align = "right" style = "color:#dc2626;">-₹{{ comp.Amount|floatformat:0 }}</td></tr>{% endfor %}
+                    </table>
+                </div>
+            </div>
+            <table class="salary-table">
+                <tr class="net-row"><td>NET PAYABLE MONTHLY</td><td align="right">₹{{ employee.net_salary|floatformat:0 }}</td></tr>
+            </table>
+        </div>
+
+        <div class="rules-section"><h4>Institutional Guidelines</h4><ul style="margin-left:15px; margin-top:8px;">{% for rule in employee.school_rules %}<li><strong>{{ rule.Title }}:</strong> {{ rule.Description }}</li>{% endfor %}</ul></div>
+        
+        <!-- UNIFIED PORTAL ACCESS BLOCK -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin: 20px 0; border-left: 5px solid var(--primary); clear: both; width: 100%; box-sizing: border-box; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 12px;">
+                <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #1e293b;">{{ login_info.Title }}</span>
+                <span style="font-size: 10px; color: #be185d; font-weight: 800;">Password: Contact Admin</span>
+            </div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">{% for opt in login_info.Options %}<div style = "font-size: 10px; color: #334155;"><strong style = "color: #64748b; font-size: 8px; display: block;">{{ opt.Label }}</strong> {{ opt.Value }}</div>{% endfor %}</div>
+            <div style="margin-top: 10px; font-size: 9px; color: #64748b; font-style: italic; border-top: 1px solid #f1f5f9; padding-top: 8px;">{{ login_info.Disclaimer }}</div>
+        </div>
+
+        <div class="footer-sig">
+            <div class="sig-block"><div class="sig-line"></div>Management Authority</div>
+            <div class="sig-block"><div class="sig-line"></div>Candidate Signature</div>
+        </div>
+    </div>
+</body>
+</html>

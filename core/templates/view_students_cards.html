@@ -1,0 +1,1311 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+<!-- This is an HTML template file with Django template syntax, not JavaScript -->
+
+{% block title %}View Students | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.6">
+<style>
+    /* Local Card View Overrides */
+    .students-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+        padding: 0 15px;
+        /* Added padding to align with container */
+    }
+
+    .student-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    body.dark-mode .student-card {
+        background: var(--secondary-color);
+    }
+
+    .student-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .student-card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 10px;
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    body.dark-mode .student-card-header {
+        background: linear-gradient(135deg, #374151 0%, #2d3748 100%);
+    }
+
+    .student-card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #004aad 0%, #7c3aed 100%);
+    }
+
+    .student-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+    }
+
+    body.dark-mode .student-avatar {
+        border-color: var(--secondary-color);
+    }
+
+    .student-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .student-avatar .default-avatar {
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .student-header-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .student-name {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .student-code {
+        background: linear-gradient(135deg, #004aad 0%, #7c3aed 100%);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .student-card-body {
+        padding: 10px;
+    }
+
+    .student-info {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+    }
+
+    .info-label {
+        color: var(--text-light);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .info-value {
+        color: var(--text-color);
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .student-actions {
+        display: flex;
+        gap: 4px;
+        margin-top: 8px;
+    }
+
+    .btn-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .btn-card.btn-primary {
+        background: linear-gradient(135deg, #004aad 0%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-card.btn-primary:hover {
+        background: linear-gradient(135deg, #3730a3 0%, #6b21a8 100%);
+        box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .btn-card.btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-card.btn-success:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .btn-card.btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-card.btn-danger:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+        transform: translateY(-1px);
+    }
+
+    /* ===== CARDS PAGE — Mobile Responsive ===== */
+
+    /* Card grid responsiveness */
+    @media (max-width: 1200px) {
+        .students-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 900px) {
+        .students-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 8px 10px;
+            gap: 12px;
+        }
+
+        .controls-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 15px;
+            position: relative;
+            top: 0;
+            border-radius: 8px;
+        }
+
+        .controls-left {
+            width: 100%;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .controls-right {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .search-container {
+            width: 100%;
+        }
+
+        .search-container input {
+            width: 100% !important;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+
+        .control-buttons > * {
+            width: 100%;
+            margin: 0;
+            justify-content: center;
+        }
+
+        .view-toggle {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+            padding: 10px 8px;
+            font-size: 0.85rem;
+        }
+
+        .btn .btn-label {
+            display: inline !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 8px 10px !important;
+        }
+
+        .controls-row {
+            padding: 10px 12px !important;
+            gap: 10px !important;
+            margin-top: 5px !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .controls-left, .controls-right {
+            width: 100% !important;
+            gap: 8px !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .controls-left h2 {
+            font-size: 1.1rem !important;
+            margin-bottom: 5px !important;
+        }
+
+        .summary-box {
+            padding: 8px 12px !important;
+            font-size: 0.85rem !important;
+            height: 42px !important;
+            display: flex !important;
+            align-items: center !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            background: rgba(99, 102, 241, 0.05) !important;
+            border-radius: 8px !important;
+            margin: 0 !important;
+        }
+
+        .search-container {
+            margin: 0 !important;
+            height: 42px !important;
+            width: 100% !important;
+        }
+
+        .search-container i {
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            left: 12px !important;
+        }
+
+        .search-container input {
+            padding: 0 10px 0 38px !important;
+            font-size: 0.95rem !important;
+            height: 42px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            border-radius: 8px !important;
+        }
+
+        .pagination-container select {
+            padding: 0 12px !important;
+            font-size: 0.9rem !important;
+            height: 42px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            border-radius: 8px !important;
+            border: 1px solid var(--border-color) !important;
+            grid-column: span 1 !important;
+            background: var(--bg-color) !important;
+            color: var(--text-main) !important;
+        }
+
+        .control-buttons {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
+
+        .btn {
+            height: 42px !important;
+            padding: 0 10px !important;
+            font-size: 0.85rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+            border-radius: 8px !important;
+        }
+
+        /* pairing buttons for symmetry in cards view */
+        #filter-btn {
+            grid-column: span 1 !important;
+        }
+
+        .export-dropdown-container {
+            grid-column: span 2 !important; /* Export full width in card view as it lacks 'Columns' */
+            width: 100% !important;
+        }
+
+        .view-toggle {
+            grid-column: span 2 !important;
+            display: flex !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
+
+        .view-toggle .btn {
+            flex: 1 !important;
+        }
+
+        .export-btn {
+            height: 42px !important;
+            width: 100% !important;
+        }
+
+        /* Forced Content Visibility for Mobile */
+        .content-area {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            padding: 10px !important;
+            min-height: 300px !important;
+            background: var(--card-bg) !important;
+        }
+
+        /* Cards grid → 1 column on mobile as requested */
+        .students-grid {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 15px !important;
+            padding: 5px !important;
+            margin-top: 15px !important;
+            min-height: 150px !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .student-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Pagination Redesign - Premium Look */
+        .pagination {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            padding: 20px 10px !important;
+            gap: 15px !important;
+            background: var(--card-bg) !important;
+            border-radius: 12px !important;
+            margin: 20px 0 !important;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03) !important;
+        }
+
+        .pagination-controls {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-wrap: nowrap !important;
+        }
+
+        .pagination-btn {
+            padding: 0 !important;
+            font-size: 0.95rem !important;
+            margin: 0 !important;
+            min-width: 42px !important;
+            height: 42px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 10px !important;
+            background: var(--bg-color) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-main) !important;
+        }
+        .pagination-btn.active {
+            background: var(--primary-color, #6366f1) !important;
+            color: white !important;
+            border-color: var(--primary-color, #6366f1) !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4) !important;
+            transform: translateY(-2px) !important;
+        }
+
+
+        .pagination-btn:disabled {
+            opacity: 0.5 !important;
+            background: #f9fafb !important;
+            cursor: not-allowed !important;
+        }
+
+        .pagination-info {
+            font-size: 0.9rem !important;
+            color: var(--text-muted) !important;
+            margin-top: 5px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        /* Single column cards on very small phones */
+        .students-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            padding: 5px;
+        }
+
+        .control-buttons {
+            grid-template-columns: 1fr;
+        }
+        .control-buttons > *, .view-toggle, .export-dropdown-container {
+            grid-column: span 1;
+        }
+        .view-toggle {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .student-name {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-users"></i> View Students</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Total: {{ total_count|default:0 }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" value="{{ search }}" placeholder="Search students...">
+            </div>
+            <div class="control-buttons">
+                <select name="per_page" id="per-page-selector" class="btn btn-secondary">
+                    <option value="5" {% if items_per_page|is_selected:5 %}selected{% endif %}>5 per page</option>
+                    <option value="10" {% if items_per_page|is_selected:10 %}selected{% endif %}>10 per page</option>
+                    <option value="15" {% if items_per_page|is_selected:15 %}selected{% endif %}>15 per page</option>
+                    <option value="20" {% if items_per_page|is_selected:20 %}selected{% endif %}>20 per page</option>
+                    <option value="30" {% if items_per_page|is_selected:30 %}selected{% endif %}>30 per page</option>
+                    <option value="50" {% if items_per_page|is_selected:50 %}selected{% endif %}>50 per page</option>
+                    <option value="100" {% if items_per_page|is_selected:100 %}selected{% endif %}>100 per page</option>
+                </select>
+
+                <button class="btn btn-secondary filter-btn" id="filter-btn">
+                    <i class="fas fa-filter"></i> <span class="btn-label">Filters</span>
+                </button>
+
+                <div class="view-toggle">
+                    <button class="btn btn-secondary view-toggle-btn"
+                        data-url="{% url 'view_students' %}"
+                        onclick="window.location.href=this.dataset.url + window.location.search;">
+                        <i class="fas fa-table"></i> <span class="btn-label">Table</span>
+                    </button>
+                    <button class="btn btn-primary view-toggle-btn active">
+                        <i class="fas fa-th"></i> <span class="btn-label">Cards</span>
+                    </button>
+                </div>
+
+                <div class="export-dropdown-container">
+                    <button class="export-btn" id="exportBtn">
+                        <i class="fas fa-file-export"></i> <span class="btn-label">Export</span>
+                    </button>
+                    <div class="export-menu" id="exportMenu">
+                        <div class="export-menu-header">Download As</div>
+                        <button class="export-item excel" data-format="excel">
+                            <span class="export-icon"><i class="fas fa-file-excel"></i></span>
+                            Excel (.xlsx)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="comma">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Comma ,)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="pipe">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Pipe |)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="tab">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Tab)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-sliders-h"></i> Filter Students</h3>
+                <button class="action-btn" id="close-filter-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-body">
+                {% if is_super_admin %}
+                <div class="filter-row full">
+                    <div class="filter-group">
+                        <label for="filter-school"><i class="fas fa-university"></i> School</label>
+                        <select id="filter-school" name="school_id">
+                            <option value="">All Schools</option>
+                            {% for school in schools_list %}
+                            <option value="{{ school.SchoolID }}" {% if school_filter|is_selected:school.SchoolID %}selected{% endif %}>
+                                {{ school.SchoolName }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-school">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">
+                                    {% if school_filter %}
+                                    {% for school in schools_list %}
+                                     {% if school_filter|is_selected:school.SchoolID %}
+                                    {{ school.SchoolName }}
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% else %}
+                                    All Schools
+                                    {% endif %}
+                                </span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-school">
+                                <div class="custom-dropdown-option" data-value="">All Schools</div>
+                                {% for school in schools_list %}
+                                <div class="custom-dropdown-option" data-value="{{ school.SchoolID }}">{{
+                                    school.SchoolName }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="filter-row full">
+                    <div class="filter-group">
+                        <label for="filter-search"><i class="fas fa-search"></i> Search</label>
+                        <input type="text" id="filter-search" value="{{ search }}"
+                            placeholder="Search by code, name, mobile, or email" autocomplete="off">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-class"><i class="fas fa-graduation-cap"></i> Class</label>
+                        <select id="filter-class" name="class_id">
+                            <option value="">All Classes</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-class">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Classes</span>
+                                <span class="custom-dropdown-arrow">?</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-class">
+                                <div class="custom-dropdown-option" data-value="">All Classes</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-section"><i class="fas fa-users"></i> Section</label>
+                        <select id="filter-section" name="section_id">
+                            <option value="">All Sections</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-section">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Sections</span>
+                                <span class="custom-dropdown-arrow">?</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-section">
+                                <div class="custom-dropdown-option" data-value="">All Sections</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                        <select id="filter-gender">
+                            <option value="">All Gender</option>
+                            <option value="Male" {% if gender|is_selected:'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if gender|is_selected:'Female' %}selected{% endif %}>Female</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-gender">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">{% if gender %}{{ gender }}{% else %}All Gender{% endif %}</span>
+                                <span class="custom-dropdown-arrow">?</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Gender</div>
+                                <div class="custom-dropdown-option" data-value="Male">Male</div>
+                                <div class="custom-dropdown-option" data-value="Female">Female</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-category"><i class="fas fa-tag"></i> Category</label>
+                        <select id="filter-category">
+                            <option value="">All Categories</option>
+                            <option value="General" {% if category|is_selected:'General' %}selected{% endif %}>General</option>
+                            <option value="OBC" {% if category|is_selected:'OBC' %}selected{% endif %}>OBC</option>
+                            <option value="SC" {% if category|is_selected:'SC' %}selected{% endif %}>SC</option>
+                            <option value="ST" {% if category|is_selected:'ST' %}selected{% endif %}>ST</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-category">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">{% if category %}{{ category }}{% else %}All
+                                    Categories{% endif %}</span>
+                                <span class="custom-dropdown-arrow">?</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Categories</div>
+                                <div class="custom-dropdown-option" data-value="General">General</div>
+                                <div class="custom-dropdown-option" data-value="OBC">OBC</div>
+                                <div class="custom-dropdown-option" data-value="SC">SC</div>
+                                <div class="custom-dropdown-option" data-value="ST">ST</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-from-date"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" id="filter-from-date" class="date-input" value="{{ from_date }}">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-to-date"><i class="fas fa-calendar-check"></i> To Date</label>
+                        <input type="date" id="filter-to-date" class="date-input" value="{{ to_date }}">
+                    </div>
+                </div>
+            </div>
+            <div class="filter-footer">
+                <button type="button" class="btn btn-secondary" id="reset-filters">
+                    <i class="fas fa-undo"></i> Clear All
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <!-- Card View -->
+        <div id="card-view" class="view-content">
+            {% if students %}
+            <div class="students-grid">
+                {% for student in students %}
+                <div class="student-card">
+                    <div class="student-card-header">
+                        <div class="student-avatar">
+                            {% if student.PhotoBase64 %}
+                            <img src="data:image/jpeg;base64,{{ student.PhotoBase64 }}" alt="{{ student.FullName }}"
+                                loading="lazy">
+                            {% else %}
+                            <div class="default-avatar">{{ student.FullName|first|upper }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="student-header-content">
+                            <div class="student-name">{{ student.FullName|default:"N/A" }}</div>
+                            <div class="student-code">{{ student.StudentCode|default:"N/A" }}</div>
+                        </div>
+                    </div>
+                    <div class="student-card-body">
+                        <div class="student-info">
+                            <div class="info-row">
+                                <span class="info-label"><i class="fas fa-graduation-cap"></i> Class</span>
+                                <span class="info-value">{{ student.ClassName|default:"N/A" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="fas fa-users"></i> Section</span>
+                                <span class="info-value">{{ student.SectionName|default:"N/A" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="fas fa-hashtag"></i> Roll No</span>
+                                <span class="info-value">{{ student.RollNumber|default:"N/A" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="fas fa-phone"></i> Mobile</span>
+                                <span class="info-value">{{ student.MobileNo|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                        <div class="student-actions">
+                            <button class="btn-card btn-success" onclick="viewIDCard('{{ student.StudentID }}')"
+                                title="View ID Card">
+                                <i class="fas fa-id-card"></i> ID
+                            </button>
+                            <button class="btn-card btn-primary" onclick="viewReportCard('{{ student.StudentID }}')"
+                                title="Report Card View">
+                                <i class="fas fa-file-alt"></i> Report
+                            </button>
+                            <button class="btn-card btn-danger" onclick="viewFeeReport('{{ student.StudentID }}')"
+                                title="Fee Report View">
+                                <i class="fas fa-receipt"></i> Fee
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-user-graduate"></i>
+                <h3>No Students Found</h3>
+                <p>No students match your current search criteria.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Table View -->
+        <div id="table-view" class="view-content" style="display: none;">
+            {% if students %}
+            <div class="table-container">
+                <table class="students-table">
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Student ID</th>
+                            <th>Full Name</th>
+                            <th>Class</th>
+                            <th>Section</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td class="photo-cell">
+                                {% if student.PhotoBase64 %}
+                                <img src="data:image/jpeg;base64,{{ student.PhotoBase64 }}" alt="{{ student.FullName }}"
+                                    class="table-photo" loading="lazy">
+                                {% else %}
+                                <div class="table-avatar">
+                                    {{ student.FullName|first|upper }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>{{ student.StudentCode|default:"N/A" }}</td>
+                            <td>{{ student.FullName|default:"N/A" }}</td>
+                            <td>{{ student.ClassName|default:"N/A" }}</td>
+                            <td>{{ student.SectionName|default:"N/A" }}</td>
+                            <td>
+                                <span class="status-badge {% if student.IsDeleted == 1 %}inactive{% endif %}">
+                                    {% if student.IsDeleted == 1 %}Inactive{% else %}Active{% endif %}
+                                </span>
+                            </td>
+                            <td class="actions-cell">
+                                <button class="action-btn view" onclick="viewIDCard('{{ student.StudentID }}')"
+                                    title="View ID Card">
+                                    <i class="fas fa-id-card"></i>
+                                </button>
+                                <button class="action-btn edit" data-student-id="{{ student.StudentID }}"
+                                    data-action="edit" title="Edit Student">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" data-student-id="{{ student.StudentID }}"
+                                    data-action="delete" title="Delete Student">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-user-graduate"></i>
+                <h3>No Students Found</h3>
+                <p>No students match your current search criteria.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if students and total_count > items_per_page %}
+        <div class="pagination">
+            <div class="pagination-info">
+                Showing {{ start_index }} to {{ end_index }} of {{ total_count }} students
+            </div>
+            <div class="pagination-controls">
+                {% if has_prev %}
+                <button class="pagination-btn" onclick="changePage(1)">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pagination-btn" data-page="{{ page|add:'-1' }}" data-action="change-page">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                {% endif %}
+
+                <button class="pagination-btn active">{{ page }}</button>
+
+                {% if has_next %}
+                <button class="pagination-btn" data-page="{{ page|add:'1' }}" data-action="change-page">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+    const baseUrl = window.location.origin;
+
+    function changePage(page) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', page);
+        window.location.search = params.toString();
+    }
+
+    function viewIDCard(studentId) {
+        // Fetch the ID card HTML directly
+        fetch('/student/idcard/' + studentId + '/')
+            .then(r => r.text())
+            .then(html => {
+                // Create clean modal
+                const modal = document.createElement('div');
+                modal.className = 'id-card-modal';
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    backdrop-filter: blur(8px);
+                    animation: fadeIn 0.3s ease-out;
+                `;
+
+                const modalContent = document.createElement('div');
+                modalContent.className = 'id-card-modal-content';
+                modalContent.style.cssText = `
+                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                    border-radius: 20px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    padding: 30px;
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transform: scale(0.9);
+                    animation: modalSlideIn 0.3s ease-out forwards;
+                `;
+
+                const closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                closeBtn.style.cssText = `
+                    position: absolute;
+                    top: 15px;
+                    right: 15px;
+                    background: rgba(0, 0, 0, 0.7);
+                    color: white;
+                    border: none;
+                    font-size: 16px;
+                    cursor: pointer;
+                    padding: 8px 10px;
+                    border-radius: 50%;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    z-index: 10;
+                `;
+                closeBtn.onmouseover = () => {
+                    closeBtn.style.background = 'rgba(0, 0, 0, 0.9)';
+                    closeBtn.style.transform = 'scale(1.1)';
+                };
+                closeBtn.onmouseout = () => {
+                    closeBtn.style.background = 'rgba(0, 0, 0, 0.7)';
+                    closeBtn.style.transform = 'scale(1)';
+                };
+                closeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    modal.style.animation = 'fadeOut 0.2s ease-in forwards';
+                    modalContent.style.animation = 'modalSlideOut 0.2s ease-in forwards';
+                    setTimeout(() => modal.remove(), 200);
+                };
+
+                // Create card container
+                const cardContainer = document.createElement('div');
+                cardContainer.innerHTML = html;
+                cardContainer.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+
+                // Add CSS animations
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes fadeOut {
+                        from { opacity: 1; }
+                        to { opacity: 0; }
+                    }
+                    @keyframes modalSlideIn {
+                        from { transform: scale(0.9) translateY(-20px); opacity: 0; }
+                        to { transform: scale(1) translateY(0); opacity: 1; }
+                    }
+                    @keyframes modalSlideOut {
+                        from { transform: scale(1) translateY(0); opacity: 1; }
+                        to { transform: scale(0.9) translateY(-20px); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                modalContent.appendChild(closeBtn);
+                modalContent.appendChild(cardContainer);
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+
+                // Close on backdrop click
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        modal.style.animation = 'fadeOut 0.2s ease-in forwards';
+                        modalContent.style.animation = 'modalSlideOut 0.2s ease-in forwards';
+                        setTimeout(() => modal.remove(), 200);
+                    }
+                };
+
+                // Close on Escape key
+                const handleEscape = (e) => {
+                    if (e.key === 'Escape') {
+                        modal.style.animation = 'fadeOut 0.2s ease-in forwards';
+                        modalContent.style.animation = 'modalSlideOut 0.2s ease-in forwards';
+                        setTimeout(() => {
+                            modal.remove();
+                            document.removeEventListener('keydown', handleEscape);
+                        }, 200);
+                    }
+                };
+                document.addEventListener('keydown', handleEscape);
+            })
+            .catch(error => {
+                console.error('Error loading ID card:', error);
+                alert('Error loading ID card. Please try again.');
+            });
+    }
+
+    function viewReportCard(studentId) {
+        alert('Report Card View for student ' + studentId + ' - Feature coming soon!');
+    }
+
+    function viewFeeReport(studentId) {
+        alert('Fee Report View for student ' + studentId + ' - Feature coming soon!');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const filterModal = document.getElementById('filter-modal');
+        const filterBtn = document.getElementById('filter-btn');
+        const closeFilterModal = document.getElementById('close-filter-modal');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const resetFiltersBtn = document.getElementById('reset-filters');
+        const searchInput = document.getElementById('search-input');
+        const perPageSelector = document.getElementById('per-page-selector');
+
+        // Initialize custom dropdowns for the filter panel
+        if (typeof initCustomDropdowns === 'function') {
+            initCustomDropdowns();
+        } else if (window.initCustomDropdowns) {
+            window.initCustomDropdowns();
+        }
+        if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+
+        filterBtn.addEventListener('click', function () {
+            filterModal.style.display = 'flex';
+        });
+
+        closeFilterModal.addEventListener('click', function () {
+            filterModal.style.display = 'none';
+        });
+
+        filterModal.addEventListener('click', function (e) {
+            if (e.target === filterModal) {
+                filterModal.style.display = 'none';
+            }
+        });
+
+        resetFiltersBtn.addEventListener('click', function () {
+            document.getElementById('filter-search').value = '';
+            document.getElementById('filter-class').value = '';
+            document.getElementById('filter-section').value = '';
+            document.getElementById('filter-gender').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-from-date').value = '';
+            document.getElementById('filter-to-date').value = '';
+        });
+
+        applyFiltersBtn.addEventListener('click', function () {
+            applyFilters();
+            filterModal.style.display = 'none';
+        });
+
+        let searchTimeout;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(applyFilters, 500);
+        });
+
+        perPageSelector.addEventListener('change', function () {
+            const searchParams = new URLSearchParams(window.location.search);
+            searchParams.set('per_page', this.value);
+            searchParams.set('page', '1');
+            window.location.search = searchParams.toString();
+        });
+
+        document.querySelectorAll('.pagination-btn').forEach(btn => {
+            if (!btn.disabled) {
+                btn.addEventListener('click', function () {
+                    const page = this.getAttribute('data-page');
+                    changePage(page);
+                });
+            }
+        });
+
+        const schoolSelect = document.getElementById('filter-school');
+        const classSelect = document.getElementById('filter-class');
+        const sectionSelect = document.getElementById('filter-section');
+
+        const fetchSchools = async () => {
+            if (!schoolSelect) return;
+            try {
+                schoolSelect.classList.add('loading');
+                const response = await fetch(`${baseUrl}/api/school-list/`);
+                if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+                const data = await response.json();
+                schoolSelect.classList.remove('loading');
+                schoolSelect.innerHTML = '<option value="">All Schools</option>';
+                if (data.schools && Array.isArray(data.schools)) {
+                    data.schools.forEach(school => {
+                        const option = document.createElement('option');
+                        option.value = school.id;
+                        option.textContent = school.display_name || school.name;
+                        schoolSelect.appendChild(option);
+                    });
+                    const currentSchoolId = '{{ school_filter }}';
+                    if (currentSchoolId) {
+                        schoolSelect.value = currentSchoolId;
+                    }
+                }
+                fetchClasses(schoolSelect.value);
+            } catch (error) {
+                console.error('Error fetching schools:', error);
+                schoolSelect.innerHTML = '<option value="">Failed to load schools</option>';
+                fetchClasses();
+            } finally {
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            }
+        };
+
+        const fetchClasses = async (schoolId = null) => {
+            try {
+                let url = `${baseUrl}/api/classes/`;
+                if (!schoolId) {
+                    const schoolFilterVal = document.getElementById("filter-school");
+                    if (schoolFilterVal && schoolFilterVal.value) {
+                        schoolId = schoolFilterVal.value;
+                    }
+                }
+                if (schoolId) {
+                    url += `?school_id=${schoolId}`;
+                }
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+                const responseData = await response.json();
+                const classes = responseData.classes || [];
+                classSelect.innerHTML = '<option value="">All Classes</option>';
+                classes.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls.ClassID;
+                    option.textContent = cls.ClassName;
+                    classSelect.appendChild(option);
+                });
+                const currentClassId = '{{ class_id }}';
+                if (currentClassId) {
+                    classSelect.value = currentClassId;
+                }
+            } catch (error) {
+                console.error('Error fetching classes:', error);
+                classSelect.innerHTML = '<option value="">Failed to load classes</option>';
+            } finally {
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            }
+        };
+
+        if (schoolSelect) {
+            schoolSelect.addEventListener('change', function () {
+                classSelect.innerHTML = '<option value="">All Classes</option>';
+                sectionSelect.innerHTML = '<option value="">All Sections</option>';
+                sectionSelect.disabled = true;
+                fetchClasses(this.value);
+            });
+        }
+
+        classSelect.addEventListener('change', async function () {
+            sectionSelect.innerHTML = '<option value="">All Sections</option>';
+            sectionSelect.disabled = true;
+            const classId = this.value;
+            if (!classId) {
+                sectionSelect.disabled = false;
+                return;
+            }
+            try {
+                const response = await fetch(`${baseUrl}/api/sections/?class_id=${classId}`);
+                if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+                const responseData = await response.json();
+                const sections = responseData.sections || [];
+                sections.forEach(section => {
+                    const option = document.createElement('option');
+                    option.value = section.SectionID;
+                    option.textContent = section.SectionName;
+                    sectionSelect.appendChild(option);
+                });
+                const currentSectionId = '{{ section_id }}';
+                if (currentSectionId) {
+                    sectionSelect.value = currentSectionId;
+                }
+                sectionSelect.disabled = false;
+            } catch (error) {
+                console.error('Error fetching sections:', error);
+            } finally {
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+                sectionSelect.disabled = false;
+            }
+        });
+
+        if (schoolSelect) {
+            fetchSchools();
+        } else {
+            fetchClasses();
+        }
+
+        function applyFilters() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const searchValue = searchInput.value.trim();
+            const search = document.getElementById('filter-search').value.trim();
+            const classId = document.getElementById('filter-class').value;
+            const sectionId = document.getElementById('filter-section').value;
+            const gender = document.getElementById('filter-gender').value;
+            const category = document.getElementById('filter-category').value;
+            const schoolFilter = document.getElementById('filter-school');
+
+            if (schoolFilter) {
+                if (schoolFilter.value) searchParams.set('school_filter', schoolFilter.value);
+                else searchParams.delete('school_filter');
+            }
+            const fromDate = document.getElementById('filter-from-date').value.trim();
+            const toDate = document.getElementById('filter-to-date').value.trim();
+
+            if (searchValue || search) searchParams.set('search', searchValue || search);
+            else searchParams.delete('search');
+
+            if (classId) searchParams.set('class_id', classId);
+            else searchParams.delete('class_id');
+
+            if (sectionId) searchParams.set('section_id', sectionId);
+            else searchParams.delete('section_id');
+
+            if (gender) searchParams.set('gender', gender);
+            else searchParams.delete('gender');
+
+            if (category) searchParams.set('category', category);
+            else searchParams.delete('category');
+
+            if (fromDate) searchParams.set('from_date', fromDate);
+            else searchParams.delete('from_date');
+
+            if (toDate) searchParams.set('to_date', toDate);
+            else searchParams.delete('to_date');
+
+            searchParams.set('page', '1');
+            window.location.search = searchParams.toString();
+        }
+    });
+
+</script>
+<script src="{% static 'js/shikshawave-list.js' %}?v=2.2"></script>
+{% endblock %}

@@ -1,0 +1,608 @@
+<!-- Student Bulk Upload Modal -->
+<div id="studentBulkUploadModal" class="modal">
+    <div class="modal-content large-modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-graduate"></i> Student Bulk Data Load</h3>
+            <button class="close-btn" onclick="closeStudentUploadModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <!-- Progress Steps -->
+            <div class="upload-steps">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Upload File</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Preview Data</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Commit</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Upload -->
+            <div id="stepContent1" class="step-content">
+                {% if show_school_dropdown %}
+                <div class="form-group">
+                    <label>Select School *</label>
+                    <select id="schoolSelect" class="form-control" required>
+                        <option value="">-- Select School --</option>
+                        <!-- Schools will be loaded via AJAX -->
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <a href="{% url 'download_template' 'Students' %}" class="btn btn-primary btn-block" download>
+                        <i class="fas fa-download"></i> Download Excel Template
+                    </a>
+                </div>
+
+                <div id="expectedColumnsContainer"></div>
+
+                <div class="upload-area" id="studentUploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">Drag & Drop your Excel file here</div>
+                    <div class="upload-hint">or click to browse (Max 10MB, .xlsx, .xls, or .csv)</div>
+                    <input type="file" id="studentFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+                </div>
+
+                <div id="fileInfoContainer" style="display: none;"></div>
+
+                <div id="validationResultsContainer" style="display: none;"></div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-success" id="uploadBtn" onclick="studentUpload.uploadAndValidate()" disabled>
+                        <i class="fas fa-check-circle"></i> Validate File
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Preview -->
+            <div id="stepContent2" class="step-content" style="display: none;">
+                <div id="previewContainer"></div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="studentUpload.goToStep(1)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button class="btn btn-primary" onclick="studentUpload.commitImport()">
+                        <i class="fas fa-check"></i> Commit Import
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Results -->
+            <div id="stepContent3" class="step-content" style="display: none;">
+                <div id="commitResultsContainer"></div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="spinner"></div>
+                <div class="loading-text">Processing...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.large-modal {
+    max-width: 95%;
+    width: 1200px;
+}
+
+.upload-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.upload-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 15%;
+    right: 15%;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 0;
+}
+
+.step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--light-gray);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-weight: 600;
+    color: var(--text-light);
+    transition: all 0.3s;
+}
+
+.step.active .step-circle {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+}
+
+.step.completed .step-circle {
+    background: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.step.active .step-label {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.columns-info {
+    background: var(--light-gray);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.columns-info h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.columns-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.column-badge {
+    background: white;
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: var(--text-color);
+}
+
+.column-badge.required {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.columns-note {
+    margin: 10px 0 0 0;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 10px;
+    padding: 40px 20px;
+    text-align: center;
+    background: var(--light-gray);
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 20px 0;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color);
+    background: rgba(79, 70, 229, 0.05);
+}
+
+.upload-area.dragover {
+    border-color: var(--success-color);
+    background: rgba(16, 185, 129, 0.1);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.upload-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+.upload-hint {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.file-info-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(79, 70, 229, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.file-info-card i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+.file-size {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.remove-file-btn {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.remove-file-btn:hover {
+    transform: scale(1.1);
+}
+
+.validation-summary {
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.validation-summary h3 {
+    color: var(--success-color);
+    margin: 0 0 15px 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.stat-card {
+    background: var(--light-gray);
+    border: 2px solid var(--border-color);
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-card.success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: var(--success-color);
+}
+
+.stat-card.danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--danger-color);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+.stat-card.success .stat-number {
+    color: var(--success-color);
+}
+
+.stat-card.danger .stat-number {
+    color: var(--danger-color);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.validation-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--warning-color);
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--warning-color);
+    margin-top: 15px;
+}
+
+.column-mismatch-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 2px solid var(--danger-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.column-mismatch-error h3 {
+    color: var(--danger-color);
+    margin: 0 0 15px 0;
+}
+
+.column-mismatch-error h4 {
+    margin: 15px 0 10px 0;
+    font-size: 1rem;
+}
+
+.column-mismatch-error ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.preview-table-section,
+.error-table-section {
+    margin: 20px 0;
+}
+
+.preview-table-section h4,
+.error-table-section h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+}
+
+.error-title {
+    color: var(--danger-color) !important;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.preview-table,
+.error-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.preview-table th,
+.error-table th {
+    background: var(--primary-color);
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    position: sticky;
+    top: 0;
+}
+
+.preview-table td,
+.error-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+}
+
+.error-messages {
+    max-width: 300px;
+}
+
+.error-msg {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid var(--danger-color);
+    padding: 5px 8px;
+    margin: 3px 0;
+    font-size: 0.8rem;
+    border-radius: 3px;
+}
+
+.error-actions {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.commit-results {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.success-icon {
+    font-size: 4rem;
+    color: var(--success-color);
+    margin-bottom: 20px;
+}
+
+.commit-results h3 {
+    color: var(--success-color);
+    margin: 0 0 20px 0;
+    font-size: 1.5rem;
+}
+
+.commit-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 30px 0;
+}
+
+.commit-stat {
+    background: var(--light-gray);
+    border: 2px solid var(--border-color);
+    padding: 20px 40px;
+    border-radius: 8px;
+}
+
+.commit-stat.success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: var(--success-color);
+}
+
+.commit-stat.danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--danger-color);
+}
+
+.commit-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.commit-stat.success .commit-number {
+    color: var(--success-color);
+}
+
+.commit-stat.danger .commit-number {
+    color: var(--danger-color);
+}
+
+.commit-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.commit-message {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin: 20px 0;
+}
+
+.commit-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.spinner {
+    border: 4px solid var(--light-gray);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    margin-top: 15px;
+    font-size: 1rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+body.dark-mode .validation-summary,
+body.dark-mode .preview-table,
+body.dark-mode .error-table,
+body.dark-mode .file-info-card {
+    background: var(--secondary-color);
+}
+
+body.dark-mode .loading-overlay {
+    background: rgba(31, 41, 55, 0.95);
+}
+</style>
+
+<script>
+function openStudentUploadModal() {
+    document.getElementById('studentBulkUploadModal').classList.add('show');
+    {% if show_school_dropdown %}
+    loadSchools();
+    {% endif %}
+}
+
+function closeStudentUploadModal() {
+    document.getElementById('studentBulkUploadModal').classList.remove('show');
+    if (studentUpload) {
+        studentUpload.goToStep(1);
+        studentUpload.removeFile();
+    }
+}
+
+{% if show_school_dropdown %}
+async function loadSchools() {
+    try {
+        const response = await fetch('/api/schools/');
+        const data = await response.json();
+        const select = document.getElementById('schoolSelect');
+        if (select && data.schools) {
+            select.innerHTML = '<option value="">-- Select School --</option>' +
+                data.schools.map(s => `<option value="${s.school_id}">${s.school_name}</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error loading schools:', error);
+    }
+}
+{% endif %}
+</script>

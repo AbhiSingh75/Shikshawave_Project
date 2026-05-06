@@ -1,0 +1,419 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Update User | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.7">
+<style>
+    /* Standardized Compact Container */
+    .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+
+    /* Standard Card-based Form Section - Compact */
+    .form-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+        margin-top: 5px;
+    }
+
+    body.dark-mode .form-section {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    /* Fixed 3-column Grid - Compact gaps */
+    .sw-update-form-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 20px !important;
+        align-items: end; /* All fields and buttons align to bottom */
+    }
+
+    .form-group {
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group label {
+        display: block;
+        margin: 0;
+        font-weight: 700;
+        color: var(--text-main);
+        font-size: 0.75rem; /* Smaller labels for compact feel */
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.8;
+    }
+
+    .form-control {
+        width: 100%;
+        height: 42px; /* Standardize input height */
+        padding: 0 12px;
+        border: 1.5px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        background: var(--card-bg);
+        color: var(--text-main);
+        transition: var(--transition);
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    body.dark-mode .form-control {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .form-control.readonly {
+        background-color: var(--bg-hover);
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    /* Override for custom dropdowns in update page */
+    .sw-update-form-grid .custom-dropdown-toggle {
+        height: 42px; /* Match standard inputs */
+        padding: 0 12px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .sw-update-form-grid .custom-dropdown-arrow {
+        right: 12px;
+    }
+
+    /* Photo Upload - More Compact and Aligned */
+    .file-upload {
+        border: 1.5px dashed var(--border-color);
+        height: 42px; /* Match standard inputs initially */
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 12px;
+        gap: 10px;
+        background: var(--bg-hover);
+        transition: var(--transition);
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .file-upload:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-light);
+    }
+
+    /* Keep the image preview from breaking the layout */
+    .preview-image,
+    .current-photo {
+        height: 30px;
+        width: 30px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        flex-shrink: 0;
+    }
+
+    .upload-text {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .btn {
+        height: 42px; /* Standardize button height to match inputs */
+        padding: 0 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary {
+        background: var(--card-bg);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+    }
+
+    /* Action Buttons in Grid */
+    .grid-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        grid-column: span 1;
+    }
+
+    /* Mobile Overrides */
+    @media (max-width: 768px) {
+        .sw-update-form-grid {
+            grid-template-columns: 1fr !important;
+            gap: 18px !important;
+            align-items: stretch; /* Stacked fields stretch full width */
+        }
+        
+        /* OVERRIDE GLOBAL HIDING OF CUSTOM DROPDOWN */
+        .sw-update-form-grid .custom-dropdown {
+            display: block !important;
+        }
+
+        .grid-actions {
+            grid-column: span 1;
+            flex-direction: column-reverse;
+            align-items: stretch;
+            margin-top: 10px;
+        }
+        
+        .grid-actions .btn {
+            width: 100%;
+        }
+
+        .form-section {
+            padding: 15px;
+        }
+    }
+
+    @media (max-width: 1100px) and (min-width: 769px) {
+        .sw-update-form-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .grid-actions {
+            grid-column: span 2;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="controls-row" style="margin-bottom: 20px;">
+        <div class="controls-left">
+            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-main);">
+                <i class="fas fa-user-edit" style="color: var(--primary-color); margin-right: 8px;"></i> Update User
+            </h3>
+        </div>
+        <div class="controls-right">
+            <a href="javascript:history.back()" class="btn btn-secondary" style="height: 36px; padding: 0 15px; font-size: 0.85rem;">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="form-section">
+        {% if error %}
+        <div style="background: rgba(239, 68, 68, 0.1); color: var(--error-color); padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--error-color); font-size: 0.9rem;">
+            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" id="updateUserForm" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ user.UserID }}">
+
+            <div class="sw-update-form-grid">
+                <!-- Row 1 -->
+                <div class="form-group">
+                    <label for="user_name">Full Name <span style="color: var(--error-color)">*</span></label>
+                    <input type="text" id="user_name" name="user_name" required class="form-control" maxlength="50" value="{{ user.UserName }}" placeholder="Enter full name">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" pattern="[0-9]{10}" maxlength="10" value="{{ user.Phone|default:'' }}" placeholder="10 digit number">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" value="{{ user.Email|default:'' }}" placeholder="example@domain.com">
+                </div>
+
+                <!-- Row 2 -->
+                {% if can_change_profile %}
+                <div class="form-group">
+                    <label for="profile">User Role / Profile <span style="color: var(--error-color)">*</span></label>
+                    <select id="profile" name="profile" required class="form-control" style="display: none;">
+                        <option value="">Select Role</option>
+                        {% for profile in profiles %}
+                        <option value="{{ profile.ProfileID }}" {% if profile.ProfileID == user.ProfileID %}selected{% endif %}>{{ profile.ProfileName }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="custom-dropdown" data-target="profile">
+                        <div class="custom-dropdown-toggle">
+                            <span class="custom-dropdown-text">{% for profile in profiles %}{% if profile.ProfileID == user.ProfileID %}{{ profile.ProfileName }}{% endif %}{% endfor %}</span>
+                            <span class="custom-dropdown-arrow"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-option" data-value="">Select Role</div>
+                            {% for profile in profiles %}
+                            <div class="custom-dropdown-option {% if profile.ProfileID == user.ProfileID %}selected{% endif %}" data-value="{{ profile.ProfileID }}">{{ profile.ProfileName }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="form-group">
+                    <input type="hidden" name="profile" value="{{ user.ProfileID }}">
+                    <label>User Role / Profile</label>
+                    <input type="text" class="form-control readonly" value="{% for profile in profiles %}{% if profile.ProfileID == user.ProfileID %}{{ profile.ProfileName }}{% endif %}{% endfor %}" readonly>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="user_code">User Code</label>
+                    <input type="text" id="user_code" name="user_code" class="form-control readonly" value="{{ user.UserCode }}" readonly>
+                </div>
+
+                <div class="form-group" id="schoolGroup" {% if not can_change_school %}style = "opacity: 0.6;"{% endif %}>
+                    <label for="school">Associated School <span style="color: var(--error-color)">*</span></label>
+                    <select id="school" name="school" class="form-control" {% if not can_change_school %}disabled{% endif %} style="display: none;">
+                        <option value="">Select School</option>
+                        {% for school in schools %}
+                        <option value="{{ school.SchoolID }}" {% if school.SchoolID == user.SchoolID %}selected{% endif %}>{{ school.DisplayName }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="custom-dropdown" data-target="school">
+                        <div class="custom-dropdown-toggle">
+                            <span class="custom-dropdown-text">{% for school in schools %}{% if school.SchoolID == user.SchoolID %}{{ school.DisplayName }}{% endif %}{% endfor %}</span>
+                            <span class="custom-dropdown-arrow"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-option" data-value="">Select School</div>
+                            {% for school in schools %}
+                            <div class="custom-dropdown-option {% if school.SchoolID == user.SchoolID %}selected{% endif %}" data-value="{{ school.SchoolID }}">{{ school.DisplayName }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if not can_change_school %}<input type = "hidden" name = "school" value = "{{ user.SchoolID }}">{% endif %}
+                </div>
+
+                <!-- Row 3 -->
+                <div class="form-group">
+                    <label>User Photo</label>
+                    <input type="file" id="user_photo" name="user_photo" accept="image/*" style="display: none;" onchange="handlePhotoChange(this)">
+                    <label for="user_photo" class="file-upload" id="photoDropZone">
+                        {% if user.UserPhotoBase64 %}
+                        <img src="data:image/jpeg;base64,{{ user.UserPhotoBase64 }}" class="current-photo" alt="Current Photo" id="currentPhoto">
+                        {% endif %}
+                        <img id="imagePreview" class="preview-image" style="display: none;">
+                        <span class="upload-text" id="uploadText">{% if user.UserPhotoBase64 %}Change photo{% else %}Select photo{% endif %}</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="new_password">New Password <span style="font-weight: normal; font-size: 0.75rem; opacity: 0.7;">(Optional)</span></label>
+                    <input type="password" id="new_password" name="new_password" class="form-control" minlength="8" placeholder="Min 8 chars, 1 & 1">
+                </div>
+
+                <div class="grid-actions">
+                    <a href="javascript:history.back()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary" style="background: var(--success-color);">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shikshawave-list.js' %}?v=2.7"></script>
+<script>
+    function handlePhotoChange(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const preview = document.getElementById('imagePreview');
+                const current = document.getElementById('currentPhoto');
+                const text = document.getElementById('uploadText');
+                if (preview) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                if (current) current.style.display = 'none';
+                if (text) text.textContent = input.files[0].name;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('updateUserForm');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    form.reportValidity();
+                }
+            });
+        }
+
+        // Profile-based School Toggle Logic
+        const profileSelect = document.getElementById('profile');
+        const schoolGroup = document.getElementById('schoolGroup');
+        const schoolSelect = document.getElementById('school');
+
+        if (profileSelect && schoolGroup && schoolSelect) {
+            function toggleSchool() {
+                const val = profileSelect.value;
+                const schoolDropdown = schoolGroup.querySelector('.custom-dropdown');
+                
+                // '1' is Super Admin (Global)
+                if (val === '1') {
+                    schoolGroup.style.display = 'none';
+                    if (schoolDropdown) schoolDropdown.style.display = 'none';
+                    schoolSelect.removeAttribute('required');
+                } else {
+                    schoolGroup.style.display = 'block';
+                    if (schoolDropdown) {
+                        // Handle mobile visibility override specifically here too if needed
+                        const isMobile = window.innerWidth <= 768;
+                        schoolDropdown.style.setProperty('display', 'block', 'important');
+                    }
+                    schoolSelect.setAttribute('required', 'required');
+                }
+            }
+
+            profileSelect.addEventListener('change', toggleSchool);
+            // Initial call - wait for custom dropdown initialization to complete
+            setTimeout(toggleSchool, 300);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:20px;font-family:Arial,sans-serif;background:#fff">
+<div style="max-width:500px;margin:0 auto;padding:30px;border:2px solid #e0e0e0;border-radius:8px">
+<h2 style="margin:0 0 20px;color:#333;font-size:24px">{% if school_name %}{{ school_name }}{% else %}ShikshaWave{% endif %}</h2>
+<p style="margin:0 0 15px;color:#666;font-size:15px">Hello {{ user_name }},</p>
+<div style="background:#f5f5f5;padding:20px;border-radius:6px;text-align:center;margin:20px 0">
+<span style="font-size:36px;font-weight:bold;color:#333;letter-spacing:6px;font-family:monospace">{{ otp }}</span>
+</div>
+<p style="margin:15px 0;color:#666;font-size:14px">Valid for {{ valid_minutes }} minutes</p>
+<p style="margin:15px 0;color:#999;font-size:12px">IP: {{ ip_address }}</p>
+</div>
+</body>
+</html>

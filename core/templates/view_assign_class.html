@@ -1,0 +1,329 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}View Assign Class | ShikshaWave ERP{% endblock %}
+
+{% block extra_head %}
+<meta name="cache-buster" content="v1.0-assign-class">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-users"></i> View Assign Class</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-list"></i>
+                    <span>Total: {{ total_count|default:0 }}</span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Active: {{ active_count|default:0 }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" name="search" value="{{ search }}"
+                    placeholder="Search assignments...">
+            </div>
+            <select name="per_page" id="per-page-selector" class="btn">
+                <option value="10" {% if per_page|default:25 == 10 %}selected{% endif %}>10 per page</option>
+                <option value="25" {% if per_page == 25 %}selected{% endif %}>25 per page</option>
+                <option value="50" {% if per_page == 50 %}selected{% endif %}>50 per page</option>
+                <option value="100" {% if per_page == 100 %}selected{% endif %}>100 per page</option>
+            </select>
+            <button class="filter-btn" id="filter-btn">
+                <i class="fas fa-filter"></i> <span>Filters</span>
+            </button>
+            <button class="download-btn" id="downloadBtn">
+                <i class="fas fa-file-export"></i> <span class="download-text">Export</span>
+            </button>
+            <div class="column-visibility">
+                <button class="column-toggle-btn" id="columnsBtn">
+                    <i class="fas fa-columns"></i> <span>Columns</span>
+                </button>
+                <div class="column-menu" id="column-menu"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter"></i> Filter Assignments</h3>
+                <button class="action-btn" id="close-filter-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-body">
+                <div class="filter-row full">
+                    <div class="filter-group">
+                        <label for="filter-search"><i class="fas fa-search"></i> Search</label>
+                        <input type="text" id="filter-search" name="search" value="{{ search }}"
+                            placeholder="Search by teacher, class, or subject">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-academic-year"><i class="fas fa-calendar-alt"></i> Academic Year</label>
+                        <select id="filter-academic-year" name="academic_year">
+                            <option value="">All Academic Years</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-teacher-name"><i class="fas fa-chalkboard-teacher"></i> Teacher Name</label>
+                        <input type="text" id="filter-teacher-name" name="teacher_name" value="{{ teacher_name }}"
+                            placeholder="Teacher Name">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-class-name"><i class="fas fa-graduation-cap"></i> Class Name</label>
+                        <select id="filter-class-name" name="class_id">
+                            <option value="">All Classes</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-subject-name"><i class="fas fa-book"></i> Subject Name</label>
+                        <input type="text" id="filter-subject-name" name="subject_name" value="{{ subject_name }}"
+                            placeholder="Subject Name">
+                    </div>
+                </div>
+            </div>
+            <div class="filter-footer">
+                <button type="button" class="btn btn-secondary" id="reset-filters">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="table-header">
+            <div class="table-info">
+                Showing {{ start_index }} to {{ end_index }} of {{ total_count }} entries
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th data-column="sn">SN</th>
+                        <th data-column="actions">Actions</th>
+                        <th data-column="employee-code" class="sortable" data-sort="EmployeeCode">Employee Code <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="teacher-name" class="sortable" data-sort="TeacherName">Teacher Name <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="class-name" class="sortable" data-sort="ClassName">Class Name <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="section-name">Section Name</th>
+                        <th data-column="subject-name" class="sortable" data-sort="SubjectName">Subject Name <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="academic-year">Academic Year</th>
+                        <th data-column="start-date" class="sortable" data-sort="StartDate">Start Date <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="end-date">End Date</th>
+                        <th data-column="class-teacher">Class Teacher</th>
+                        <th data-column="assignment-order">Assignment Order</th>
+                        <th data-column="remarks">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                    <tr>
+                        <td data-column="sn">{{ forloop.counter0|add:start_index }}</td>
+                        <td data-column="actions">
+                            <div class="action-buttons">
+                                <button class="action-btn edit-btn"
+                                    onclick="editAssignment('{{ assignment.AssignmentID|default:0 }}')"
+                                    title="Edit Assignment">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn"
+                                    onclick="deleteAssignment('{{ assignment.AssignmentID|default:0 }}')"
+                                    title="Delete Assignment">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td data-column="employee-code">{{ assignment.EmployeeCode|default:"N/A" }}</td>
+                        <td data-column="teacher-name">{{ assignment.TeacherName|default:"N/A" }}</td>
+                        <td data-column="class-name">{{ assignment.ClassName|default:"N/A" }}</td>
+                        <td data-column="section-name">{{ assignment.SectionName|default:"N/A" }}</td>
+                        <td data-column="subject-name">{{ assignment.SubjectName|default:"N/A" }}</td>
+                        <td data-column="academic-year">{{ assignment.AcademicYear|default:"N/A" }}</td>
+                        <td data-column="start-date">{{ assignment.StartDateFormatted|default:"N/A" }}</td>
+                        <td data-column="end-date">{{ assignment.EndDateFormatted|default:"N/A" }}</td>
+                        <td data-column="class-teacher">{{ assignment.IsClassTeacherText|default:"N/A" }}</td>
+                        <td data-column="assignment-order">{{ assignment.AssignmentOrder|default:"N/A" }}</td>
+                        <td data-column="remarks">{{ assignment.Remarks|default:"N/A"|truncatechars:20 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="13" style="text-align:center; padding:20px; color: var(--text-light);">
+                            <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            No assignments found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <div class="pagination-controls">
+                {% if page|add:'-1' > 0 %}
+                <button class="pagination-btn" data-page="1">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pagination-btn" data-page="{{ page|add:'-1' }}">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                {% endif %}
+
+                <button class="pagination-btn active" data-page="{{ page }}">{{ page }}</button>
+
+                {% if has_next %}
+                <button class="pagination-btn" data-page="{{ page|add:'1' }}">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const baseUrl = window.location.origin;
+
+        // Load Academic Years and Classes
+        const loadAcademicYears = async () => {
+            try {
+                const response = await fetch(`${baseUrl}/api/academic-years/`);
+                if (!response.ok) throw new Error('Failed to load academic years');
+                const years = await response.json();
+                const select = document.getElementById('filter-academic-year');
+                // Keep the "All" option
+                years.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year.year;
+                    option.textContent = year.year;
+                    if (year.year === '{{ academic_year }}') option.selected = true;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading academic years:', error);
+            }
+        };
+
+        const loadClasses = async () => {
+            try {
+                const response = await fetch(`${baseUrl}/api/classes/`);
+                if (!response.ok) throw new Error('Failed to load classes');
+                const classes = await response.json();
+                const select = document.getElementById('filter-class-name');
+                classes.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls.id;
+                    option.textContent = cls.name;
+                    // if (cls.id == '{{ class_id }}') option.selected = true;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading classes:', error);
+            }
+        };
+
+        loadAcademicYears();
+        loadClasses();
+
+        // Download CSV functionality
+        const downloadBtn = document.getElementById("downloadBtn");
+        if (downloadBtn) {
+            downloadBtn.addEventListener("click", function () {
+                exportToCSV();
+            });
+        }
+    });
+
+    // Export to CSV functionality
+    function exportToCSV() {
+        const table = document.querySelector('table');
+        if (!table) return;
+        const rows = table.querySelectorAll('tr');
+        let csv = [];
+
+        // Get headers
+        const headers = [];
+        if (rows.length > 0) {
+            rows[0].querySelectorAll('th').forEach(th => {
+                headers.push('"' + th.textContent.trim() + '"');
+            });
+            csv.push(headers.join(','));
+        }
+
+        // Get data rows
+        for (let i = 1; i < rows.length; i++) {
+            const row = [];
+            rows[i].querySelectorAll('td').forEach(td => {
+                let cellText = td.textContent.trim();
+                cellText = cellText.replace(/"/g, '""');
+                row.push('"' + cellText + '"');
+            });
+            csv.push(row.join(','));
+        }
+
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'assignments_' + new Date().toISOString().split('T')[0] + '.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Action button functions
+    function editAssignment(assignmentId) {
+        console.log('Edit assignment:', assignmentId);
+        if (window.showToast) window.showToast('info', `Edit assignment ${assignmentId} - Feature coming soon!`);
+    }
+
+    function deleteAssignment(assignmentId) {
+        if (confirm('Are you sure you want to delete this assignment?')) {
+            console.log('Delete assignment:', assignmentId);
+            if (window.showToast) window.showToast('info', `Delete assignment ${assignmentId} - Feature coming soon!`);
+        }
+    }
+</script>
+{% endblock %}

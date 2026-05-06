@@ -1,0 +1,217 @@
+================================================================================
+DASHBOARD STUDENT VISUALIZATION - UPDATE SUMMARY
+================================================================================
+
+UPDATES IMPLEMENTED:
+1. Show only ACTIVE students by default
+2. Added date range filters (From Date - To Date)
+3. Added Reset button to clear all filters
+4. Made student cards visible ONLY for School Admin (Profile ID 2) and Teacher (Profile ID 3)
+
+================================================================================
+CHANGES MADE
+================================================================================
+
+1. STORED PROCEDURE (Proc_Dashboard_Students_Get.sql)
+   NEW PARAMETERS:
+   - @FromDate (DATE) - Filter students created from this date
+   - @ToDate (DATE) - Filter students created until this date
+   - @ShowActiveOnly (BIT) - Default: 1 (show only active students)
+   
+   UPDATED LOGIC:
+   - Added date range filtering on Student.CreatedAt column
+   - Added active-only filter (IsActive = 1)
+   - Applied filters to both summary and class breakdown queries
+
+2. BACKEND (core/views.py)
+   
+   dashboard_view():
+   - Changed to show active students by default (@ShowActiveOnly = 1)
+   - Total students now shows active count instead of all students
+   
+   api_dashboard_students():
+   - Added from_date parameter
+   - Added to_date parameter
+   - Added show_active_only parameter (default: '1')
+   - Passes all parameters to stored procedure
+
+3. FRONTEND (core/templates/core/dashboard.html)
+   
+   FILTER SECTION:
+   - Added "From Date" input field (type="date")
+   - Added "To Date" input field (type="date")
+   - Added "Reset" button next to "Apply" button
+   - Wrapped entire filter section in profile check: {% if user.profile_id == 2 or user.profile_id == 3 %}
+   
+   DASHBOARD CARDS:
+   - Changed "Total Students" to "Active Students"
+   - Wrapped student cards in profile check: {% if user.profile_id == 2 or user.profile_id == 3 %}
+   - Only School Admin and Teacher can see student statistics cards
+   - Other profiles see only Teachers and Fees cards
+   
+   JAVASCRIPT:
+   - Added date filter handling in applyFilters()
+   - Added show_active_only parameter (always '1')
+   - Added resetFilters() function to clear all filters
+   - Reset button clears all inputs and triggers apply
+
+================================================================================
+PROFILE-BASED VISIBILITY
+================================================================================
+
+VISIBLE TO (Profile ID 2 & 3):
+- School Admin (Profile ID = 2)
+- Teacher (Profile ID = 3)
+
+HIDDEN FROM:
+- Super Admin (Profile ID = 1)
+- Student (Profile ID = 4)
+- Other profiles
+
+WHAT THEY SEE:
+✓ Filter section with all filters
+✓ Active Students card
+✓ Male Students card
+✓ Female Students card
+✓ Category Breakdown card
+
+WHAT OTHERS SEE:
+✓ Total Teachers card
+✓ Pending Fees card
+✓ Other general dashboard cards
+
+================================================================================
+DEFAULT BEHAVIOR
+================================================================================
+
+ON PAGE LOAD:
+- Shows ONLY active students (IsActive = 1)
+- No date filters applied
+- No class/section/gender/category filters applied
+- Shows all active students for the school
+
+AFTER APPLYING FILTERS:
+- Still shows only active students
+- Applies date range if specified
+- Applies other filters if selected
+- Updates cards in real-time
+
+AFTER RESET:
+- Clears all filter inputs
+- Automatically triggers "Apply Filters"
+- Returns to default state (all active students)
+
+================================================================================
+DATE FILTER USAGE
+================================================================================
+
+EXAMPLES:
+
+1. Students created in January 2024:
+   From Date: 2024-01-01
+   To Date: 2024-01-31
+   Click "Apply"
+
+2. Students created after June 1, 2024:
+   From Date: 2024-06-01
+   To Date: (leave empty)
+   Click "Apply"
+
+3. Students created before December 31, 2023:
+   From Date: (leave empty)
+   To Date: 2023-12-31
+   Click "Apply"
+
+4. All active students (no date filter):
+   From Date: (leave empty)
+   To Date: (leave empty)
+   Click "Apply" or "Reset"
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+□ Verify stored procedure accepts new parameters
+□ Test default load shows only active students
+□ Test date range filtering (From Date only)
+□ Test date range filtering (To Date only)
+□ Test date range filtering (both dates)
+□ Test Reset button clears all filters
+□ Test Reset button reloads default data
+□ Verify cards visible for School Admin (Profile ID 2)
+□ Verify cards visible for Teacher (Profile ID 3)
+□ Verify cards hidden for Super Admin (Profile ID 1)
+□ Verify cards hidden for Student (Profile ID 4)
+□ Test combined filters (date + class + gender)
+
+================================================================================
+SQL TESTING COMMANDS
+================================================================================
+
+-- Test default (active only)
+EXEC Proc_Dashboard_Students_Get @SchoolID = 3, @ShowActiveOnly = 1;
+
+-- Test with date range
+EXEC Proc_Dashboard_Students_Get 
+    @SchoolID = 3, 
+    @FromDate = '2024-01-01', 
+    @ToDate = '2024-12-31',
+    @ShowActiveOnly = 1;
+
+-- Test with all filters
+EXEC Proc_Dashboard_Students_Get 
+    @SchoolID = 3,
+    @ClassID = 5,
+    @Gender = 'Male',
+    @Category = 'General',
+    @FromDate = '2024-01-01',
+    @ToDate = '2024-12-31',
+    @ShowActiveOnly = 1;
+
+================================================================================
+INSTALLATION STEPS
+================================================================================
+
+1. Re-execute the updated stored procedure:
+   sqlcmd -S your_server -d your_database -i database/procedures/Proc_Dashboard_Students_Get.sql
+
+2. Restart Django server:
+   python manage.py runserver
+
+3. Clear browser cache (Ctrl+Shift+Delete)
+
+4. Login as School Admin or Teacher
+
+5. Verify:
+   - Filter section is visible
+   - Student cards are visible
+   - Date inputs are present
+   - Reset button is present
+   - Default shows active students only
+
+6. Test filters and reset functionality
+
+================================================================================
+ROLLBACK (IF NEEDED)
+================================================================================
+
+If you need to revert to previous version:
+
+1. Restore previous stored procedure version
+2. Restore previous views.py changes
+3. Restore previous dashboard.html template
+4. Restart Django server
+
+================================================================================
+NOTES
+================================================================================
+
+- Date filtering is based on Student.CreatedAt column
+- Active students means IsActive = 1 AND IsDeleted = 0
+- Profile check uses user.profile_id from session
+- Reset button provides better UX than manual clearing
+- Date inputs use HTML5 date picker (browser-native)
+
+================================================================================
+END OF UPDATE SUMMARY
+================================================================================

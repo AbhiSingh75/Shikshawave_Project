@@ -1,0 +1,804 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Class Management | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { 
+        background-color: var(--bg-color); 
+        color: var(--text-main);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .dashboard-container { 
+        padding: 5px 24px; 
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Standardized Control Row */
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--card-bg, #fff);
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color, #e5e7eb);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .controls-row {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .controls-left h3 { 
+        margin: 0; 
+        font-size: 1.25rem; 
+        font-weight: 700; 
+        color: var(--text-main); 
+        display: flex; 
+        align-items: center; 
+        gap: 10px;
+        letter-spacing: -0.02em;
+    }
+
+    .count-badge {
+        font-size: 0.75rem;
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    .controls-right { display: flex; align-items: center; gap: 12px; }
+
+    /* Premium Table Styling */
+    .sw-table-container {
+        background: var(--card-bg, #fff);
+        border-radius: 16px;
+        border: 1px solid var(--border-color, #e5e7eb);
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .sw-table-container {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .sw-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .sw-table thead th { 
+        background: var(--primary-color);
+        color: #ffffff;
+        text-align: left;
+        padding: 10px 20px;
+        font-size: 0.725rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border: none;
+    }
+    .sw-table thead th:first-child { border-top-left-radius: 12px; }
+    .sw-table thead th:last-child { border-top-right-radius: 12px; text-align: right; }
+
+    .sw-table tbody td {
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        font-size: 0.9rem;
+        font-weight: 500;
+        vertical-align: middle;
+    }
+    .sw-table tbody tr:last-child td { border-bottom: none; }
+    .sw-table tbody tr:hover td { background: var(--bg-hover); transition: background 0.2s; }
+
+    /* Badges & Buttons */
+    .section-btn {
+        background: var(--bg-hover); border: 1px solid var(--border-color);
+        padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+        color: var(--primary-color); cursor: pointer; transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+    .section-btn:hover { background: var(--primary-color); color: white; }
+
+    .status-badge { 
+        padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; 
+        font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .status-active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .status-inactive { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    .action-btn { 
+        width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; 
+        border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; 
+    }
+    .edit-btn { 
+        color: #f59e0b; background: rgba(245, 158, 11, 0.05); 
+        border: 1px solid rgba(245, 158, 11, 0.15); 
+    }
+    .edit-btn:hover { background: #f59e0b; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); }
+    
+    .delete-btn { 
+        color: #ef4444; background: rgba(239, 68, 68, 0.05); 
+        border: 1px solid rgba(239, 68, 68, 0.15); 
+    }
+    .delete-btn:hover { background: #ef4444; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+
+    .btn-standard {
+        height: 40px; padding: 0 20px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+        display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; border: none;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        color: white !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-standard:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(124, 58, 237, 0.3); filter: brightness(1.1); }
+
+    .btn-cancel {
+        height: 40px; padding: 0 20px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+        display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;
+        border: 1px solid var(--border-color); background: var(--bg-hover, #f1f5f9); color: var(--text-main);
+        white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-cancel:hover { background: var(--border-color); transform: translateY(-1px); }
+
+    /* Modal Architecture */
+    .sw-modal-container {
+        display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .sw-modal-container.show { display: flex !important; }
+    .sw-modal {
+        background: var(--card-bg); width: 100%; max-width: 550px; border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden;
+        border: 1px solid var(--border-color); animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex; flex-direction: column;
+    }
+    @keyframes modalPop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    .sw-modal-header {
+        padding: 16px 24px; background: var(--primary-color); display: flex;
+        justify-content: space-between; align-items: center;
+    }
+    .sw-modal-title { display: flex; align-items: center; gap: 12px; color: white; }
+    .sw-modal-title h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: white !important; }
+    .sw-modal-close {
+        width: 30px; height: 30px; border-radius: 8px; background: rgba(255, 255, 255, 0.15);
+        color: white; border: none; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.2s; font-size: 1.1rem;
+    }
+    .sw-modal-close:hover { background: rgba(255, 255, 255, 0.25); transform: rotate(90deg); }
+
+    .sw-modal-body { padding: 24px; max-height: 70vh; overflow-y: auto; }
+    .sw-modal-footer {
+        padding: 20px 24px; background: var(--bg-hover, #f1f5f9); display: flex;
+        justify-content: flex-end; align-items: center; gap: 12px; border-top: 1px solid var(--border-color);
+    }
+    body.dark-mode .sw-modal-footer { background: rgba(0, 0, 0, 0.2); }
+
+    /* Forms */
+    .sw-form-group { margin-bottom: 20px; }
+    .sw-form-group label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .sw-form-control {
+        width: 100%; padding: 12px 16px; border: 1.5px solid var(--border-color); background: var(--card-bg);
+        color: var(--text-main); border-radius: 12px; font-size: 0.95rem; font-weight: 600; transition: all 0.2s;
+    }
+    .sw-modal .sw-form-control {
+        width: 100% !important;
+    }
+    
+    /* Standardized Select Styling */
+    select.sw-form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 16px;
+        padding-right: 40px;
+        cursor: pointer;
+    }
+
+    body.dark-mode select.sw-form-control {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    }
+    .sw-form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1); }
+
+    /* Mobile */
+    .mobile-view { display: none; }
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 12px; }
+        .controls-row { flex-direction: column; gap: 16px; align-items: stretch; padding: 16px; }
+        .controls-right { flex-direction: column; align-items: stretch; width: 100%; gap: 12px; }
+        .table-container { display: none; }
+        .mobile-view { display: flex; flex-direction: column; gap: 16px; }
+        .m-card {
+            background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color);
+            padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .m-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px; }
+        .m-title { font-weight: 800; color: var(--text-main); font-size: 1.15rem; letter-spacing: -0.02em; }
+        .m-subtitle { font-size: 0.8rem; color: var(--primary-color); font-weight: 700; text-transform: uppercase; margin-top: 2px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Controls Section -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-graduation-cap" style="color: var(--primary-color);"></i> 
+                Class Management
+                <span class="count-badge" id="classCount">{{ classes|length|default:"0" }}</span>
+            </h3>
+        </div>
+        <div class="controls-right">
+            {% if schools_list %}
+            <select id="school_select" class="sw-form-control" style="width: 300px;"
+                onchange="window.location.replace('?school_id=' + this.value)">
+                <option value="">-- All Schools --</option>
+                {% for school in schools_list %}
+                <option value="{{ school.EncryptedSchoolID }}" {% if selected_school_id|slugify == school.SchoolID|slugify %}selected{% endif %}>
+                    [{{ school.SchoolCode }}] {{ school.SchoolName }}
+                </option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <button type="button" class="btn-standard" onclick="openAddClassModal()">
+                <i class="fas fa-plus"></i> Add New Class
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div id="classList">
+        {% if classes %}
+        <!-- Desktop Table -->
+        <div class="sw-table-container table-container">
+            <table class="sw-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px; text-align: center;">S.N.</th>
+                        <th>Class Name</th>
+                        <th>Class Code</th>
+                        <th>Education Level</th>
+                        <th style="text-align: center;">Sections</th>
+                        <th style="text-align: center;">Status</th>
+                        <th style="text-align: right; padding-right: 20px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for class in classes %}
+                    <tr>
+                        <td style="text-align: center; color: var(--text-muted);">{{ forloop.counter }}</td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--text-main); font-size: 1rem; letter-spacing: -0.01em;">{{ class.1 }}</div>
+                        </td>
+                        <td><span class="order-badge" style="background: var(--bg-hover); color: var(--primary-color); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color);">{{ class.2 }}</span></td>
+                        <td><span style="color: var(--text-muted);">{{ class.3|default:"-" }}</span></td>
+                        <td style="text-align: center;">
+                            {% with sections=class_sections|lookup:class.0 %}
+                            {% if sections %}
+                            <button class="section-btn" onclick="viewSections('{{ class.7 }}', '{{ class.1|escapejs }}')" title="View Sections">
+                                <i class="fas fa-layer-group"></i> {{ sections|length }}
+                            </button>
+                            {% else %}
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">0</span>
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td style="text-align: center;">
+                            {% if class.5 %}
+                            <span class="status-badge status-active">Active</span>
+                            {% else %}
+                            <span class="status-badge status-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right; padding-right: 20px;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button class="action-btn edit-btn" title="Edit Class"
+                                    onclick="openEditClassModal(this)"
+                                    data-id="{{ class.7 }}" data-name="{{ class.1 }}" data-code="{{ class.2 }}"
+                                    data-level="{{ class.3|default:'' }}" data-description="{{ class.4|default:'' }}"
+                                    data-status="{% if class.5 %}1{% else %}0{% endif %}">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                                <button class="action-btn delete-btn" title="Delete Class"
+                                    onclick="deleteClass('{{ class.7 }}', '{{ class.1|escapejs }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile View -->
+        <div class="mobile-view">
+            {% for class in classes %}
+            <div class="m-card">
+                <div class="m-card-header">
+                    <div>
+                        <div class="m-title">{{ class.1 }}</div>
+                        <div class="m-subtitle">{{ class.2 }}</div>
+                    </div>
+                    {% if class.5 %}
+                    <span class="status-badge status-active">Active</span>
+                    {% else %}
+                    <span class="status-badge status-inactive">Inactive</span>
+                    {% endif %}
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div style="background: var(--bg-light); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Education Level</div>
+                        <div style="font-weight: 700; color: var(--text-main); font-size: 0.9rem;">{{ class.3|default:"-" }}</div>
+                    </div>
+                    <div style="background: var(--bg-light); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Total Sections</div>
+                        <div style="font-weight: 700; color: var(--primary-color); font-size: 0.9rem;">
+                            <i class="fas fa-layer-group"></i> {{ class_sections|lookup:class.0|length|default:"0" }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="m-card-footer" style="display: grid; grid-template-columns: 1fr auto auto; gap: 10px;">
+                    <button class="btn-standard" style="height: 42px; justify-content: center;" onclick="viewSections('{{ class.7 }}', '{{ class.1|escapejs }}')">
+                        <i class="fas fa-eye"></i> View Sections
+                    </button>
+                    <button class="action-btn edit-btn" style="height: 42px; width: 42px;" onclick="openEditClassModal(this)"
+                        data-id="{{ class.7 }}" data-name="{{ class.1 }}" data-code="{{ class.2 }}"
+                        data-level="{{ class.3|default:'' }}" data-description="{{ class.4|default:'' }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete-btn" style="height: 42px; width: 42px;" onclick="deleteClass('{{ class.7 }}', '{{ class.1|escapejs }}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div style="padding: 60px 20px; text-align: center;">
+            <div style="width: 80px; height: 80px; background: var(--bg-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i class="fas fa-graduation-cap" style="font-size: 2.5rem; color: var(--text-muted); opacity: 0.5;"></i>
+            </div>
+            <h4 style="color: var(--text-main); font-weight: 700; font-size: 1.25rem; margin-bottom: 8px;">No Classes Found</h4>
+            <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto 24px;">
+                {% if schools_list and not selected_school_id %}
+                Please select a school from the dropdown to view its classes.
+                {% else %}
+                Start by adding your first class to manage sections and student assignments.
+                {% endif %}
+            </p>
+            {% if not schools_list or selected_school_id %}
+            <button class="btn-standard" style="margin: 0 auto;" onclick="openAddClassModal()">
+                <i class="fas fa-plus"></i> Add First Class
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Class Modal -->
+<div id="addClassModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-plus-circle"></i>
+                <h2>Add New Class</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeAddClassModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{% url 'add_class' %}" method="POST" id="addClassForm">
+            {% csrf_token %}
+            <div class="sw-modal-body">
+                <div class="sw-form-group">
+                    <label class="sw-label">Select School</label>
+                    <select class="sw-form-control" name="school_id" id="add_school_id" required>
+                        <option value="">-- Select School --</option>
+                        {% for school in schools_list %}
+                        <option value="{{ school.SchoolID }}" {% if selected_school_id|slugify == school.SchoolID|slugify %}selected{% endif %}>
+                            [{{ school.SchoolCode }}] {{ school.SchoolName }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="sw-form-group">
+                        <label>Class Name *</label>
+                        <input type="text" name="class_name" class="sw-form-control" placeholder="e.g. Class 1" required>
+                    </div>
+                    <div class="sw-form-group">
+                        <label>Class Code *</label>
+                        <input type="text" name="class_code" class="sw-form-control" placeholder="e.g. C1" required>
+                    </div>
+                </div>
+
+                <div class="sw-form-group">
+                    <label>Education Level</label>
+                    <select name="education_level" class="sw-form-control">
+                        <option value="">-- Select Level --</option>
+                        <option value="Pre-Primary">Pre-Primary</option>
+                        <option value="Primary">Primary</option>
+                        <option value="Middle">Middle</option>
+                        <option value="Secondary">Secondary</option>
+                        <option value="Senior Secondary">Senior Secondary</option>
+                    </select>
+                </div>
+
+                <div class="sw-form-group">
+                    <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        Manage Sections
+                        <button type="button" class="section-btn" onclick="addSection()">
+                            <i class="fas fa-plus"></i> Add Section
+                        </button>
+                    </label>
+                    <div id="sectionsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                        <p style="text-align:center; color:var(--text-muted); padding: 15px; border: 1.5px dashed var(--border-color); border-radius: 12px; font-size: 0.85rem; margin: 0;">
+                            No sections added yet. Click "Add Section" above.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="sw-form-group" style="margin-bottom: 0;">
+                    <label>Description</label>
+                    <textarea name="description" class="sw-form-control" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeAddClassModal()">Cancel</button>
+                <button type="submit" class="btn-standard">
+                    <i class="fas fa-save"></i> Save Class
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Class Modal -->
+<div id="editClassModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-edit"></i>
+                <h2>Edit Class</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeEditClassModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="editClassForm" method="POST" action="{% url 'add_class' %}">
+            {% csrf_token %}
+            <input type="hidden" name="edit_mode" value="1">
+            <input type="hidden" name="class_id" id="edit_class_id">
+            <input type="hidden" name="school_id" id="edit_school_id">
+            <div class="sw-modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="sw-form-group">
+                        <label>Class Name *</label>
+                        <input type="text" name="class_name" id="edit_class_name" class="sw-form-control" required>
+                    </div>
+                    <div class="sw-form-group">
+                        <label>Class Code *</label>
+                        <input type="text" name="class_code" id="edit_class_code" class="sw-form-control" required>
+                    </div>
+                </div>
+
+                <div class="sw-form-group">
+                    <label>Education Level</label>
+                    <select name="education_level" id="edit_education_level" class="sw-form-control">
+                        <option value="">-- Select Level --</option>
+                        <option value="Pre-Primary">Pre-Primary</option>
+                        <option value="Primary">Primary</option>
+                        <option value="Middle">Middle</option>
+                        <option value="Secondary">Secondary</option>
+                        <option value="Senior Secondary">Senior Secondary</option>
+                    </select>
+                </div>
+
+                <div class="sw-form-group">
+                    <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        Manage Sections
+                        <button type="button" class="section-btn" onclick="addEditSection()">
+                            <i class="fas fa-plus"></i> Add Section
+                        </button>
+                    </label>
+                    <div id="editSectionsContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 5px;">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <div class="sw-form-group" style="margin-bottom: 0;">
+                    <label>Description</label>
+                    <textarea name="description" id="edit_description" class="sw-form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeEditClassModal()">Cancel</button>
+                <button type="submit" class="btn-standard">
+                    <i class="fas fa-save"></i> Update Class
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- View Sections Modal -->
+<div id="viewSectionsModal" class="sw-modal-container">
+    <div class="sw-modal" style="max-width: 700px;">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-layer-group"></i>
+                <h2>Sections for <span id="viewSectionsClassName" style="color: white; opacity: 0.9;"></span></h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeViewSectionsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body" style="padding: 0;">
+            <div id="sectionsListContainer">
+                <!-- Sections Table loaded via AJAX -->
+            </div>
+        </div>
+        <div class="sw-modal-footer" style="padding: 15px 24px;">
+            <button type="button" class="btn-standard" onclick="closeViewSectionsModal()">
+                <i class="fas fa-check"></i> Close Window
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Utility for showing/hiding modals
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                const firstInput = modal.querySelector('input, select, textarea');
+                if (firstInput) firstInput.focus();
+            }, 300);
+        }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Modal Specific Logic
+    function openAddClassModal() {
+        const schoolId = new URLSearchParams(window.location.search).get('school_id');
+        const sidEl = document.getElementById('add_school_id');
+        if (sidEl) sidEl.value = schoolId || "";
+        
+        document.getElementById('addClassForm').reset();
+        document.getElementById('sectionsContainer').innerHTML = `
+            <p style="text-align:center; color:var(--text-muted); padding: 15px; border: 1.5px dashed var(--border-color); border-radius: 12px; font-size: 0.85rem; margin: 0;">
+                No sections added yet. Click "Add Section" above.
+            </p>
+        `;
+        openModal('addClassModal');
+    }
+
+    function closeAddClassModal() { closeModal('addClassModal'); }
+
+    function openEditClassModal(btn) {
+        const schoolId = new URLSearchParams(window.location.search).get('school_id');
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        const code = btn.getAttribute('data-code');
+        const level = btn.getAttribute('data-level');
+        const description = btn.getAttribute('data-description');
+
+        const sidEl = document.getElementById('edit_school_id');
+        if (sidEl) sidEl.value = schoolId || "";
+        document.getElementById('edit_class_id').value = id;
+        document.getElementById('edit_class_name').value = name;
+        document.getElementById('edit_class_code').value = code;
+        document.getElementById('edit_education_level').value = level || "";
+        document.getElementById('edit_description').value = description || "";
+
+        loadClassSections(id);
+        openModal('editClassModal');
+    }
+
+    function closeEditClassModal() { closeModal('editClassModal'); }
+    function closeViewSectionsModal() { closeModal('viewSectionsModal'); }
+
+    // Section Management Logic
+    function addSection(containerId = 'sectionsContainer', id = '', name = '', capacity = '', room = '') {
+        const container = document.getElementById(containerId);
+        const placeholder = container.querySelector('p');
+        if (placeholder) placeholder.remove();
+
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'section-input-row';
+        sectionDiv.style.display = 'flex';
+        sectionDiv.style.gap = '10px';
+        sectionDiv.style.marginBottom = '8px';
+        sectionDiv.innerHTML = `
+            <input type="hidden" name="section_id[]" value="${id || ''}">
+            <div style="flex: 2;">
+                <input type="text" name="section_name[]" class="sw-form-control" value="${name}" placeholder="Name (e.g. A)" required style="padding: 8px 12px;">
+            </div>
+            <div style="flex: 1;">
+                <input type="number" name="section_capacity[]" class="sw-form-control" value="${capacity}" placeholder="Cap" min="1" style="padding: 8px 12px;">
+            </div>
+            <div style="flex: 1.5;">
+                <input type="text" name="section_room[]" class="sw-form-control" value="${room}" placeholder="Room No" style="padding: 8px 12px;">
+            </div>
+            <button type="button" class="action-btn delete-btn" onclick="this.parentElement.remove()" style="height: 38px; width: 38px; flex-shrink: 0;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        container.appendChild(sectionDiv);
+    }
+
+    function addEditSection(id = '', name = '', capacity = '', room = '') {
+        addSection('editSectionsContainer', id, name, capacity, room);
+    }
+
+    function loadClassSections(classId) {
+        const container = document.getElementById('editSectionsContainer');
+        container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 10px;">Loading...</p>';
+
+        const schoolId = new URLSearchParams(window.location.search).get('school_id');
+        let url = `/class/${classId}/sections/`;
+        if (schoolId) url += `?school_id=${schoolId}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                container.innerHTML = '';
+                if (data.success && data.sections.length > 0) {
+                    data.sections.forEach(section => {
+                        addEditSection(section.section_id, section.section_name, section.capacity || '', section.room_number || '');
+                    });
+                } else {
+                    container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 10px; border: 1.5px dashed var(--border-color); border-radius: 12px; font-size: 0.85rem; margin: 0;">No sections found.</p>';
+                }
+            });
+    }
+
+    // View Sections Logic
+    function viewSections(classId, className) {
+        document.getElementById('viewSectionsClassName').textContent = className;
+        const container = document.getElementById('sectionsListContainer');
+        container.innerHTML = `
+            <div style="padding: 40px; text-align: center;">
+                <i class="fas fa-circle-notch fa-spin fa-xl" style="color: var(--primary-color);"></i>
+                <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">Loading...</p>
+            </div>`;
+
+        const schoolId = new URLSearchParams(window.location.search).get('school_id');
+        let url = `/class/${classId}/sections/`;
+        if (schoolId) url += `?school_id=${schoolId}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.sections.length > 0) {
+                    const totalCap = data.sections.reduce((sum, s) => sum + (parseInt(s.capacity) || 0), 0);
+                    
+                    let html = `
+                    <div class="view-sections-wrapper" style="background: var(--bg-color);">
+                        <!-- Compact Stats Header -->
+                        <div style="display: flex; gap: 10px; padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border-color);">
+                            <div style="flex: 1; padding: 10px; background: rgba(124, 58, 237, 0.04); border-radius: 10px; border: 1px solid rgba(124, 58, 237, 0.08); display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 30px; height: 30px; border-radius: 8px; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; line-height: 1;">Sections</div>
+                                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">${data.sections.length}</div>
+                                </div>
+                            </div>
+                            <div style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.04); border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.08); display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 30px; height: 30px; border-radius: 8px; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; line-height: 1;">Capacity</div>
+                                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">${totalCap}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Compact Cards Container -->
+                        <div style="padding: 15px 20px; display: grid; grid-template-columns: 1fr; gap: 8px;">`;
+                    
+                    data.sections.forEach(sec => {
+                        html += `
+                        <div id="sec-row-${sec.section_id}" style="background: var(--card-bg); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 15px; transition: all 0.2s;">
+                            <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1rem; flex-shrink: 0; box-shadow: 0 4px 8px rgba(124, 58, 237, 0.15);">
+                                ${sec.section_name}
+                            </div>
+                            
+                            <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div>
+                                    <div style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-chair" style="font-size: 0.55rem;"></i> Seats
+                                    </div>
+                                    <div style="font-weight: 700; color: var(--text-main); font-size: 0.9rem;">${sec.capacity || '-'}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-door-open" style="font-size: 0.55rem;"></i> Room
+                                    </div>
+                                    <div style="font-weight: 700; color: var(--text-main); font-size: 0.9rem;">${sec.room_number || '-'}</div>
+                                </div>
+                            </div>
+
+                            <button class="action-btn delete-btn" onclick="deleteSection('${sec.section_id}', '${sec.section_name}', '${classId}')" style="height: 34px; width: 34px; flex-shrink: 0; font-size: 0.85rem;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>`;
+                    });
+
+                    html += '</div></div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `
+                    <div style="padding: 60px 20px; text-align: center; color: var(--text-muted);">
+                        <div style="width: 60px; height: 60px; background: var(--bg-hover); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                            <i class="fas fa-layer-group fa-2x" style="opacity: 0.2;"></i>
+                        </div>
+                        <h4 style="color: var(--text-main); font-weight: 700; font-size: 1.1rem; margin-bottom: 8px;">No Sections Found</h4>
+                        <p style="font-size: 0.85rem; max-width: 250px; margin: 0 auto;">Assign sections via the 'Edit Class' menu.</p>
+                    </div>`;
+                }
+                openModal('viewSectionsModal');
+            });
+    }
+
+    function deleteClass(id, name) {
+        if (confirm(`Delete class "${name}" and all its sections?`)) {
+            fetch(`/class/delete/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            }).then(res => res.json()).then(data => {
+                if (data.success) location.reload();
+                else alert(data.error || 'Delete failed');
+            });
+        }
+    }
+
+    function deleteSection(id, name, classId) {
+        if (confirm(`Delete section "${name}"?`)) {
+            fetch(`/section/${id}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            }).then(res => res.json()).then(data => {
+                if (data.success) document.getElementById(`sec-row-${id}`).remove();
+                else alert(data.error || 'Delete failed');
+            });
+        }
+    }
+
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('sw-modal-container')) closeModal(e.target.id);
+    });
+</script>
+{% endblock %}

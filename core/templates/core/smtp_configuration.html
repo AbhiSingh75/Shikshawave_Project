@@ -1,0 +1,1009 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}SMTP Configuration | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* High-Density Page Header / Control Row */
+    .sw-container {
+        background: var(--bg-main, #f8fafc);
+        min-height: 100vh;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+
+    body.dark-mode .sw-container {
+        background: var(--bg-main, #0f172a);
+    }
+
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--card-bg);
+        padding: 10px 18px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+        z-index: 1001;
+    }
+
+    .controls-left h3 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .count-badge {
+        font-size: 0.75rem;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-weight: 800;
+    }
+
+    .controls-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .control-buttons { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+
+    /* Global Standard Dropdown Alignment */
+    .custom-dropdown { position: relative; min-width: 220px; flex-shrink: 0; }
+    .custom-dropdown-toggle { 
+        width: 100%; height: 42px; border: 1px solid var(--border-color); 
+        border-radius: 10px; font-size: 0.85rem; background: var(--card-bg); 
+        color: var(--text-main); white-space: nowrap; transition: 0.2s;
+        display: flex; align-items: center; padding: 0 12px; gap: 8px; cursor: pointer;
+        font-weight: 600;
+    }
+    .custom-dropdown-toggle:hover { border-color: var(--primary-color); background: var(--bg-hover); }
+    .custom-dropdown-toggle .selected-value { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
+    .custom-dropdown-menu {
+        position: absolute; top: 100%; right: 0; width: 100%; min-width: 260px; 
+        background: var(--card-bg); border: 1px solid var(--border-color); 
+        border-radius: 12px; margin-top: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        display: none; z-index: 1005; overflow: hidden;
+    }
+    .custom-dropdown.active .custom-dropdown-menu { display: block; animation: swDropdownSlide 0.2s ease-out; }
+    @keyframes swDropdownSlide { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .dropdown-search { padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--bg-hover); display: flex; align-items: center; gap: 10px; }
+    .dropdown-search input { border: none; background: transparent; color: var(--text-main); width: 100%; outline: none; font-size: 0.85rem; font-weight: 600; }
+    .dropdown-options { max-height: 250px; overflow-y: auto; padding: 5px; }
+    .dropdown-option { 
+        padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; gap: 10px; 
+        cursor: pointer; color: var(--text-main); font-size: 0.85rem; transition: 0.2s;
+        font-weight: 500;
+    }
+    .dropdown-option:hover { background: var(--bg-hover); color: var(--primary-color); }
+    .dropdown-option.selected { background: var(--primary-light); color: var(--primary-color); font-weight: 700; }
+
+    .btn-standard {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 18px;
+        height: 42px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 750;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+    }
+
+    .btn-standard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.4);
+        filter: brightness(1.1);
+    }
+
+    .btn-standard.btn-secondary {
+        background: var(--bg-hover, #f1f5f9);
+        color: var(--text-main, #475569) !important;
+        box-shadow: none;
+        border: 1px solid var(--border-color, #e2e8f0);
+    }
+
+    .btn-standard.btn-secondary:hover {
+        background: var(--border-color, #e2e8f0);
+        transform: translateY(-1px);
+    }
+
+    /* Premium Table Styling */
+    .table-card {
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color, #e5e7eb);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .table-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .sw-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .sw-table th {
+        background: var(--primary-color);
+        padding: 10px 16px;
+        text-align: left;
+        font-size: 0.725rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #fff;
+        border-bottom: none;
+        white-space: nowrap;
+    }
+
+    .sw-table th:first-child { border-top-left-radius: 12px; }
+    .sw-table th:last-child { border-top-right-radius: 12px; }
+
+    body.dark-mode .sw-table th {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sw-table td {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        border-bottom: 1px solid var(--border-color, #f3f4f6);
+        color: var(--text-main, #374151);
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    body.dark-mode .sw-table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .sw-table tr:hover td {
+        background: var(--bg-hover, #f9fafb);
+    }
+
+    body.dark-mode .sw-table tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Badges */
+    .badge {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .badge-active { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-inactive { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .badge-deleted { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); text-decoration: line-through; }
+    .badge-default { background: var(--primary-light); color: var(--primary-color); border: 1px solid var(--primary-light); }
+    .badge-purpose { background: var(--bg-hover, #f1f5f9); color: var(--text-main, #475569); border: 1px solid var(--border-color, #e2e8f0); font-weight: 500; }
+    
+    .mobile-view { display: none; }
+
+    /* Action Buttons */
+    .action-group { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color, #e5e7eb);
+        background: var(--card-bg, #fff);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.9rem;
+        color: var(--text-main);
+        text-decoration: none;
+    }
+
+    .btn-icon:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .btn-icon.test-btn { color: #0ea5e9; background: rgba(14, 165, 233, 0.05); border-color: rgba(14, 165, 233, 0.15); }
+    .btn-icon.edit-btn { color: #f59e0b; background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.15); }
+    .btn-icon.delete-btn { color: #ef4444; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.15); }
+    .btn-icon.restore-btn { color: #10b981; background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.15); }
+
+    /* Modals */
+    .sw-modal-container {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .sw-modal-container.show { display: flex; }
+    .sw-modal {
+        background: var(--card-bg, #fff);
+        width: 100%;
+        max-width: 650px;
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        border: 1px solid var(--border-color, #e5e7eb);
+        animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalScaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    
+    .sw-modal-header {
+        padding: 24px 32px;
+        background: var(--primary-color, #7c3aed);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+    }
+    .sw-modal-title { margin: 0; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .sw-modal-close { background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; color: white; cursor: pointer; transition: 0.2s; }
+    .sw-modal-close:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg); }
+
+    .sw-modal-body { padding: 32px; max-height: 70vh; overflow-y: auto; }
+    .sw-modal-footer { padding: 20px 32px; background: var(--bg-hover, #f8fafc); border-top: 1px solid var(--border-color, #e5e7eb); display: flex; justify-content: flex-end; gap: 12px; }
+
+    /* Forms */
+    .sw-form-group { margin-bottom: 20px; }
+    .sw-form-label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--primary-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sw-form-control {
+        width: 100%; height: 44px; padding: 10px 16px; border-radius: 12px; border: 1.5px solid var(--border-color, #e2e8f0);
+        background: var(--card-bg, #fff); color: var(--text-main, #1e293b); font-size: 0.95rem; font-weight: 600; transition: all 0.2s; box-sizing: border-box;
+    }
+    .sw-form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px var(--primary-light);
+    }
+    body.dark-mode .sw-form-control { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: white; }
+    
+    .sw-checkbox-row {
+        display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-hover, #f8fafc); border-radius: 12px; border: 1.5px solid var(--border-color, #e2e8f0); cursor: pointer; transition: 0.2s;
+    }
+    .sw-checkbox-row:hover { border-color: var(--primary-color); }
+    .sw-checkbox-row input { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
+    .sw-checkbox-row label { margin: 0; cursor: pointer; font-weight: 650; font-size: 0.9rem; color: var(--text-main, #334155); }
+
+    /* Global Mobile Design Refinements */
+    @media (max-width: 768px) {
+        .sw-container { padding: 10px; padding-top: 55px; }
+        
+        .controls-row { 
+            flex-direction: column; 
+            align-items: stretch; 
+            gap: 10px; 
+            padding: 12px; 
+            margin-bottom: 12px;
+        }
+        
+        .controls-left { margin-bottom: 4px; }
+        .controls-left h3 { font-size: 1.1rem; }
+        
+        .controls-right, .control-buttons { 
+            flex-direction: column; 
+            width: 100%; 
+            gap: 10px; 
+        }
+        
+        .sw-form-control { 
+            width: 100% !important; 
+            min-width: 0 !important; 
+            height: 40px; 
+            font-size: 0.85rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+        
+        .btn-standard { 
+            flex: 1;
+            justify-content: center; 
+            height: 40px; 
+            font-size: 0.85rem;
+            padding: 0 10px;
+        }
+        
+        .sw-table { display: none; }
+        .table-card { background: transparent; border: none; box-shadow: none; }
+        
+        .mobile-view { display: flex; flex-direction: column; gap: 14px; padding: 0; }
+        .mobile-card {
+            background: var(--card-bg, #fff); 
+            border: 1.5px solid var(--border-color, #e5e7eb); 
+            border-radius: 18px; 
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        body.dark-mode .mobile-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .m-card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 12px; 
+            padding-bottom: 10px; 
+            border-bottom: 1px solid var(--border-color, #f1f5f9); 
+        }
+        
+        .m-card-row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+            font-size: 0.9rem; 
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-container">
+    {% if is_super_admin %}
+    <input type="hidden" id="school_selector" value="{% if show_default %}default{% else %}{{ selected_school_id|default:'' }}{% endif %}">
+    {% endif %}
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-envelope-open-text" style="color: var(--primary-color);"></i>
+                SMTP Configuration
+                <span class="count-badge" id="configCountBadge">{{ configs|length }}</span>
+            </h3>
+        </div>
+        <div class="controls-right">
+            <div class="control-buttons">
+                {% if is_super_admin %}
+                <div class="custom-dropdown" id="schoolDropdown">
+                    <div class="custom-dropdown-toggle">
+                        <i class="fas fa-school" style="color: var(--primary-color); opacity: 0.8;"></i>
+                        <span class="selected-value">
+                            {% if show_default %}
+                                ShikshaWave Default
+                            {% elif selected_school_id %}
+                                {% for school in schools %}{% if selected_school_id_raw|slugify == school.SchoolID|slugify %}{{ school.DisplayName }}{% endif %}{% endfor %}
+                            {% else %}
+                                -- Select School --
+                            {% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down ms-2" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                    </div>
+                    <div class="custom-dropdown-menu">
+                        <div class="dropdown-search">
+                            <i class="fas fa-search" style="opacity: 0.5;"></i>
+                            <input type="text" placeholder="Search schools..." onkeyup="filterDropdown(this)">
+                        </div>
+                        <div class="dropdown-options">
+                            <div class="dropdown-option {% if show_default %}selected{% endif %}" onclick="handleDropdownSelect('default')">
+                                <i class="fas fa-globe"></i> ShikshaWave Default
+                            </div>
+                            {% for school in schools %}
+                            <div class="dropdown-option {% if selected_school_id_raw|slugify == school.SchoolID|slugify %}selected{% endif %}" onclick="handleDropdownSelect('{{ school.EncSchoolID }}')">
+                                <i class="fas fa-building"></i> {{ school.DisplayName }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if is_super_admin and selected_school_id or show_default or not is_super_admin %}
+                <div class="vertical-divider" style="height: 24px; width: 1px; background: var(--border-color); margin: 0 4px;"></div>
+                <div class="header-actions">
+                    {% if selected_school_id or show_default %}
+                    <button type="button" class="btn-standard btn-secondary" onclick="resetFilters()" style="background: var(--bg-hover); color: var(--text-main) !important; border: 1px solid var(--border-color); box-shadow: none;">
+                        <i class="fas fa-undo"></i> <span class="btn-label">Reset</span>
+                    </button>
+                    {% endif %}
+                    <button type="button" class="btn-standard" onclick="openModal()">
+                        <i class="fas fa-plus"></i> <span class="btn-label">Add Config</span>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Section (Standardized) -->
+    <div id="messageContainer">
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'smtp_config' in message.tags %}
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const icon = "{{ message.tags }}" === 'success' ? 'success' : 'error';
+                        Swal.fire({
+                            icon: icon,
+                            title: icon.charAt(0).toUpperCase() + icon.slice(1),
+                            text: "{{ message|escapejs }}",
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    });
+                </script>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Data Section -->
+    <div class="table-card">
+        {% if configs %}
+            <!-- Desktop View -->
+            <div style="overflow-x: auto;">
+                <table class="sw-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">S.N.</th>
+                            <th style="width: 120px; text-align: center;">Actions</th>
+                            <th>Config Name</th>
+                            <th>SMTP Host</th>
+                            <th>Port</th>
+                            <th>Purpose</th>
+                            <th>From Email</th>
+                            {% if is_super_admin %}<th>School</th>{% endif %}
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for config in configs %}
+                        <tr {% if config.IsDeleted %}style="opacity: 0.6;"{% endif %}>
+                            <td style="text-align: center;">{{ forloop.counter }}</td>
+                            <td>
+                                <div class="action-group" style="justify-content: center;">
+                                    {% if not config.IsDeleted %}
+                                    <button class="btn-icon test-btn" title="Test Connection" onclick="testExistingConfig('{{ config.EncConfigID }}', '{{ config.ConfigName|escapejs }}')">
+                                        <i class="fas fa-vial"></i>
+                                    </button>
+                                    <button class="btn-icon edit-btn" title="Edit" 
+                                        data-id="{{ config.EncConfigID }}"
+                                        data-name="{{ config.ConfigName|escapejs }}"
+                                        data-purpose="{{ config.Purpose }}"
+                                        data-host="{{ config.SMTPHost|escapejs }}"
+                                        data-port="{{ config.SMTPPort }}"
+                                        data-tls="{{ config.UseTLS|yesno:'true,false' }}"
+                                        data-ssl="{{ config.UseSSL|yesno:'true,false' }}"
+                                        data-user="{{ config.Username|escapejs }}"
+                                        data-from-email="{{ config.FromEmail|escapejs }}"
+                                        data-from-name="{{ config.FromName|escapejs }}"
+                                        data-active="{{ config.IsActive|yesno:'true,false' }}"
+                                        data-password="{{ config.DecryptedPassword|escapejs }}"
+                                        {% if is_super_admin %}data-school-id="{{ config.EncSchoolID }}"{% endif %}
+                                        onclick="editConfig(this)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon delete-btn" title="Delete" onclick="deleteConfig('{{ config.EncConfigID }}', '{{ config.ConfigName|escapejs }}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                    {% else %}
+                                    <button class="btn-icon restore-btn" title="Restore" onclick="restoreConfig('{{ config.EncConfigID }}', '{{ config.ConfigName|escapejs }}')">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700;">{{ config.ConfigName }}</div>
+                                {% if config.IsDefault %}<span class="badge badge-default" style="margin-top: 4px;">Default</span>{% endif %}
+                            </td>
+                            <td>{{ config.SMTPHost }}</td>
+                            <td>{{ config.SMTPPort }}</td>
+                            <td><span class="badge badge-purpose">{{ config.Purpose }}</span></td>
+                            <td>{{ config.FromEmail }}</td>
+                            {% if is_super_admin %}<td>{{ config.SchoolName }}</td>{% endif %}
+                            <td>
+                                {% if config.IsDeleted %}
+                                    <span class="badge badge-deleted">Deleted</span>
+                                {% elif config.IsActive %}
+                                    <span class="badge badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge badge-inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile View (Card Design) -->
+            <div class="mobile-view">
+                {% for config in configs %}
+                <div class="mobile-card">
+                    <div class="m-card-header">
+                        <span style="font-weight: 700;">{{ config.ConfigName }}</span>
+                        {% if config.IsActive %}<span class="badge badge-active">Active</span>{% else %}<span class="badge badge-inactive">Inactive</span>{% endif %}
+                    </div>
+                    <div class="m-card-row">
+                        <span style="color: var(--text-light, #64748b)">Host</span>
+                        <span>{{ config.SMTPHost }}:{{ config.SMTPPort }}</span>
+                    </div>
+                    <div class="m-card-row">
+                        <span style="color: var(--text-light, #64748b)">Encryption</span>
+                        <span>{% if config.UseSSL %}SSL{% elif config.UseTLS %}TLS{% else %}None{% endif %}</span>
+                    </div>
+                    <div class="m-card-row">
+                        <span style="color: var(--text-light, #64748b)">From Email</span>
+                        <span style="font-weight: 600;">{{ config.FromEmail }}</span>
+                    </div>
+                    <div class="m-card-row">
+                        <span style="color: var(--text-light, #64748b)">From Name</span>
+                        <span>{{ config.FromName }}</span>
+                    </div>
+                    <div class="m-card-row">
+                        <span style="color: var(--text-light, #64748b)">Purpose</span>
+                        <span class="badge badge-purpose">{{ config.Purpose }}</span>
+                    </div>
+                    {% if is_super_admin %}
+                    <div class="m-card-row">
+                        <span style="color: var(--text-light, #64748b)">School</span>
+                        <span style="color: var(--primary-color);">{{ config.SchoolName }}</span>
+                    </div>
+                    {% endif %}
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px dashed var(--border-color, #e5e7eb); display:flex; justify-content:flex-end; gap:10px;">
+                        {% if not config.IsDeleted %}
+                        <button class="btn-icon test-btn" onclick="testExistingConfig('{{ config.EncConfigID }}', '{{ config.ConfigName|escapejs }}')">
+                            <i class="fas fa-vial"></i>
+                        </button>
+                        <button class="btn-icon edit-btn" 
+                            data-id="{{ config.EncConfigID }}"
+                            data-name="{{ config.ConfigName|escapejs }}"
+                            data-purpose="{{ config.Purpose }}"
+                            data-host="{{ config.SMTPHost|escapejs }}"
+                            data-port="{{ config.SMTPPort }}"
+                            data-tls="{{ config.UseTLS|yesno:'true,false' }}"
+                            data-ssl="{{ config.UseSSL|yesno:'true,false' }}"
+                            data-user="{{ config.Username|escapejs }}"
+                            data-from-email="{{ config.FromEmail|escapejs }}"
+                            data-from-name="{{ config.FromName|escapejs }}"
+                            data-active="{{ config.IsActive|yesno:'true,false' }}"
+                            data-password="{{ config.DecryptedPassword|escapejs }}"
+                            {% if is_super_admin %}data-school-id="{{ config.EncSchoolID }}"{% endif %}
+                            onclick="editConfig(this)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon delete-btn" onclick="deleteConfig('{{ config.EncConfigID }}', '{{ config.ConfigName|escapejs }}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% else %}
+                        <button class="btn-icon restore-btn" onclick="restoreConfig('{{ config.EncConfigID }}', '{{ config.ConfigName|escapejs }}')">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 80px 20px;">
+                <i class="fas fa-mail-bulk" style="font-size: 4rem; opacity: 0.1; margin-bottom: 24px; display: block;"></i>
+                <p style="color: var(--text-light, #64748b); font-size: 1.1rem;">
+                    {% if is_super_admin %}Please select a school to view SMTP configurations.{% else %}No SMTP configurations found. Click "Add" to begin.{% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="smtpModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header" id="modalHeader">
+            <h5 class="sw-modal-title" id="modalTitle">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add SMTP Configuration</span>
+            </h5>
+            <button type="button" class="sw-modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'smtp_config_save' %}" id="smtpForm">
+            {% csrf_token %}
+            <input type="hidden" name="config_id" id="config_id">
+            
+            <div class="sw-modal-body">
+                {% if is_super_admin %}
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Target School</label>
+                    <select name="school_id" id="school_id" class="sw-form-control" required>
+                        <option value="">Select School</option>
+                        <option value="default">ShikshaWave Default (System-wide)</option>
+                        {% for school in schools %}
+                            <option value="{{ school.EncSchoolID }}">{{ school.DisplayName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Configuration Name</label>
+                    <input type="text" name="config_name" id="config_name" class="sw-form-control" required placeholder="e.g., Primary Office SMTP">
+                </div>
+                
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Usage Purpose</label>
+                    <select name="purpose" id="purpose" class="sw-form-control" required>
+                        <option value="ALL">ALL - Universal</option>
+                        <option value="ADMISSION">Admission Workflow</option>
+                        <option value="FEE_RECEIPT">Fee Receipts</option>
+                        <option value="FEE_REMINDER">Fee Reminders</option>
+                        <option value="OTP">OTP / Security</option>
+                        <option value="NOTIFICATION">Notifications</option>
+                        <option value="MARKETING">Marketing</option>
+                        <option value="TRANSACTIONAL">Transactional</option>
+                    </select>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 120px; gap: 15px;">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">SMTP Host</label>
+                        <input type="text" name="smtp_host" id="smtp_host" class="sw-form-control" required placeholder="e.g., smtp.gmail.com">
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Port</label>
+                        <input type="number" name="smtp_port" id="smtp_port" class="sw-form-control" required value="587">
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <label class="sw-checkbox-row">
+                        <input type="checkbox" name="use_tls" id="use_tls" checked>
+                        <span>Use TLS</span>
+                    </label>
+                    <label class="sw-checkbox-row">
+                        <input type="checkbox" name="use_ssl" id="use_ssl">
+                        <span>Use SSL</span>
+                    </label>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Username</label>
+                        <input type="text" name="username" id="username" class="sw-form-control" required placeholder="SMTP User">
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label" id="password_label">Password</label>
+                        <div style="position: relative;">
+                            <input type="password" name="password" id="password" class="sw-form-control" placeholder="••••••••">
+                            <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: var(--text-light); opacity: 0.6;">
+                                <i class="fas fa-eye" id="password_toggle_icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">From Email</label>
+                        <input type="email" name="from_email" id="from_email" class="sw-form-control" required placeholder="sender@example.com">
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Sender Name</label>
+                        <input type="text" name="from_name" id="from_name" class="sw-form-control" placeholder="Display Name">
+                    </div>
+                </div>
+                
+                <label class="sw-checkbox-row" style="margin-top: 10px;">
+                    <input type="checkbox" name="is_active" id="is_active" checked>
+                    <span>Account Active</span>
+                </label>
+                
+                <div style="margin-top: 25px; padding: 15px; background: var(--bg-hover, #f1f5f9); border-radius: 12px; border: 1px dashed var(--border-color, #cbd5e1);">
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <div class="sw-form-group" style="flex: 1; margin-bottom: 0;">
+                            <label class="sw-form-label" style="margin-bottom: 5px;">Quick Test Recipient</label>
+                            <input type="email" id="test_email" class="sw-form-control" placeholder="test@recipient.com">
+                        </div>
+                        <button type="button" class="btn-standard" id="testBtn" onclick="testConnection()" style="height: 44px;">
+                            <i class="fas fa-paper-plane"></i> Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sw-modal-footer">
+                <button type="button" class="btn-standard btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-standard" id="saveBtn">Save Record</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Test Prompt Modal -->
+<div id="testPromptModal" class="sw-modal-container">
+    <div class="sw-modal" style="max-width: 450px;">
+        <div class="sw-modal-header">
+            <h5 class="sw-modal-title">Connection Test</h5>
+            <button type="button" class="sw-modal-close" onclick="closeTestPrompt()">&times;</button>
+        </div>
+        <div class="sw-modal-body">
+            <div id="testPromptName" style="margin-bottom: 20px; font-weight: 700; color: var(--primary-color); font-size: 1.1rem;"></div>
+            <div class="sw-form-group">
+                <label class="sw-form-label">Verification Email</label>
+                <input type="email" id="testPromptRecipient" class="sw-form-control" placeholder="Where should we send the test?">
+            </div>
+        </div>
+        <div class="sw-modal-footer">
+            <button type="button" class="btn-standard btn-secondary" onclick="closeTestPrompt()">Dismiss</button>
+            <button type="button" class="btn-standard" id="testPromptConfirmBtn" onclick="executeTestExisting()">
+                <i class="fas fa-play"></i> Start Test
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Prevent Resubmission
+if (performance.navigation.type === 1) {
+    if (window.location.search) window.location.href = window.location.pathname;
+}
+
+function handleDropdownSelect(val) {
+    const url = new URL(window.location.href);
+    url.search = '';
+    if (val === 'default') {
+        url.searchParams.set('show_default', '1');
+    } else if (val) {
+        url.searchParams.set('sid', val);
+    }
+    window.location.href = url.href;
+}
+
+function filterDropdown(input) {
+    const filter = input.value.toLowerCase();
+    const options = input.closest('.custom-dropdown-menu').querySelectorAll('.dropdown-option');
+    options.forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        opt.style.display = text.includes(filter) ? 'flex' : 'none';
+    });
+}
+
+// Global Dropdown Handlers
+document.querySelectorAll('.custom-dropdown-toggle').forEach(t => {
+    t.onclick = e => {
+        const p = t.closest('.custom-dropdown');
+        document.querySelectorAll('.custom-dropdown').forEach(d => { if(d !== p) d.classList.remove('active'); });
+        p.classList.toggle('active');
+        e.stopPropagation();
+    }
+});
+
+window.addEventListener('click', () => {
+    document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('active'));
+});
+
+function resetFilters() {
+    window.location.href = window.location.pathname;
+}
+
+function openModal() {
+    {% if is_super_admin %}
+    const schoolId = document.getElementById('school_selector').value;
+    if (!schoolId) {
+        Swal.fire('Requirement', 'Please select a school to proceed.', 'info');
+        return;
+    }
+    document.getElementById('school_id').value = schoolId;
+    {% endif %}
+
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> New SMTP Config';
+    document.getElementById('saveBtn').textContent = 'Create Configuration';
+    
+    document.getElementById('config_id').value = '';
+    document.getElementById('config_name').value = '';
+    document.getElementById('purpose').value = 'ALL';
+    document.getElementById('smtp_host').value = '';
+    document.getElementById('smtp_port').value = '587';
+    document.getElementById('use_tls').checked = true;
+    document.getElementById('use_ssl').checked = false;
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('from_email').value = '';
+    document.getElementById('from_name').value = '';
+    document.getElementById('is_active').checked = true;
+    
+    document.getElementById('password').required = true;
+    
+    document.getElementById('smtpModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('smtpModal').classList.remove('show');
+}
+
+function editConfig(btn) {
+    const data = btn.dataset;
+    
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Configuration';
+    document.getElementById('saveBtn').textContent = 'Update Record';
+    
+    document.getElementById('config_id').value = data.id;
+    document.getElementById('config_name').value = data.name;
+    document.getElementById('purpose').value = data.purpose || 'ALL';
+    document.getElementById('smtp_host').value = data.host;
+    document.getElementById('smtp_port').value = data.port;
+    document.getElementById('use_tls').checked = data.tls === 'true';
+    document.getElementById('use_ssl').checked = data.ssl === 'true';
+    document.getElementById('username').value = data.user;
+    document.getElementById('password').value = data.password || '';
+    document.getElementById('from_email').value = data.fromEmail;
+    document.getElementById('from_name').value = data.fromName || '';
+    document.getElementById('is_active').checked = data.active === 'true';
+    
+    {% if is_super_admin %}
+    if (data.schoolId) {
+        setTimeout(() => { document.getElementById('school_id').value = data.schoolId; }, 100);
+    }
+    {% endif %}
+    
+    document.getElementById('password').required = false;
+    document.getElementById('smtpModal').classList.add('show');
+}
+
+function togglePasswordVisibility() {
+    const pwdInput = document.getElementById('password');
+    const icon = document.getElementById('password_toggle_icon');
+    if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        pwdInput.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+function deleteConfig(id, name) {
+    Swal.fire({
+        title: 'Delete Config?',
+        text: `Are you sure about deleting "${name}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Yes, Delete It'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('{% url "smtp_config_delete_ajax" %}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token }}'},
+                body: `config_id=${encodeURIComponent(id)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') location.reload();
+                else Swal.fire('Error', data.message, 'error');
+            });
+        }
+    });
+}
+
+function restoreConfig(id, name) {
+    Swal.fire({
+        title: 'Restore Config?',
+        text: `Bring back "${name}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Restore'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('{% url "smtp_config_restore_ajax" %}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token }}'},
+                body: `config_id=${encodeURIComponent(id)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') location.reload();
+                else Swal.fire('Error', data.message, 'error');
+            });
+        }
+    });
+}
+
+let currentTestConfigId = null;
+
+function testExistingConfig(id, name) {
+    currentTestConfigId = id;
+    document.getElementById('testPromptName').textContent = name;
+    document.getElementById('testPromptRecipient').value = '';
+    document.getElementById('testPromptModal').classList.add('show');
+}
+
+function closeTestPrompt() {
+    document.getElementById('testPromptModal').classList.remove('show');
+}
+
+async function executeTestExisting() {
+    const btn = document.getElementById('testPromptConfirmBtn');
+    const content = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+
+    try {
+        const response = await fetch('{% url "smtp_config_test" %}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({
+                config_id: currentTestConfigId,
+                to_email: document.getElementById('testPromptRecipient').value
+            })
+        });
+        const data = await response.json();
+        Swal.fire(data.status === 'success' ? 'Success' : 'Failed', data.message, data.status);
+        if (data.status === 'success') closeTestPrompt();
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = content;
+    }
+}
+
+async function testConnection() {
+    const btn = document.getElementById('testBtn');
+    const content = btn.innerHTML;
+    
+    const formData = {
+        smtp_host: document.getElementById('smtp_host').value,
+        smtp_port: document.getElementById('smtp_port').value,
+        use_tls: document.getElementById('use_tls').checked,
+        use_ssl: document.getElementById('use_ssl').checked,
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value,
+        from_email: document.getElementById('from_email').value,
+        to_email: document.getElementById('test_email').value
+    };
+    
+    if (!formData.smtp_host || !formData.username || !formData.password) {
+        Swal.fire('Information Missing', 'Host, Username and Password are required for testing.', 'warning');
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        const response = await fetch('{% url "smtp_config_test" %}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify(formData)
+        });
+        const data = await response.json();
+        Swal.fire(data.status === 'success' ? 'Success' : 'Failed', data.message, data.status);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = content;
+    }
+}
+
+window.onclick = e => { if (e.target.classList.contains('sw-modal-container')) closeModal(); e.target.id === 'testPromptModal' && closeTestPrompt(); };
+</script>
+{% endblock %}

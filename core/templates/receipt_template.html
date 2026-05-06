@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fee Collection Receipt - Exact Design Match</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            line-height: 1.2;
+            color: #000000;
+            background: #FFFFFF;
+            padding: 15px;
+        }
+        .receipt-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #FFFFFF;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 11px;
+            color: #000000;
+        }
+        .axis-logo {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .axis-logo .axis-text {
+            color: #000000;
+        }
+        .axis-logo .bank-text {
+            color: #E4002B;
+        }
+        .axis-logo .axis-icon {
+            color: #E4002B;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+        .school-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .school-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+        .school-tagline {
+            font-size: 12px;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+        .school-contact {
+            font-size: 11px;
+            color: #000000;
+            margin-bottom: 15px;
+        }
+        .receipt-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a73e8;
+            margin: 20px 0;
+            padding: 12px 0;
+        }
+        .student-section {
+            display: flex;
+            margin-bottom: 25px;
+            padding: 20px 0;
+            border-top: 1px solid #DDDDDD;
+            border-bottom: 1px solid #DDDDDD;
+        }
+        .student-avatar {
+            width: 70px;
+            height: 70px;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        .student-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .student-avatar .placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #999;
+        }
+        .student-info {
+            flex: 1;
+            display: flex;
+            gap: 40px;
+        }
+        .info-column {
+            flex: 1;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .info-label {
+            font-weight: normal;
+            color: #000000;
+            min-width: 100px;
+        }
+        .info-arrow {
+            margin: 0 8px;
+            color: #1a73e8;
+            font-size: 14px;
+        }
+        .info-value {
+            color: #1a73e8;
+            text-decoration: underline;
+            font-weight: normal;
+        }
+        .amounts-box {
+            background: #FFFFFF;
+            padding: 15px;
+            border: 1px solid #DDDDDD;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        .amount-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        .amount-label {
+            font-weight: normal;
+            color: #000000;
+        }
+        .amount-value {
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        .particulars-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+        .particulars-table th {
+            background: #F2F2F2;
+            padding: 8px 6px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #DDDDDD;
+            font-size: 11px;
+        }
+        .particulars-table th:last-child {
+            text-align: right;
+        }
+        .particulars-table td {
+            padding: 6px;
+            border: 1px solid #DDDDDD;
+            font-size: 11px;
+        }
+        .particulars-table td:last-child {
+            text-align: right;
+        }
+        .particulars-table tr:nth-child(even) {
+            background: #FAFAFA;
+        }
+        .summary-row {
+            background: #FFFACD !important;
+            font-weight: bold;
+        }
+        .summary-row td:last-child {
+            color: #1a73e8;
+            font-weight: bold;
+        }
+        .statement-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000000;
+            margin: 20px 0 10px 0;
+            text-align: center;
+        }
+        .statement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            font-size: 11px;
+        }
+        .statement-table th {
+            background: #F2F2F2;
+            padding: 8px 6px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #DDDDDD;
+        }
+        .statement-table td {
+            padding: 6px;
+            border: 1px solid #DDDDDD;
+            text-align: center;
+        }
+        .statement-table tr:nth-child(even) {
+            background: #FAFAFA;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 25px;
+            font-size: 11px;
+            color: #000000;
+        }
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .footer-right {
+            text-align: right;
+        }
+        .footer-left .prepared-by {
+            color: #000000;
+        }
+        .footer-left .prepared-by .school-name {
+            color: #1a73e8;
+            text-decoration: underline;
+        }
+        .footer-left .checked-by {
+            color: #000000;
+        }
+        .footer-left .checked-by .dashed-line {
+            border-bottom: 1px dashed #000000;
+            display: inline-block;
+            min-width: 100px;
+        }
+        .footer-right .accounts {
+            color: #000000;
+            font-weight: bold;
+        }
+        .footer-right .school-name {
+            color: #000000;
+        }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 10px;
+            color: #000000;
+        }
+        @media print {
+            body { margin: 0; padding: 10px; }
+            .receipt-container { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="header-top">
+            <div>29/09/2025, 19:08</div>
+            <div>about:blank</div>
+        </div>
+        
+        <div class="axis-logo">
+            <span class="axis-icon">▲</span><span class="axis-text">AXIS</span> <span class="bank-text">BANK</span>
+        </div>
+        
+        <div class="school-header">
+            {% if school_info and school_info.school_logo %}
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <img src="data:image/png;base64,{{ school_info.school_logo }}" alt="School Logo" style="max-height: 60px; max-width: 200px;">
+                </div>
+            {% endif %}
+            <div class="school-name">{% if school_info %}{{ school_info.school_name }}{% else %}School Name{% endif %}</div>
+            <div class="school-tagline">{% if school_info %}{{ school_info.address }}{% else %}School Address{% endif %}</div>
+            <div class="school-contact">
+                {% if school_info %}
+                    {{ school_info.phone }} | {{ school_info.district }}, {{ school_info.state }}, {{ school_info.country }}
+                {% else %}
+                    Phone | District, State, Country
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="receipt-title">Fees Paid Receipt</div>
+        
+        <div class="student-section">
+            <div class="student-avatar">
+                {% if student_info and student_info.student_logo %}
+                    <img src="data:image/jpeg;base64,{{ student_info.student_logo }}" alt="Student Photo">
+                {% else %}
+                    <div class="placeholder">👤</div>
+                {% endif %}
+            </div>
+            <div class="student-info">
+                <div class="info-column">
+                    <div class="info-row">
+                        <span class="info-label">Registration No</span>
+                        <span class="info-arrow">→</span>
+                        <span class="info-value">{% if student_info %}{{ student_info.student_code }}{% else %}N/A{% endif %}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Student Name</span>
+                        <span class="info-arrow">→</span>
+                        <span class="info-value">{% if student_info %}{{ student_info.full_name }}{% else %}N/A{% endif %}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Guardian Name</span>
+                        <span class="info-arrow">→</span>
+                        <span class="info-value">{% if student_info %}{{ student_info.guardian_name|default:"N/A" }}{% else %}N/A{% endif %}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Class</span>
+                        <span class="info-arrow">→</span>
+                        <span class="info-value">{% if student_info %}{{ student_info.class_name }}{% else %}N/A{% endif %}</span>
+                    </div>
+                </div>
+                <div class="info-column">
+                    <div class="info-row">
+                        <span class="info-label">Serial No</span>
+                        <span class="info-arrow">→</span>
+                        <span class="info-value">{% if student_info %}{{ student_info.receipt_no }}{% else %}N/A{% endif %}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date of Submission</span>
+                        <span class="info-arrow">→</span>
+                        <span class="info-value">{% if student_info %}{{ student_info.date_of_submission }}{% else %}N/A{% endif %}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fees Month</span>
+                        <span class="info-arrow">→</span>
+                        <span class="info-value">{% if student_info %}{{ student_info.fees_month }}{% else %}N/A{% endif %}</span>
+                    </div>
+                    <div class="amounts-box">
+                        <div class="amount-row">
+                            <span class="amount-label">Total Amount</span>
+                            <span class="amount-value">₹ {% if student_info %}{{ student_info.total_amount|floatformat:2 }}{% else %}0.00{% endif %}</span>
+                        </div>
+                        <div class="amount-row">
+                            <span class="amount-label">Deposit Amount</span>
+                            <span class="amount-value">₹ {% if student_info %}{{ student_info.total_paid_amount|floatformat:2 }}{% else %}0.00{% endif %}</span>
+                        </div>
+                        <div class="amount-row">
+                            <span class="amount-label">Remaining Balance</span>
+                            <span class="amount-value">₹ {% if student_info %}{{ student_info.remaining_amount|floatformat:2 }}{% else %}0.00{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <table class="particulars-table">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">Sr. No.</th>
+                    <th style="width: 70%;">Particulars</th>
+                    <th style="width: 22%;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in fee_breakdown %}
+                {% if item.user_enter_amount > 0 or item.amount > 0 %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>₹ {{ item.user_enter_amount|floatformat:2 }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                <tr class="summary-row">
+                    <td></td>
+                    <td><strong>TOTAL</strong></td>
+                    <td><strong>₹ {{ total_amount|floatformat:2 }}</strong></td>
+                </tr>
+                <tr class="summary-row">
+                    <td></td>
+                    <td><strong>DEPOSIT</strong></td>
+                    <td><strong>₹ {{ paid_amount|floatformat:2 }}</strong></td>
+                </tr>
+                <tr class="summary-row">
+                    <td></td>
+                    <td><strong>DUE-ABLE BALANCE</strong></td>
+                    <td><strong>₹ {{ remaining_amount|floatformat:2 }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="statement-title">Fee Submission Statement Of {% if student_info %}{{ student_info.full_name }}{% else %}Student{% endif %}</div>
+        <table class="statement-table">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">Sr#</th>
+                    <th style="width: 20%;">Receipt No</th>
+                    <th style="width: 15%;">Submission Date</th>
+                    <th style="width: 15%;">Fee Month</th>
+                    <th style="width: 12%;">Payment Mode</th>
+                    <th style="width: 15%;">Total Amount</th>
+                    <th style="width: 15%;">Deposit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fee in previous_fees|slice:":10" %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ fee.receipt_number }}</td>
+                    <td>{{ fee.payment_date }}</td>
+                    <td>{{ fee.payment_month }}</td>
+                    <td>{{ fee.payment_mode }}</td>
+                    <td>₹ {{ fee.total_amount|floatformat:2 }}</td>
+                    <td>₹ {{ fee.paid_amount|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #666;">No previous fee history found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <div class="footer-left">
+                <div class="prepared-by"><strong>Prepared By:</strong> <span class="school-name">{% if school_info %}{{ school_info.school_name }}{% else %}School Name{% endif %}</span></div>
+                <div class="checked-by"><strong>Checked By:</strong> <span class="dashed-line"></span></div>
+            </div>
+            <div class="footer-right">
+                <div class="accounts">Accounts Department</div>
+                <div class="school-name">{% if school_info %}{{ school_info.school_name }}{% else %}School Name{% endif %}</div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div>about:blank</div>
+            <div>1/1</div>
+        </div>
+    </div>
+</body>
+</html>

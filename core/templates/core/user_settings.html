@@ -1,0 +1,313 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Session Settings</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="{% static 'css/global-dark-mode.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: {{ primary_color|default:"#004aad" }};
+            --primary-hover: {{ primary_hover|default:"#003a8c" }};
+            --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+            --success-color: #10b981;
+            --success-light: rgba(16, 185, 129, 0.1);
+            --info-color: #3b82f6;
+            --info-light: rgba(59, 130, 246, 0.1);
+            --secondary-color: #f9fafb;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --light-gray: #f3f4f6;
+            --border-color: #e5e7eb;
+        }
+
+        body.dark-mode {
+            --primary-color: {{ primary_color|default:"#6366f1" }};
+            --primary-hover: {{ primary_hover|default:"#818cf8" }};
+            --secondary-color: #1f2937;
+            --text-color: #f9fafb;
+            --text-light: #d1d5db;
+            --light-gray: #374151;
+            --border-color: #4b5563;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+        body.dark-mode .modal-container { background: #1f2937; }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            padding: 16px 20px;
+        }
+        .modal-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .modal-header p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        .modal-body { padding: 20px; }
+        .timeout-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .timeout-card {
+            position: relative;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .timeout-card:hover {
+            border-color: var(--primary-color);
+            background: var(--light-gray);
+            transform: translateY(-2px);
+        }
+        .timeout-card input[type="radio"]:checked + .card-content {
+            color: var(--primary-color);
+        }
+        .timeout-card.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+        body.dark-mode .timeout-card.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+        .timeout-card.selected .timeout-value { color: var(--primary-color); }
+        body.dark-mode .timeout-card.selected .timeout-value { color: var(--primary-color); }
+        .check-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .check-icon i {
+            color: white;
+            font-size: 0.75rem;
+        }
+        .current-setting {
+            background: var(--success-light);
+            border-left: 4px solid var(--success-color);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .current-setting-label {
+            font-size: 0.75rem;
+            color: var(--success-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        body.dark-mode .current-setting-label { color: #6ee7b7; }
+        .current-setting-value {
+            font-size: 1rem;
+            color: var(--success-color);
+            font-weight: 600;
+        }
+        .note {
+            background: var(--info-light);
+            border-left: 4px solid var(--info-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--info-color);
+        }
+        .modal-footer {
+            padding: 14px 20px;
+            background: #f9fafb;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        body.dark-mode .modal-footer { background: #111827; }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--primary-light);
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover { background: #4b5563; }
+    </style>
+    <script>
+        // Force reload - v2.0
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.timeout-card');
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    cards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input[type="radio"]').checked = true;
+                });
+            });
+        });
+    </script>
+</head>
+<body class="{% if dark_mode %}dark-mode{% endif %}">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2><i class="fas fa-clock"></i> Session Timeout Settings</h2>
+            <p>Select when you want to be automatically logged out</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="current-setting">
+                    <div class="current-setting-label">Current Setting</div>
+                    <div class="current-setting-value">
+                        <i class="fas fa-check-circle"></i> Auto-logout after {{ timeout_minutes|default:60 }} minutes
+                    </div>
+                </div>
+
+                <div class="timeout-grid">
+                    <div class="timeout-card {% if timeout_minutes == 5 %}selected{% endif %}">
+                        <input type="radio" name="timeout_minutes" value="5" id="timeout_5" {% if timeout_minutes == 5 %}checked{% endif %}>
+                        <div class="card-content">
+                            <div class="timeout-value">5</div>
+                            <div class="timeout-label">minutes</div>
+                        </div>
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                    </div>
+
+                    <div class="timeout-card {% if timeout_minutes == 10 %}selected{% endif %}">
+                        <input type="radio" name="timeout_minutes" value="10" id="timeout_10" {% if timeout_minutes == 10 %}checked{% endif %}>
+                        <div class="card-content">
+                            <div class="timeout-value">10</div>
+                            <div class="timeout-label">minutes</div>
+                        </div>
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                    </div>
+
+                    <div class="timeout-card {% if timeout_minutes == 15 %}selected{% endif %}">
+                        <input type="radio" name="timeout_minutes" value="15" id="timeout_15" {% if timeout_minutes == 15 %}checked{% endif %}>
+                        <div class="card-content">
+                            <div class="timeout-value">15</div>
+                            <div class="timeout-label">minutes</div>
+                        </div>
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                    </div>
+
+                    <div class="timeout-card {% if timeout_minutes == 30 %}selected{% endif %}">
+                        <input type="radio" name="timeout_minutes" value="30" id="timeout_30" {% if timeout_minutes == 30 %}checked{% endif %}>
+                        <div class="card-content">
+                            <div class="timeout-value">30</div>
+                            <div class="timeout-label">minutes</div>
+                        </div>
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                    </div>
+
+                    <div class="timeout-card {% if timeout_minutes == 60 %}selected{% endif %}">
+                        <input type="radio" name="timeout_minutes" value="60" id="timeout_60" {% if timeout_minutes == 60 %}checked{% endif %}>
+                        <div class="card-content">
+                            <div class="timeout-value">60</div>
+                            <div class="timeout-label">minutes</div>
+                        </div>
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                    </div>
+
+                    <div class="timeout-card {% if timeout_minutes == 90 %}selected{% endif %}">
+                        <input type="radio" name="timeout_minutes" value="90" id="timeout_90" {% if timeout_minutes == 90 %}checked{% endif %}>
+                        <div class="card-content">
+                            <div class="timeout-value">90</div>
+                            <div class="timeout-label">minutes</div>
+                        </div>
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                    </div>
+
+                    <div class="timeout-card {% if timeout_minutes == 120 %}selected{% endif %}">
+                        <input type="radio" name="timeout_minutes" value="120" id="timeout_120" {% if timeout_minutes == 120 %}checked{% endif %}>
+                        <div class="card-content">
+                            <div class="timeout-value">120</div>
+                            <div class="timeout-label">minutes</div>
+                        </div>
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                    </div>
+
+                    <div class="timeout-card {% if timeout_minutes == 180 %}selected{% endif %}">
+                        <input type="radio" name="timeout_minutes" value="180" id="timeout_180" {% if timeout_minutes == 180 %}checked{% endif %}>
+                        <div class="card-content">
+                            <div class="timeout-value">180</div>
+                            <div class="timeout-label">minutes</div>
+                        </div>
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Note:</strong> Changes take effect after you logout and login again. Recommended: 60 minutes (1 hour).
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

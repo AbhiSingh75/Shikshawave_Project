@@ -1,0 +1,940 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Salary Components | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<!-- Standard ShikshaWave List Styling -->
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --text-color: #1f2937;
+        --text-light: #6b7280;
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --secondary-color: #1f2937;
+        --card-bg: #1f2937;
+        --text-color: #f9fafb;
+        --text-light: #d1d5db;
+        --border-color: #4b5563;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    /* High-Density Page Header / Control Row Overrides */
+    .sw-container {
+        background: var(--bg-color, #f8fafc);
+        min-height: 100vh;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .controls-row {
+        margin-bottom: 24px;
+        position: sticky;
+        top: var(--header-height, 70px);
+        z-index: 100;
+        background: var(--card-bg, #ffffff);
+        padding: 15px 24px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 12px;
+        box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--card-bg, #1e293b);
+        border-color: var(--border-color, #334155);
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .controls-left h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color, #004aad);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .count-badge {
+        font-size: 0.75rem;
+        background: var(--primary-color) !important;
+        color: white !important;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-weight: 700;
+    }
+
+    /* Custom Searchable Dropdown Styling */
+    .custom-dropdown {
+        position: relative;
+        min-width: 260px;
+        max-width: 420px; /* Added limit to prevent excessive growth */
+        flex: 1; /* Allow it to take available space up to max-width */
+        flex-shrink: 0;
+        user-select: none;
+    }
+
+    .dropdown-trigger {
+        height: 38px; /* Reduced from 42px */
+        background: var(--card-bg, #ffffff);
+        border: 1.5px solid var(--border-color, #e2e8f0);
+        border-radius: 8px; /* Slightly tighter radius */
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem; /* Slightly smaller text */
+        color: var(--text-main, #1e293b);
+        transition: all 0.2s ease;
+    }
+
+    body.dark-mode .dropdown-trigger {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #f1f5f9;
+    }
+
+    .dropdown-trigger:hover {
+        border-color: var(--primary-color);
+        background: var(--bg-hover, #f8fafc);
+    }
+
+    .dropdown-trigger i {
+        font-size: 0.8rem;
+        transition: transform 0.3s ease;
+        opacity: 0.6;
+    }
+
+    .controls-right {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1; /* Take remaining space to push to right */
+        max-width: 700px;
+    }
+
+    .control-buttons {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    /* Responsive Handling for Mobile Screens */
+    @media (max-width: 768px) {
+        .controls-row {
+            flex-direction: column;
+            align-items: stretch !important;
+            padding: 15px !important;
+            gap: 15px;
+        }
+
+        .controls-left, .controls-right {
+            width: 100%;
+            justify-content: center !important;
+            flex-wrap: wrap;
+        }
+
+        .title-section {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .control-buttons {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .custom-dropdown {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .btn-standard {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .sw-table-wrapper {
+            margin: 0;
+            width: 100%;
+            overflow-x: auto !important;
+            display: block !important;
+        }
+
+        .sw-table {
+            min-width: 800px !important; /* Force scroll on mobile */
+        }
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: none;
+        overflow: hidden;
+        animation: dropdownFade 0.2s ease-out;
+    }
+
+    body.dark-mode .dropdown-menu {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    .custom-dropdown.active .dropdown-menu { display: block; }
+
+    .dropdown-search {
+        padding: 10px; /* Reduced padding */
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
+        background: var(--bg-hover, #f8fafc);
+    }
+
+    body.dark-mode .dropdown-search { background: rgba(0, 0, 0, 0.2); }
+    .comp-name {
+        font-weight: 700;
+        color: #111827; /* Fallback for light mode */
+        font-size: 0.95rem;
+    }
+
+    body.dark-mode .comp-name {
+        color: #f1f5f9; /* Explicit light color for dark mode */
+    }
+
+    .dropdown-search input {
+        width: 100%;
+        height: 34px; /* Reduced height */
+        border: 1.5px solid var(--border-color, #e2e8f0);
+        border-radius: 6px;
+        padding: 0 10px 0 30px; /* Adjusted padding */
+        font-size: 0.82rem;
+        background: var(--card-bg, #ffffff);
+        color: var(--text-main, #1e293b);
+    }
+
+    body.dark-mode .dropdown-search input {
+        background: #0f172a;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+
+    .dropdown-list {
+        max-height: 280px;
+        overflow-y: auto;
+        padding: 6px;
+    }
+
+    .dropdown-item {
+        padding: 8px 10px; /* Reduced padding */
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-main, #1e293b);
+        transition: all 0.15s ease;
+    }
+
+    body.dark-mode .dropdown-item { color: #f1f5f9; }
+
+    .dropdown-item:hover {
+        background: var(--primary-light, rgba(0, 74, 173, 0.1));
+        color: var(--primary-color, #004aad);
+    }
+
+    .dropdown-item.selected {
+        background: var(--primary-color);
+        color: white !important;
+    }
+
+    @keyframes dropdownFade {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Premium Button overrides */
+    .btn-standard {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 18px;
+        height: 42px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 750;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        white-space: nowrap; /* Prevent text wrapping */
+        flex-shrink: 0; /* Prevent squishing */
+    }
+    .btn-standard:hover { transform: translateY(-2px); box-shadow: 0 6px 15px var(--primary-light) !important; filter: brightness(1.1); }
+
+    /* Premium Table Styling */
+    .table-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+
+    body.dark-mode .table-card {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    .sw-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .sw-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 500px; /* Base min-width */
+    }
+
+    .sw-table th {
+        background: var(--primary-color) !important;
+        padding: 10px 18px;
+        text-align: left;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #fff !important;
+    }
+
+    body.dark-mode .sw-table th {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sw-table td {
+        padding: 8px 18px;
+        font-size: 0.88rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-color);
+        vertical-align: middle;
+    }
+
+    body.dark-mode .sw-table td {
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+    .sw-table tbody tr.sw-row-deleted td { opacity: 0.6; filter: grayscale(0.5); }
+    .sw-table tbody tr.sw-row-deleted:hover td { background: rgba(239, 68, 68, 0.05); }
+
+    /* Disable Redundant Global Toasts for this page (Keep only the custom modal) */
+    .toast-container, #toastContainer, .sw-toast { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+
+    .sw-table tr:hover td {
+        background: var(--primary-light, rgba(0, 74, 173, 0.05));
+    }
+
+    body.dark-mode .sw-table tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Badges */
+    .badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .badge-earning { background: var(--success-light); color: var(--success-color); border: 1px solid var(--success-color); }
+    .badge-deduction { background: var(--error-light); color: var(--error-color); border: 1px solid var(--error-color); }
+    .badge-active { background: var(--success-light); color: var(--success-color); }
+    .badge-deleted { background: var(--border-color); color: var(--text-light); }
+
+    /* Action Buttons */
+    .action-group { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color, #e5e7eb);
+        background: var(--card-bg, #ffffff);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .btn-icon.edit-btn { color: var(--warning-color); background: var(--warning-light); border-color: var(--warning-color); }
+    .btn-icon.edit-btn:hover { background: var(--warning-color); color: #fff; transform: translateY(-2px); }
+
+    .btn-icon.delete-btn { color: var(--error-color); background: var(--error-light); border-color: var(--error-color); }
+    .btn-icon.delete-btn:hover { background: var(--error-color); color: #fff; transform: translateY(-2px); }
+
+    /* Modal Overrides */
+    .sw-modal-container {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(8px);
+        z-index: 99999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .sw-modal-container.show { display: flex !important; }
+
+    .sw-modal {
+        background: var(--card-bg, #fff);
+        width: 100%;
+        max-width: 500px;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: modalFadeUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .sw-modal-header {
+        padding: 18px 24px;
+        background: var(--primary-color) !important;
+        color: white !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sw-modal-close {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .sw-modal-body { padding: 24px; }
+    .sw-modal-footer {
+        padding: 20px 24px;
+        background: var(--bg-hover, #f8fafc);
+        border-top: 1px solid var(--border-color, #e2e8f0);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+    body.dark-mode .sw-modal-footer { background: rgba(0,0,0,0.2); }
+
+    .sw-form-group { margin-bottom: 20px; }
+    .sw-form-label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--primary-color) !important; text-transform: uppercase; margin-bottom: 8px; }
+    .sw-form-control {
+        width: 100%;
+        height: 42px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color, #e2e8f0);
+        font-weight: 600;
+        background: var(--card-bg, #ffffff);
+        color: var(--text-main);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .sw-form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    body.dark-mode .sw-form-control { 
+        background: #1e293b !important; 
+        border-color: #334155 !important; 
+        color: #f1f5f9 !important; 
+    }
+
+    /* Force theme on native option elements */
+    .sw-form-control option {
+        background: var(--card-bg, #ffffff);
+        color: var(--text-main);
+    }
+
+    body.dark-mode .sw-form-control option {
+        background: #1e293b;
+        color: #f1f5f9;
+    }
+
+    @keyframes modalFadeUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+        .controls-row {
+            flex-direction: column !important;
+            gap: 12px !important;
+            align-items: stretch !important;
+            padding: 12px !important;
+        }
+
+        .controls-left, .controls-right {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+
+        .summary-box {
+            width: 100% !important;
+            justify-content: center;
+        }
+
+        .control-buttons {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }
+
+        .custom-dropdown {
+            display: block !important;
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            height: 48px !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .dropdown-trigger {
+            height: 48px !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 0 15px !important;
+        }
+
+        #addNewBtn { 
+            width: 100% !important;
+            height: 48px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%) !important;
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.25) !important;
+        }
+
+        .sw-form-control { 
+            width: 100% !important; 
+            min-width: 0 !important; 
+            height: 48px !important; 
+            min-height: 48px !important;
+            flex-shrink: 0 !important; 
+        }
+        .table-card { border-radius: 12px; }
+        
+        /* Hide non-critical labels if needed */
+        .btn-label { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-container">
+    <!-- Global Control Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3 style="margin:0;">
+                <i class="fas fa-coins" style="color: var(--primary-color);"></i>
+                Salary Components
+            </h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-list-ul"></i>
+                    <span>Total:</span>
+                    <strong id="compCountBadge">{{ components|length }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-right">
+            <div class="control-buttons">
+                <!-- Hidden selector to maintain compatibility with legacy legacy script logic -->
+                <input type="hidden" id="school_selector" value="{{ selected_school_id_raw }}">
+                
+                {% if is_super_admin %}
+                <div class="custom-dropdown" id="schoolDropdown">
+                    <div class="dropdown-trigger" onclick="toggleDropdown(event)">
+                        <span id="selected_school_text">
+                            {% if selected_school_id_raw %}
+                                {% for school in schools %}
+                                    {% if selected_school_id_raw == school.SchoolID %}{{ school.DisplayName }}{% endif %}
+                                {% endfor %}
+                            {% else %}
+                                -- Choose School --
+                            {% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-search">
+                            <i class="fas fa-search" style="position: absolute; left: 24px; top: 22px; opacity: 0.4;"></i>
+                            <input type="text" placeholder="Search school..." onkeyup="filterDropdown(this)" onclick="event.stopPropagation()">
+                        </div>
+                        <div class="dropdown-list">
+                            <div class="dropdown-item {% if not selected_school_id_raw %}selected{% endif %}" onclick="handleDropdownSelect('')">
+                                <i class="fas fa-globe-asia"></i> All Schools
+                            </div>
+                            {% for school in schools %}
+                            <div class="dropdown-item {% if selected_school_id_raw == school.SchoolID %}selected{% endif %}" 
+                                 onclick="handleDropdownSelect('{{ school.EncSchoolID }}')"
+                                 data-text="{{ school.DisplayName|lower }}">
+                                <i class="fas fa-school"></i> {{ school.DisplayName }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <button id="addNewBtn" class="btn-standard" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Add New Component
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Section -->
+    <div class="table-card">
+        {% if components %}
+        <div class="sw-table-wrapper">
+            <table class="sw-table">
+                <thead>
+                    <tr>
+                        <th width="60">S.N.</th>
+                        <th width="120" style="text-align: center;">Actions</th>
+                        <th>Component Description</th>
+                        <th>Type</th>
+                        {% if is_super_admin %}<th>Target School</th>{% endif %}
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for comp in components %}
+                    <tr class="{% if comp.IsDeleted %}sw-row-deleted{% endif %}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="action-group" style="justify-content: center;">
+                                {% if not comp.IsDeleted %}
+                                <button class="btn-icon edit-btn" title="Edit Component"
+                                    onclick="editComponent('{{ comp.EncComponentID }}', '{{ comp.ComponentName|escapejs }}', '{{ comp.ComponentType|escapejs }}', '{{ comp.EncSchoolID }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon delete-btn" title="Remove Component"
+                                    onclick="deleteComponent('{{ comp.EncComponentID }}', '{{ comp.ComponentName|escapejs }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% else %}
+                                <button class="btn-icon" style="color: var(--primary-color); background: rgba(var(--primary-rgb), 0.05);" title="Restore Component"
+                                    onclick="restoreComponent('{{ comp.EncComponentID }}', '{{ comp.ComponentName|escapejs }}')">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="comp-name">{{ comp.ComponentName }}</div>
+                        </td>
+                        <td>
+                            <span class="badge {% if comp.ComponentType == 'Earning' %}badge-earning{% else %}badge-deduction{% endif %}">
+                                <i class="fas {% if comp.ComponentType == 'Earning' %}fa-arrow-up{% else %}fa-arrow-down{% endif %}" style="font-size: 0.7rem;"></i>
+                                {{ comp.ComponentType }}
+                            </span>
+                        </td>
+                        {% if is_super_admin %}<td>{{ comp.SchoolName }}</td>{% endif %}
+                        <td>
+                            {% if not comp.IsDeleted %}
+                            <span class="badge badge-active">
+                                <i class="fas fa-check-circle"></i> Active
+                            </span>
+                            {% else %}
+                            <span class="badge badge-deleted">
+                                <i class="fas fa-times-circle"></i> Deleted
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px;">
+            <i class="fas fa-coins" style="font-size: 3rem; opacity: 0.1; margin-bottom: 15px; display: block;"></i>
+            <p style="color: #64748b; font-weight: 500;">No salary components found for the selected criteria.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Global Styled Modal -->
+<div class="sw-modal-container" id="salaryModalContainer">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-edit"></i>
+                <h2 style="margin: 0; font-size: 1.1rem; font-weight: 700;" id="modalTitle">Add Salary Component</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body">
+            <form id="salaryForm" method="POST" action="{% url 'salary_component_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="component_id" id="component_id">
+                
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Component Description <span style="color: #ef4444;">*</span></label>
+                    <input type="text" name="component_name" id="component_name" class="sw-form-control" placeholder="e.g., Basic Salary, PF Deduction" required maxlength="100">
+                </div>
+
+                <div class="sw-form-group" style="margin-bottom: 25px;">
+                    <label class="sw-form-label">Classification Type <span style="color: #ef4444;">*</span></label>
+                    <select name="component_type" id="component_type" class="sw-form-control" required>
+                        <option value="Earning">Earning (Credit)</option>
+                        <option value="Deduction">Deduction (Debit)</option>
+                    </select>
+                </div>
+
+                {% if is_super_admin %}
+                <div class="sw-form-group">
+                    <label class="sw-form-label">School Mapping <span style="color: #ef4444;">*</span></label>
+                    <select name="school_id" id="modal_school_id" class="sw-form-control" required>
+                        <option value="">-- Choose Target School --</option>
+                        {% for school in schools %}
+                        <option value="{{ school.EncSchoolID }}">{{ school.DisplayName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+        <div class="sw-modal-footer">
+            <button type="button" style="background: transparent; color: #64748b; border: none; font-weight: 700; cursor: pointer; padding: 10px 20px;" onclick="closeModal()">Cancel</button>
+            <button type="submit" form="salaryForm" class="btn btn-primary btn-standard" style="background: var(--primary-color) !important;">
+                <i class="fas fa-save"></i> Save Component
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // System UI Notification Wrapper
+    const UI = {
+        toast: (title, icon = 'success') => {
+            Swal.fire({ title, icon, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
+        },
+        confirm: (title, text, confirmText = 'Confirm Action') => {
+            return Swal.fire({
+                title, text, icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--primary-color)',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: confirmText,
+                backdrop: `rgba(15, 23, 42, 0.4)`
+            });
+        }
+    };
+
+    // Modal Control
+    function openModal() {
+        {% if is_super_admin %}
+        const selectorEl = document.getElementById('school_selector');
+        const activeSchool = selectorEl ? selectorEl.value : '';
+        
+        if (!activeSchool && !document.getElementById('component_id').value) {
+            Swal.fire('Identity Required', 'Please select a school context before adding components.', 'info');
+            return;
+        }
+        
+        const modalSchool = document.getElementById('modal_school_id');
+        if (modalSchool) modalSchool.value = activeSchool;
+        {% endif %}
+        
+        const modalContainer = document.getElementById('salaryModalContainer');
+        if (modalContainer) modalContainer.classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('salaryModalContainer').classList.remove('show');
+        // Reset form for next open (delayed to avoid visual glitch)
+        setTimeout(() => {
+            document.getElementById('salaryForm').reset();
+            document.getElementById('component_id').value = '';
+            document.getElementById('modalTitle').innerText = 'Add Salary Component';
+        }, 300);
+    }
+
+    function editComponent(id, name, type, schoolId) {
+        document.getElementById('modalTitle').innerText = 'Update Salary Component';
+        document.getElementById('component_id').value = id;
+        document.getElementById('component_name').value = name;
+        document.getElementById('component_type').value = type;
+        
+        const modalSchool = document.getElementById('modal_school_id');
+        if (modalSchool) modalSchool.value = schoolId;
+        
+        openModal();
+    }
+
+    // Routing Logic
+    // Custom Dropdown Initialization & Logic
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('schoolDropdown');
+        dropdown.classList.toggle('active');
+        if (dropdown.classList.contains('active')) {
+            dropdown.querySelector('input').focus();
+        }
+    }
+
+    function filterDropdown(input) {
+        const filter = input.value.toLowerCase();
+        const items = input.closest('.dropdown-menu').querySelectorAll('.dropdown-item[data-text]');
+        items.forEach(item => {
+            const text = item.getAttribute('data-text');
+            item.style.display = text.includes(filter) ? 'flex' : 'none';
+        });
+    }
+
+    function handleDropdownSelect(sid) {
+        window.location.href = `/master-data/salary-component/${sid ? '?sid=' + sid : ''}`;
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', () => {
+        const dropdown = document.getElementById('schoolDropdown');
+        if (dropdown) dropdown.classList.remove('active');
+    });
+
+    // AJAX Lifecycle Management
+    async function deleteComponent(id, name) {
+        const result = await UI.confirm('Danger Zone', `Are you certain you want to remove "${name}"? This action disables the component for all payroll processing.`);
+        if (result.isConfirmed) {
+            executeAction('{% url "salary_component_delete_ajax" %}', id, 'Removed');
+        }
+    }
+
+    async function restoreComponent(id, name) {
+        const result = await UI.confirm('Recovery', `Restore "${name}" to active status?`);
+        if (result.isConfirmed) {
+            executeAction('{% url "salary_component_restore_ajax" %}', id, 'Restored');
+        }
+    }
+
+    function executeAction(url, id, actionLabel) {
+        const formData = new URLSearchParams();
+        formData.append('component_id', id);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire({ title: actionLabel, text: data.message, icon: 'success', showConfirmButton: false, timer: 1500 })
+                .then(() => location.reload());
+            } else {
+                Swal.fire('Operation Failed', data.message, 'error');
+            }
+        });
+    }
+
+    // Click outside modal to close
+    document.getElementById('salaryModalContainer').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // Auto-align Counter Badge on refresh
+    document.addEventListener('DOMContentLoaded', () => {
+        // Suppress global toasted popups for this module
+        const globalMsgs = document.getElementById('django-messages');
+        if (globalMsgs) globalMsgs.textContent = '[]'; 
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'salary_component' in message.tags %}
+                    Swal.fire({
+                        title: "{% if 'success' in message.tags %}Success{% else %}Note{% endif %}",
+                        text: "{{ message }}",
+                        icon: "{% if 'success' in message.tags %}success{% else %}info{% endif %}",
+                        confirmButtonColor: 'var(--primary-color)'
+                    });
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    });
+</script>
+{% endblock %}

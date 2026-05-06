@@ -1,0 +1,62 @@
+{% extends 'core/base_with_header.html' %}
+{% block title %}Template Settings{% endblock %}
+{% block content %}
+<div class="container" style="padding: 20px;">
+    <h2>Template Settings</h2>
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label>Admission Acknowledgment Template</label>
+            <select name="acknowledgment_template" class="form-control">
+                <option value="admission_acknowledgment.html" {% if ack_template == 'admission_acknowledgment.html' %}selected{% endif %}>Template 1 - Default</option>
+                <option value="admission_acknowledgment_template2.html" {% if ack_template == 'admission_acknowledgment_template2.html' %}selected{% endif %}>Template 2</option>
+                <option value="admission_acknowledgment_template3.html" {% if ack_template == 'admission_acknowledgment_template3.html' %}selected{% endif %}>Template 3</option>
+                <option value="admission_acknowledgment_template4.html" {% if ack_template == 'admission_acknowledgment_template4.html' %}selected{% endif %}>Template 4</option>
+                <option value="admission_acknowledgment_template5.html" {% if ack_template == 'admission_acknowledgment_template5.html' %}selected{% endif %}>Template 5</option>
+            </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label>Payment Receipt Template</label>
+            <select name="receipt_template" class="form-control">
+                <option value="payment_success.html" {% if receipt_template == 'payment_success.html' %}selected{% endif %}>Template 1 - Modern</option>
+                <option value="payment_receipt_template2.html" {% if receipt_template == 'payment_receipt_template2.html' %}selected{% endif %}>Template 2 - Professional</option>
+                <option value="payment_receipt_template3.html" {% if receipt_template == 'payment_receipt_template3.html' %}selected{% endif %}>Template 3 - Classic</option>
+                <option value="payment_receipt_template4.html" {% if receipt_template == 'payment_receipt_template4.html' %}selected{% endif %}>Template 4 - Elegant</option>
+                <option value="payment_receipt_template5.html" {% if receipt_template == 'payment_receipt_template5.html' %}selected{% endif %}>Template 5 - Minimal</option>
+            </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label>Fee Receipt Template</label>
+            <select name="fee_receipt_template" class="form-control">
+                <option value="fee_receipt_template1.html" {% if fee_receipt_template == 'fee_receipt_template1.html' %}selected{% endif %}>Template 1 - Purple Gradient</option>
+                <option value="fee_receipt_template2.html" {% if fee_receipt_template == 'fee_receipt_template2.html' %}selected{% endif %}>Template 2 - Modern Blue</option>
+                <option value="fee_receipt_template3.html" {% if fee_receipt_template == 'fee_receipt_template3.html' %}selected{% endif %}>Template 3 - Classic Elegant</option>
+                <option value="fee_receipt_template4.html" {% if fee_receipt_template == 'fee_receipt_template4.html' %}selected{% endif %}>Template 4 - Minimalist</option>
+                <option value="fee_receipt_template5.html" {% if fee_receipt_template == 'fee_receipt_template5.html' %}selected{% endif %}>Template 5 - Green Professional</option>
+                <option value="fee_receipt_template6.html" {% if fee_receipt_template == 'fee_receipt_template6.html' %}selected{% endif %}>Template 6 - Corporate Orange</option>
+                <option value="fee_receipt_template7.html" {% if fee_receipt_template == 'fee_receipt_template7.html' %}selected{% endif %}>Template 7 - Royal Purple</option>
+                <option value="fee_receipt_template8.html" {% if fee_receipt_template == 'fee_receipt_template8.html' %}selected{% endif %}>Template 8 - Teal Modern</option>
+                <option value="fee_receipt_template9.html" {% if fee_receipt_template == 'fee_receipt_template9.html' %}selected{% endif %}>Template 9 - Navy Corporate</option>
+                <option value="fee_receipt_template10.html" {% if fee_receipt_template == 'fee_receipt_template10.html' %}selected{% endif %}>Template 10 - Crimson Elite</option>
+                <option value="fee_receipt_template11.html" {% if fee_receipt_template == 'fee_receipt_template11.html' %}selected{% endif %}>Template 11 - Gradient Fusion</option>
+            </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label>Student Card Template</label>
+            <select name="student_card_template" class="form-control">
+                <option value="student_card_template1.html" {% if card_template == 'student_card_template1.html' %}selected{% endif %}>Template 1 - Modern Gradient</option>
+                <option value="student_card_template2.html" {% if card_template == 'student_card_template2.html' %}selected{% endif %}>Template 2 - Clean Professional</option>
+                <option value="student_card_template3.html" {% if card_template == 'student_card_template3.html' %}selected{% endif %}>Template 3 - Minimal Elegant</option>
+                <option value="student_card_template4.html" {% if card_template == 'student_card_template4.html' %}selected{% endif %}>Template 4 - Colorful Modern</option>
+                <option value="student_card_template5.html" {% if card_template == 'student_card_template5.html' %}selected{% endif %}>Template 5 - Dark Elegant</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+    </form>
+</div>
+{% endblock %}

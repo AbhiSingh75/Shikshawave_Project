@@ -1,0 +1,762 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Schools List | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.5">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container force-list-view">
+
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Schools List</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-school"></i>
+                    <span>Total: {{ total_schools|default:0 }}</span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Active: {{ active_schools|default:0 }}</span>
+                </div>
+                {% if search_params.show_deleted == '1' %}
+                <div class="summary-item">
+                    <i class="fas fa-trash"></i>
+                    <span>Deleted: {{ deleted_schools|default:0 }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" name="school_code"
+                    value="{{ search_params.school_code|default:'' }}" placeholder="Search schools..."
+                    autocomplete="off">
+            </div>
+            <div class="control-buttons">
+                {% if profile_name == 'Super Admin' %}
+                <button class="btn btn-secondary" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    <span class="btn-label">Filters</span>
+                </button>
+                <button
+                    class="btn {% if search_params.show_deleted == '1' %}btn-danger{% else %}btn-secondary{% endif %}"
+                    id="toggle-deleted-btn">
+                    <i
+                        class="fas {% if search_params.show_deleted == '1' %}fa-eye-slash{% else %}fa-trash{% endif %}"></i>
+                    <span class="btn-label">{% if search_params.show_deleted == "1" %}Hide{% else %}Deleted{% endif %}</span>
+                </button>
+                {% endif %}
+
+                <div class="column-visibility">
+                    <button class="btn btn-secondary" id="columnsBtn">
+                        <i class="fas fa-columns"></i>
+                        <span class="btn-label">Columns</span>
+                    </button>
+                    <div class="column-menu" id="column-menu">
+                        <!-- Menu content populated by JS -->
+                    </div>
+                </div>
+
+                <div class="export-dropdown-container">
+                    <button class="export-btn" id="exportBtn">
+                        <i class="fas fa-file-export"></i>
+                        <span class="btn-label">Export</span>
+                    </button>
+                    <div class="export-menu" id="exportMenu" data-export-url="{% url 'schools_export' %}">
+                        <div class="export-menu-header">Download As</div>
+                        <button class="export-item excel" data-format="excel">
+                            <span class="export-icon"><i class="fas fa-file-excel"></i></span>
+                            Excel (.xlsx)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="comma">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Comma ,)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="pipe">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Pipe |)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="tab">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Tab)
+                        </button>
+                    </div>
+                </div>
+
+                {% if profile_name == 'Super Admin' %}
+                <a href="{% url 'schools_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span class="btn-label">Add School</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- School Stats Modal -->
+    <div class="sw-modal-container" id="stats-modal">
+        <div class="sw-modal" style="max-width: 900px;">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title">
+                    <i class="fas fa-chart-pie"></i>
+                    <h2 id="stats-modal-title">School Statistics</h2>
+                </div>
+                <button class="sw-modal-close" id="close-stats-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sw-modal-body">
+                <div id="stats-loading" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin fa-3x"
+                        style="color: var(--primary-color); margin-bottom: 15px;"></i>
+                    <p style="color: var(--text-muted); font-weight: 500;">Fetching school data...</p>
+                </div>
+                <div id="stats-container" class="sw-stats-grid"
+                    style="display: none; padding: 10px 0; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">
+                    <!-- Dynamic stats cards will be inserted here -->
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button class="sw-btn sw-btn-ghost"
+                    onclick="document.getElementById('stats-modal').classList.remove('show')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter"></i> Filter Schools</h3>
+                <button class="action-btn" id="close-filter-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-body">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-school-code"><i class="fas fa-id-badge"></i> School Code</label>
+                        <input type="text" id="filter-school-code" name="school_code"
+                            value="{{ search_params.school_code|default:'' }}" placeholder="School Code"
+                            autocomplete="off">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-school-name"><i class="fas fa-school"></i> School Name</label>
+                        <input type="text" id="filter-school-name" name="school_name"
+                            value="{{ search_params.school_name|default:'' }}" placeholder="School Name"
+                            autocomplete="off">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-registration"><i class="fas fa-file-alt"></i> Registration Number</label>
+                        <input type="text" id="filter-registration" name="registration_number"
+                            value="{{ search_params.registration_number|default:'' }}" placeholder="Registration Number"
+                            autocomplete="off">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-phone"><i class="fas fa-phone"></i> Phone</label>
+                        <input type="text" id="filter-phone" name="phone" value="{{ search_params.phone|default:'' }}"
+                            placeholder="Phone Number" autocomplete="off">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-email"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="filter-email" name="email" value="{{ search_params.email|default:'' }}"
+                            placeholder="Email Address" autocomplete="off">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-principal"><i class="fas fa-user-tie"></i> Principal Name</label>
+                        <input type="text" id="filter-principal" name="principal_name"
+                            value="{{ search_params.principal_name|default:'' }}" placeholder="Principal Name"
+                            autocomplete="off">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-director"><i class="fas fa-user-shield"></i> Director Name</label>
+                        <input type="text" id="filter-director" name="director_name"
+                            value="{{ search_params.director_name|default:'' }}" placeholder="Director Name"
+                            autocomplete="off">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-board"><i class="fas fa-graduation-cap"></i> Board</label>
+                        <select id="filter-board" name="board">
+                            <option value="">All Boards</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-board">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Boards</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-board">
+                                <div class="custom-dropdown-option" data-value="">All Boards</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-medium"><i class="fas fa-language"></i> Medium</label>
+                        <select id="filter-medium" name="medium">
+                            <option value="">All Mediums</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-medium">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Mediums</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-medium">
+                                <div class="custom-dropdown-option" data-value="">All Mediums</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-status"><i class="fas fa-toggle-on"></i> Status</label>
+                        <select id="filter-status" name="status">
+                            <option value="">All Status</option>
+                            <option value="Active" {% if search_params.status == 'Active' %}selected{% endif %}>Active
+                            </option>
+                            <option value="Deactive" {% if search_params.status == 'Deactive' %}selected{% endif %}>
+                                Deactive</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-status">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Status</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Status</div>
+                                <div class="custom-dropdown-option" data-value="Active">Active</div>
+                                <div class="custom-dropdown-option" data-value="Deactive">Deactive</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-from-date"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" id="filter-from-date" class="date-input" name="created_at"
+                            value="{{ search_params.created_at|default:'' }}" placeholder="From Date">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-to-date"><i class="fas fa-calendar-check"></i> To Date</label>
+                        <input type="date" id="filter-to-date" class="date-input" name="to_date"
+                            value="{{ search_params.to_date|default:'' }}" placeholder="To Date">
+                    </div>
+                </div>
+            </div>
+            <div class="filter-footer">
+                <button type="button" class="btn btn-secondary" id="reset-filters">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="table-header">
+            <div class="table-info">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} entries
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="school-table">
+                <thead>
+                    <tr>
+                        <th>Actions</th>
+                        <th data-sort="Sequence" class="sortable">SN <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="SchoolCode" class="sortable" data-column="school-code">School Code <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="logo">Logo</th>
+                        <th data-sort="SchoolName" class="sortable" data-column="school-name">School Name <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="RegistrationNumber" class="sortable" data-column="registration">Registration No
+                            <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th data-sort="Address" class="sortable" data-column="address">Address <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="district">District</th>
+                        <th data-column="state">State</th>
+                        <th data-column="country">Country</th>
+                        <th data-sort="Pincode" class="sortable" data-column="pincode">Pincode <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="Phone" class="sortable" data-column="phone">Phone <i
+                                class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th data-sort="Email" class="sortable" data-column="email">Email <i
+                                class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th data-column="website">Website</th>
+                        <th data-sort="BoardName" class="sortable" data-column="board">Board <i
+                                class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th data-sort="MediumName" class="sortable" data-column="medium">Medium <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="PrincipalName" class="sortable" data-column="principal">Principal <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="principal-mail">Principal Mail</th>
+                        <th data-column="principal-phone">Principal Phone</th>
+                        <th data-sort="DirectorName" class="sortable" data-column="director">Director <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="director-phone">Director Phone</th>
+                        <th data-column="director-email">Director Email</th>
+                        <th data-sort="EstablishDate" class="sortable" data-column="establish">Established <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="CreatedAt" class="sortable" data-column="created">Created Date <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="STATUS" class="sortable" data-column="status">Status <i
+                                class="fas fa-sort sort-icon"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="school-table-body">
+                    {% for school in page_obj.object_list %}
+                    <tr{% if school.IsDeleted %} class="deleted-row" {% endif %}>
+                        <td>
+                            <div class="action-buttons">
+
+                                {% if profile_name == 'Super Admin' %}
+                                <button class="action-btn stats-btn" title="Statistics"
+                                    data-school-id="{{ school.SchoolID }}">
+                                    <i class="fas fa-chart-pie"></i>
+                                </button>
+                                {% endif %}
+                                {% if not school.IsDeleted %}
+                                <a href="{% url 'school_update' encrypted_id=school.SchoolID|encrypt_id %}"
+                                    class="action-btn edit-btn" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="action-btn delete-btn" title="Delete"
+                                    data-school-id="{{ school.SchoolID }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% else %}
+                                <button class="action-btn restore-btn" title="Restore"
+                                    data-school-id="{{ school.SchoolID }}">
+                                    <i class="fas fa-undo"></i> Restore
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td data-column="school-code">{{ school.SchoolCode }}</td>
+                        <td data-column="logo">
+                            {% if school.SchoolLogo %}
+                            <img src="{{ school.SchoolLogo }}" alt="School Logo" class="school-logo">
+                            {% else %}
+                            <div class="school-avatar">
+                                <i class="fas fa-school"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td data-column="school-name">{{ school.SchoolName }}</td>
+                        <td data-column="registration">{{ school.RegistrationNumber|default:"N/A" }}</td>
+                        <td data-column="address">{{ school.Address|default:"N/A" }}</td>
+                        <td data-column="district">{{ school.DistrictName|default:"N/A" }}</td>
+                        <td data-column="state">{{ school.StateName|default:"N/A" }}</td>
+                        <td data-column="country">{{ school.CountryName|default:"N/A" }}</td>
+                        <td data-column="pincode">{{ school.Pincode|default:"N/A" }}</td>
+                        <td data-column="phone">{{ school.Phone|default:"N/A" }}</td>
+                        <td data-column="email">{{ school.Email|default:"N/A" }}</td>
+                        <td data-column="website">{{ school.Website|default:"N/A" }}</td>
+                        <td data-column="board">{{ school.BoardName|default:"N/A" }}</td>
+                        <td data-column="medium">{{ school.MediumName|default:"N/A" }}</td>
+                        <td data-column="principal">{{ school.PrincipalName|default:"N/A" }}</td>
+                        <td data-column="principal-mail">{{ school.PrincipalContactMail|default:"N/A" }}</td>
+                        <td data-column="principal-phone">{{ school.PrincipalContactPhone|default:"N/A" }}</td>
+                        <td data-column="director">{{ school.DirectorName|default:"N/A" }}</td>
+                        <td data-column="director-phone">{{ school.DirectorContactPhone|default:"N/A" }}</td>
+                        <td data-column="director-email">{{ school.DirectorContactEmail|default:"N/A" }}</td>
+                        <td data-column="establish">
+                            {% if school.EstablishDate %}
+                            {{ school.EstablishDate|date:"Y-m-d" }}
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                        <td data-column="created">
+                            {% if school.CreatedAt %}
+                            {{ school.CreatedAt|date:"Y-m-d" }}
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                        <td data-column="status">
+                            <div class="status-indicator">
+                                {% if school.IsDeleted %}
+                                <span class="status-icon status-inactive"></span>
+                                Deleted
+                                {% else %}
+                                <span
+                                    class="status-icon {% if school.STATUS == 'Active' %}status-active{% else %}status-inactive{% endif %}"></span>
+                                {{ school.STATUS }}
+                                {% endif %}
+                            </div>
+                        </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="26" style="text-align: center; padding: 20px;">
+                                <i class="fas fa-school"
+                                    style="font-size: 2rem; color: var(--text-light); margin-bottom: 10px; display: block;"></i>
+                                No schools found. Please check filters or contact support if you believe this is an
+                                error.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        <div class="pagination-info"
+            style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px;">
+            <span>Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                entries</span>
+        </div>
+        <div class="pagination-controls">
+            {% if page_obj.has_previous %}
+            <button class="pagination-btn" data-page="1">
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button class="pagination-btn" data-page="{{ page_obj.previous_page_number }}">
+                <i class="fas fa-angle-left"></i>
+            </button>
+            {% else %}
+            <button class="pagination-btn" disabled>
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button class="pagination-btn" disabled>
+                <i class="fas fa-angle-left"></i>
+            </button>
+            {% endif %}
+
+            {% for i in page_obj.paginator.page_range %}
+            {% if page_obj.number == i %}
+            <button class="pagination-btn active" data-page="{{ i }}">{{ i }}</button>
+            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %} <button class="pagination-btn"
+                data-page="{{ i }}">{{ i }}</button>
+                {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <button class="pagination-btn" data-page="{{ page_obj.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                <button class="pagination-btn" data-page="{{ page_obj.paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+                {% else %}
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+                {% endif %}
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // Auto-hide success messages that are not toasts (fallback)
+        const successMessages = document.querySelectorAll('.alert-success');
+        successMessages.forEach(function (message) {
+            setTimeout(function () {
+                message.style.transition = 'opacity 0.5s ease';
+                message.style.opacity = '0';
+                setTimeout(function () {
+                    message.style.display = 'none';
+                }, 500);
+            }, 5000);
+        });
+
+        // Any custom action button logic for schools list
+        document.addEventListener("click", function (e) {
+            if (e.target.closest('.stats-btn')) {
+                const schoolId = e.target.closest('.stats-btn').getAttribute('data-school-id');
+                viewSchoolStats(schoolId);
+            }
+            if (e.target.closest('.delete-btn')) {
+                const schoolId = e.target.closest('.delete-btn').getAttribute('data-school-id');
+                deleteSchool(schoolId);
+            }
+            if (e.target.closest('.restore-btn')) {
+                const schoolId = e.target.closest('.restore-btn').getAttribute('data-school-id');
+                restoreSchool(schoolId);
+            }
+        });
+
+        // Initialize date inputs
+        const fromDateInput = document.getElementById("filter-from-date");
+        const toDateInput = document.getElementById("filter-to-date");
+        if (fromDateInput) fromDateInput.type = 'date';
+        if (toDateInput) toDateInput.type = 'date';
+
+        // Populate board and medium dropdowns manually since they're passed as JSON strings
+        const boards = JSON.parse('{{ boards_json|escapejs }}' || '[]');
+        const mediums = JSON.parse('{{ mediums_json|escapejs }}' || '[]');
+
+        const boardSelect = document.getElementById("filter-board");
+        const mediumSelect = document.getElementById("filter-medium");
+        const customBoardMenu = document.getElementById("custom-menu-board");
+        const customMediumMenu = document.getElementById("custom-menu-medium");
+
+        if (boards && Array.isArray(boards) && boardSelect) {
+            boards.forEach(board => {
+                const option = document.createElement("option");
+                option.value = board.BoardID;
+                option.textContent = board.BoardName;
+                if (board.BoardID == "{{ search_params.board }}") option.selected = true;
+                boardSelect.appendChild(option);
+
+                // Add to custom menu
+                if (customBoardMenu) {
+                    const customOpt = document.createElement("div");
+                    customOpt.className = "custom-dropdown-option";
+                    customOpt.dataset.value = board.BoardID;
+                    customOpt.textContent = board.BoardName;
+                    customBoardMenu.appendChild(customOpt);
+                }
+            });
+        }
+
+        if (mediums && Array.isArray(mediums) && mediumSelect) {
+            mediums.forEach(medium => {
+                const option = document.createElement("option");
+                option.value = medium.MediumID;
+                option.textContent = medium.MediumName;
+                if (medium.MediumID == "{{ search_params.medium }}") option.selected = true;
+                mediumSelect.appendChild(option);
+
+                // Add to custom menu
+                if (customMediumMenu) {
+                    const customOpt = document.createElement("div");
+                    customOpt.className = "custom-dropdown-option";
+                    customOpt.dataset.value = medium.MediumID;
+                    customOpt.textContent = medium.MediumName;
+                    customMediumMenu.appendChild(customOpt);
+                }
+            });
+        }
+
+        // Initialize/Refresh custom dropdowns after dynamic population
+        if (window.initCustomDropdowns) window.initCustomDropdowns();
+        if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+
+        // Toggle deleted schools (handled differently)
+        const toggleDeletedBtn = document.getElementById("toggle-deleted-btn");
+        if (toggleDeletedBtn) {
+            toggleDeletedBtn.addEventListener("click", function () {
+                const searchParams = new URLSearchParams(window.location.search);
+                const currentShowDeleted = searchParams.get('show_deleted') == '1';
+                searchParams.set('show_deleted', currentShowDeleted ? '0' : '1');
+                searchParams.delete('page'); // Reset to page 1
+                window.location.replace(window.location.pathname + '?' + searchParams.toString());
+            });
+        }
+
+        // School Stats Logic - Global access for reliability
+        const getStatsModal = () => document.getElementById('stats-modal');
+        const getCloseBtn = () => document.getElementById('close-stats-modal');
+
+        // Centralized close function
+        window.closeSchoolStats = function () {
+            const modal = getStatsModal();
+            if (modal) {
+                modal.classList.remove('show');
+                // Ensure no inline display styles are lingering
+                modal.style.display = 'none';
+            }
+        };
+
+        // Close on backdrop click
+        document.addEventListener('click', function (e) {
+            const modal = getStatsModal();
+            if (modal && e.target == modal) {
+                window.closeSchoolStats();
+            }
+            if (e.target.closest('#close-stats-modal')) {
+                window.closeSchoolStats();
+            }
+        });
+
+        window.viewSchoolStats = function (schoolId) {
+            const modal = getStatsModal();
+            if (!modal) {
+                console.error("Stats modal element not found!");
+                return;
+            }
+
+            // Show modal immediate
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+
+            document.getElementById('stats-loading').style.display = 'block';
+            document.getElementById('stats-container').style.display = 'none';
+
+            fetch(`/schools/${schoolId}/stats/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const statsData = data.data;
+                        document.getElementById('stats-modal-title').textContent = `${statsData.school_name} Statistics`;
+
+                        const statsContainer = document.getElementById('stats-container');
+                        statsContainer.innerHTML = ''; // Clear previous content
+
+                        if (statsData.stats && statsData.stats.length > 0) {
+                            statsData.stats.forEach(item => {
+                                // Map profile name to icon
+                                let iconClass = 'fas fa-user';
+                                let themeClass = 'primary';
+                                const profileLower = item.profile_name.toLowerCase();
+
+                                if (profileLower.includes('student')) {
+                                    iconClass = 'fas fa-user-graduate';
+                                    themeClass = 'info';
+                                } else if (profileLower.includes('teacher') || profileLower.includes('staff')) {
+                                    iconClass = 'fas fa-chalkboard-teacher';
+                                    themeClass = 'success';
+                                } else if (profileLower.includes('admin')) {
+                                    iconClass = 'fas fa-user-shield';
+                                    themeClass = 'warning';
+                                }
+
+                                const card = `
+                                    <div class="sw-stat-card" style="padding: 15px; text-align: center;">
+                                        <i class="${iconClass}" style="color: var(--${themeClass}-color); font-size: 1.5rem; margin-bottom: 8px;"></i>
+                                        <h3 style="font-size: 0.85rem; margin-bottom: 4px;">${item.profile_name}</h3>
+                                        <div class="sw-count" style="font-size: 1.5rem;">${item.total}</div>
+                                        <div style="display: flex; justify-content: center; gap: 6px; margin-top: 10px;">
+                                            <span class="sw-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 0.7rem; padding: 2px 8px;">
+                                                <i class="fas fa-check" style="font-size: 0.65rem; color: inherit; margin-right: 3px; opacity: 1;"></i> ${item.active}
+                                            </span>
+                                            <span class="sw-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 0.7rem; padding: 2px 8px;">
+                                                <i class="fas fa-times" style="font-size: 0.65rem; color: inherit; margin-right: 3px; opacity: 1;"></i> ${item.inactive}
+                                            </span>
+                                        </div>
+                                    </div>
+                                `;
+                                statsContainer.insertAdjacentHTML('beforeend', card);
+                            });
+                        } else {
+                            statsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No statistics available for this school.</div>';
+                        }
+
+                        document.getElementById('stats-loading').style.display = 'none';
+                        document.getElementById('stats-container').style.display = 'grid';
+                    } else {
+                        if (window.showToast) window.showToast('error', 'Error: ' + (data.message || 'Unknown error'));
+                        window.closeSchoolStats();
+                    }
+                })
+                .catch(error => {
+                    console.error('Stats Fetch Error:', error);
+                    if (window.showToast) window.showToast('error', 'Failed to load statistics.');
+                    window.closeSchoolStats();
+                });
+        }
+
+        function deleteSchool(schoolId) {
+            if (confirm('Are you sure you want to delete this school? This action can be undone by restoring the school.')) {
+                fetch(`/schools/${schoolId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': window.getCSRFToken() || '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            if (window.showToast) window.showToast('error', 'Error deleting school: ' + data.message);
+                            else alert('Error deleting school: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        if (window.showToast) window.showToast('error', 'An error occurred while deleting the school.');
+                        else alert('An error occurred while deleting the school.');
+                    });
+            }
+        }
+
+        function restoreSchool(schoolId) {
+            if (confirm('Are you sure you want to restore this school?')) {
+                fetch(`/schools/${schoolId}/restore/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': window.getCSRFToken() || '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            if (window.showToast) window.showToast('error', 'Error restoring school: ' + data.message);
+                            else alert('Error restoring school: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        if (window.showToast) window.showToast('error', 'An error occurred while restoring the school.');
+                        else alert('An error occurred while restoring the school.');
+                    });
+            }
+        }
+
+        // Responsive adjustments for table action text
+        function handleResponsive() {
+            const screenWidth = window.innerWidth;
+            const downloadText = document.querySelector('.download-text');
+            const filterText = document.querySelector('.filter-btn span');
+
+            if (screenWidth < 768) {
+                if (downloadText) downloadText.style.display = 'none';
+                if (filterText) filterText.style.display = 'none';
+            } else {
+                if (downloadText) downloadText.style.display = 'inline';
+                if (filterText) filterText.style.display = 'inline';
+            }
+        }
+
+        handleResponsive();
+        window.addEventListener('resize', handleResponsive);
+
+    });
+
+    function closeModal() {
+        var modal = document.getElementById('messageModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
+<!-- Reload Force v2 -->

@@ -1,0 +1,97 @@
+{% load core_extras %}
+<div class="table-container" id="subjects-section">
+    <div class="section-header">
+        <div class="section-title-wrapper">
+            <div class="section-icon"><i class="fas fa-book"></i></div>
+            Subject Specialization
+        </div>
+        <button class="btn-icon" onclick="toggleEdit('subjects')">
+            <i class="fas fa-pencil-alt"></i>
+        </button>
+    </div>
+
+    <!-- View Mode -->
+    <div class="view-mode">
+        <div style="padding: 24px;">
+            <div class="sw-subject-tags-container" id="subject-tags-view" data-subjects="{{ staff.CoreSubjects }}">
+                <!-- Populated by JS -->
+                {% if staff.CoreSubjects %}
+                {% with subjects=staff.CoreSubjects|split:"," %}
+                    {% for subject in subjects %}
+                    <span class="subject-tag-view">{{ subject|trim }}</span>
+                    {% endfor %}
+                {% endwith %}
+                {% else %}
+                <span style="color:var(--text-muted,#888);">No subjects assigned</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Mode -->
+    <div class="edit-mode" style="display: none; padding: 24px;">
+        <div class="sw-form-group">
+            <label>Assigned Subjects</label>
+            <div id="subject-tags-edit" style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 44px; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--light-gray);">
+                <span style="color: var(--text-muted); font-size: 0.9rem;" id="no-subjects-msg">Loading...</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 20px;">
+            <select id="subject-add-select" class="sw-form-control" style="max-width: 300px;">
+                <option value="">-- Select subject to add --</option>
+            </select>
+            <button type="button" class="btn btn-primary" onclick="addSubject()">
+                 <i class="fas fa-plus"></i> Add
+            </button>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="toggleEdit('subjects')">Done</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .subject-tag-view {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        border-radius: 20px;
+        padding: 6px 16px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .subject-tag-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        border-radius: 20px;
+        padding: 6px 12px 6px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .subject-tag-edit .remove-btn {
+        cursor: pointer;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        transition: var(--transition);
+    }
+
+    .subject-tag-edit .remove-btn:hover {
+        background: var(--danger);
+        transform: scale(1.1);
+    }
+</style>

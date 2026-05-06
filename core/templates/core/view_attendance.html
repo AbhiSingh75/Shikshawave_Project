@@ -1,0 +1,997 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}View Attendance{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #64748b;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --bg-hover: #f8fafc;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --secondary-color: #111827;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        --bg-hover: #374151;
+    }
+    /* Specific Styles for Statistics & Charts */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--card-bg, white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        border-left: 4px solid var(--primary-color);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card.present { border-left-color: var(--success-color); }
+    .stat-card.absent { border-left-color: var(--error-color); }
+    .stat-card.late { border-left-color: var(--warning-color); }
+    .stat-card.holiday { border-left-color: var(--primary-color); }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-icon.present { background: var(--success-color); }
+    .stat-icon.absent { background: var(--error-color); }
+    .stat-icon.late { background: var(--warning-color); }
+    .stat-icon.holiday { background: var(--primary-color); }
+
+    .stat-number {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin: 0;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-light);
+        margin: 0.5rem 0 0 0;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-percentage {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-top: 0.5rem;
+        opacity: 0.8;
+    }
+
+    .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-card {
+        background: var(--card-bg, white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .chart-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .chart-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-light);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    .students-container {
+        background: var(--card-bg, white);
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .students-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg-hover);
+    }
+
+    .students-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .students-count {
+        font-size: 0.875rem;
+        padding: 4px 12px;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .students-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .students-table th {
+        background: var(--bg-hover);
+        padding: 12px 15px;
+        text-align: left;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-light);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .students-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        color: var(--text-color);
+    }
+
+    .status-badge-compact {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-badge-compact.present { background: var(--success-light); color: var(--success-color); }
+    .status-badge-compact.absent { background: var(--error-light); color: var(--error-color); }
+    .status-badge-compact.late { background: var(--warning-light); color: var(--warning-color); }
+    .status-badge-compact.holiday { background: var(--primary-light); color: var(--primary-color); }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: var(--text-light);
+    }
+
+    .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+    @media (max-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .students-container {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    /* Filter Modal Refinements - Compact & Professional */
+    .filter-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--modal-backdrop, rgba(15, 23, 42, 0.6));
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .filter-modal.show { opacity: 1; display: flex !important; }
+
+    .filter-content {
+        background: var(--card-bg, white);
+        width: 100%;
+        max-width: 500px;
+        border-radius: 12px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        overflow: visible !important;
+        transform: translateY(15px);
+        transition: transform 0.3s ease;
+    }
+
+    .filter-modal.show .filter-content { transform: translateY(0); }
+
+    .filter-header {
+        padding: 12px 20px;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .filter-header h3 { font-size: 1.1rem; margin: 0; }
+
+    .filter-body {
+        padding: 16px 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        overflow: visible !important;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .filter-group.full-width { grid-column: span 2; }
+
+    .filter-group label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 2px;
+    }
+
+    .filter-footer {
+        padding: 12px 20px;
+        background: var(--bg-hover);
+        border-radius: 0 0 12px 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    body.dark-mode .filter-content {
+        background: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark-mode .filter-footer { background: rgba(255, 255, 255, 0.02); }
+
+    /* Custom Dropdown Adjustments */
+    .custom-dropdown-menu {
+        max-height: 200px;
+        z-index: 2200 !important;
+        background: var(--card-bg) !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+    }
+
+    body.dark-mode .custom-dropdown-menu {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--border-color);
+    }
+
+    .custom-dropdown-option:hover {
+        background: var(--primary-light) !important;
+        color: var(--primary-color) !important;
+    }
+    .students-table th.sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+    .students-table th.sortable:hover { background: var(--success-light); }
+    .students-table th i {
+        margin-left: 5px;
+        font-size: 0.8em;
+        opacity: 0.6;
+    }
+    .students-table th.active i {
+        opacity: 1;
+        color: var(--primary);
+    }
+
+    /* Pagination Styles */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border);
+        border-radius: 0 0 12px 12px;
+    }
+    .pagination-info {
+        color: var(--text-muted);
+        font-size: 0.9em;
+    }
+    .pagination-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .page-link {
+        padding: 8px 16px;
+        background: var(--bg-body);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 0.9em;
+        transition: all 0.2s;
+    }
+    .page-link:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+    .page-numbers {
+        color: var(--text-main);
+        font-weight: 500;
+        font-size: 0.9em;
+    }
+
+    /* Filter Summary Pills */
+    .filter-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: -0.5rem 0 1.5rem 0;
+        padding: 0 0.5rem;
+    }
+    /* Standard button icon colors */
+    .control-buttons .btn i {
+        color: var(--primary-color);
+    }
+    .control-buttons .btn:hover i {
+        color: white; /* Contrast when button background turns primary on hover */
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <form method="GET" id="filter-form">
+        <div class="controls-row">
+            <div class="controls-left">
+                <h3><i class="fas fa-chart-line text-primary me-2"></i>View Attendance Report</h3>
+                
+                <!-- Filter Summary Box -->
+                {% if selected_class_id %}
+                <div class="summary-box">
+                    {% if selected_date %}
+                    <div class="summary-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>{{ selected_date }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if selected_class_name %}
+                    <div class="summary-item">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>{{ selected_class_name }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="summary-item">
+                        <i class="fas fa-users"></i>
+                        <span>{% if selected_section_name %}{{ selected_section_name }}{% else %}All Sections{% endif %}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="controls-right">
+                <div class="control-buttons">
+                    <button type="button" class="btn btn-secondary" id="filterBtn">
+                        <i class="fas fa-filter"></i>
+                        <span class="btn-label">Filter</span>
+                    </button>
+                    <a href="?" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i>
+                        <span class="btn-label">Reset</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="filter-modal" id="filter-modal">
+            <div class="filter-content">
+                <div class="filter-header">
+                    <h3><i class="fas fa-filter me-2"></i>Filter Options</h3>
+                    <button type="button" class="action-btn" id="close-filter-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="filter-body">
+                    {% if request.session.ProfileID == 1 %}
+                    <div class="filter-group full-width">
+                        <label><i class="fas fa-school"></i> Select School</label>
+                        <div class="custom-dropdown" data-target="school">
+                            <div class="custom-dropdown-toggle">
+                                <i class="fas fa-school dropdown-icon"></i>
+                                <span class="custom-dropdown-text">{% if selected_school_name %}{{ selected_school_name }}{% else %}Select School{% endif %}</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="school-dropdown-menu">
+                                <div class="custom-dropdown-option {% if not selected_school_id %}selected{% endif %}" data-value="">Select School</div>
+                            </div>
+                            <input type="hidden" name="school_id" id="school-id-input" value="{{ selected_school_id }}">
+                        </div>
+                        <select id="school" style="display: none;" onchange="loadClasses(this.value)">
+                            <option value="">Select School</option>
+                            {% if selected_school_id %}
+                            <option value="{{ selected_school_id }}" selected>{{ selected_school_name }}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar-alt"></i> Attendance Date</label>
+                        <div class="date-input-container">
+                            <input type="date" name="date" id="attendance-date" class="form-control" value="{{ selected_date }}">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label><i class="fas fa-graduation-cap"></i> Select Class</label>
+                        <div class="custom-dropdown" data-target="class">
+                            <div class="custom-dropdown-toggle">
+                                <i class="fas fa-graduation-cap dropdown-icon"></i>
+                                <span class="custom-dropdown-text">{% if selected_class_name %}{{ selected_class_name }}{% else %}Select Class{% endif %}</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="class-dropdown-menu">
+                                <div class="custom-dropdown-option {% if not selected_class_id %}selected{% endif %}" data-value="">Select Class</div>
+                                {% for class in classes %}
+                                <div class="custom-dropdown-option {% if class.id|stringformat:'s' == selected_class_id %}selected{% endif %}" data-value="{{ class.id }}">{{ class.name }}</div>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="class_id" id="class-id-input" value="{{ selected_class_id }}">
+                        </div>
+                        <select id="class" style="display: none;" onchange="loadSections(this.value)">
+                            <option value="">Select Class</option>
+                            {% for class in classes %}
+                            <option value="{{ class.id }}" {% if class.id|stringformat:'s' == selected_class_id %}selected{% endif %}>{{ class.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-group full-width">
+                        <label><i class="fas fa-users"></i> Select Section</label>
+                        <div class="custom-dropdown" data-target="section">
+                            <div class="custom-dropdown-toggle">
+                                <i class="fas fa-users dropdown-icon"></i>
+                                <span class="custom-dropdown-text">{% if selected_section_name %}{{ selected_section_name }}{% else %}All Sections{% endif %}</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="section-dropdown-menu">
+                                <div class="custom-dropdown-option {% if not selected_section_id %}selected{% endif %}" data-value="">All Sections</div>
+                                {% for section in sections %}
+                                <div class="custom-dropdown-option {% if section.id|stringformat:'s' == selected_section_id %}selected{% endif %}" data-value="{{ section.id }}">{{ section.name }}</div>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="section_id" id="section-id-input" value="{{ selected_section_id }}">
+                        </div>
+                        <select id="section" style="display: none;">
+                            <option value="">All Sections</option>
+                            {% for section in sections %}
+                            <option value="{{ section.id }}" {% if section.id|stringformat:'s' == selected_section_id %}selected{% endif %}>{{ section.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-footer">
+                    <a href="?" class="btn btn-secondary">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Apply Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {% if attendance_stats %}
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card present">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-number">{{ attendance_stats.present }}</div>
+                    <div class="stat-label">Present</div>
+                    <div class="stat-percentage">{{ attendance_stats.present_percentage }}%</div>
+                </div>
+                <div class="stat-icon present">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card absent">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-number">{{ attendance_stats.absent }}</div>
+                    <div class="stat-label">Absent</div>
+                    <div class="stat-percentage">{{ attendance_stats.absent_percentage }}%</div>
+                </div>
+                <div class="stat-icon absent">
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card late">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-number">{{ attendance_stats.late }}</div>
+                    <div class="stat-label">Late</div>
+                    <div class="stat-percentage">{{ attendance_stats.late_percentage }}%</div>
+                </div>
+                <div class="stat-icon late">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card holiday">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-number">{{ attendance_stats.holiday }}</div>
+                    <div class="stat-label">Holiday</div>
+                    <div class="stat-percentage">{{ attendance_stats.holiday_percentage }}%</div>
+                </div>
+                <div class="stat-icon holiday">
+                    <i class="fas fa-umbrella-beach"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Container -->
+    <div class="charts-container">
+        <div class="chart-card">
+            <div class="chart-title">
+                <div class="chart-icon"><i class="fas fa-chart-pie"></i></div>
+                Attendance Distribution
+            </div>
+            <div class="chart-container">
+                <canvas id="attendancePieChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">
+                <div class="chart-icon"><i class="fas fa-chart-bar"></i></div>
+                Attendance Comparison
+            </div>
+            <div class="chart-container">
+                <canvas id="attendanceBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students List -->
+    <div class="students-container">
+        <div class="students-header">
+            <div class="students-title">
+                <i class="fas fa-user-graduate"></i> Students List
+            </div>
+            <div class="students-count">
+                {{ attendance_stats.total }} Students
+            </div>
+        </div>
+
+        {% if students_list %}
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th>SN</th>
+                    <th class="sortable {% if sort_by == 'roll_no' %}active{% endif %}" onclick="applySort('roll_no')">
+                        Roll No 
+                        {% if sort_by == 'roll_no' %}
+                            <i class="fas fa-sort-{{ sort_order|lower }}"></i>
+                        {% else %}
+                            <i class="fas fa-sort"></i>
+                        {% endif %}
+                    </th>
+                    <th class="sortable {% if sort_by == 'name' %}active{% endif %}" onclick="applySort('name')">
+                        Student Name
+                        {% if sort_by == 'name' or not sort_by %}
+                            <i class="fas fa-sort-{{ sort_order|lower }}"></i>
+                        {% else %}
+                            <i class="fas fa-sort"></i>
+                        {% endif %}
+                    </th>
+                    <th class="sortable {% if sort_by == 'code' %}active{% endif %}" onclick="applySort('code')">
+                        Code
+                        {% if sort_by == 'code' %}
+                            <i class="fas fa-sort-{{ sort_order|lower }}"></i>
+                        {% else %}
+                            <i class="fas fa-sort"></i>
+                        {% endif %}
+                    </th>
+                    <th>Class/Section</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in students_list %}
+                <tr>
+                    <td data-label="SN">{{ start_index|add:forloop.counter }}</td>
+                    <td data-label="Roll No">{{ data.roll_no|default:"-" }}</td>
+                    <td data-label="Student Name">
+                        <strong>{{ data.name }}</strong>
+                    </td>
+                    <td data-label="Code">{{ data.code }}</td>
+                    <td data-label="Class/Section">{{ data.class }} - {{ data.section }}</td>
+                    <td data-label="Status">
+                        <span class="status-badge-compact {{ data.status_class }}">
+                            {{ data.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination Footer -->
+        {% if pagination and pagination.total_pages > 1 %}
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Showing {{ students_list|length }} of {{ pagination.total_items }} students
+            </div>
+            <div class="pagination-controls">
+                {% if pagination.page > 1 %}
+                    <a href="javascript:void(0)" onclick="goToPage({{ pagination.page|add:'-1' }})" class="page-link prev">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                {% endif %}
+                
+                <span class="page-numbers">
+                    Page {{ pagination.page }} of {{ pagination.total_pages }}
+                </span>
+                
+                {% if pagination.page < pagination.total_pages %}
+                    <a href="javascript:void(0)" onclick="goToPage({{ pagination.page|add:'1' }})" class="page-link next">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-info-circle"></i>
+            <p>No student data available for the selected filters.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <!-- Initial State -->
+    <div class="empty-state">
+        <i class="fas fa-search"></i>
+        <h3>Ready to View Attendance?</h3>
+        <p>Select a date and class, then click "View Report" to see analytics and student lists.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+{{ attendance_stats|json_script:"attendance-stats" }}
+<script>
+    const attendanceStats = JSON.parse(document.getElementById('attendance-stats').textContent || '{}');
+    let charts = { pie: null, bar: null };
+    let currentProfileId = {{ request.session.ProfileID|default:0 }};
+    let currentSortBy = "{{ sort_by|default:'name' }}";
+    let currentSortOrder = "{{ sort_order|default:'ASC' }}";
+
+    function applySort(sortBy) {
+        if (currentSortBy === sortBy) {
+            currentSortOrder = currentSortOrder === 'ASC' ? 'DESC' : 'ASC';
+        } else {
+            currentSortBy = sortBy;
+            currentSortOrder = 'ASC';
+        }
+        
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort_by', currentSortBy);
+        url.searchParams.set('sort_order', currentSortOrder);
+        url.searchParams.set('page', '1'); // Reset to first page on sort
+        window.location.href = url.toString();
+    }
+
+    function goToPage(page) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', page);
+        window.location.href = url.toString();
+    }
+
+    function openFilterModal() {
+        const modal = document.getElementById('filter-modal');
+        if (modal) {
+            modal.classList.add('show');
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeFilterModal() {
+        const modal = document.getElementById('filter-modal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => { if (!modal.classList.contains('show')) modal.style.display = 'none'; }, 300);
+        }
+    }
+
+    function updateCustomDropdown(id, value, text) {
+        const dropdown = document.querySelector(`.custom-dropdown[data-target="${id}"]`);
+        if (dropdown) {
+            const textSpan = dropdown.querySelector('.custom-dropdown-text');
+            const hiddenInput = document.getElementById(`${id}-id-input`);
+            if (textSpan) textSpan.textContent = text;
+            if (hiddenInput) {
+                hiddenInput.value = value;
+                hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            
+            const select = document.getElementById(id);
+            if (select) {
+                select.value = value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+    }
+
+    // Load schools for Super Admin
+    function loadSchools() {
+        if (currentProfileId !== 1) return;
+
+        fetch('/api/school-dropdown/')
+            .then(response => response.json())
+            .then(data => {
+                const menu = document.getElementById('school-dropdown-menu');
+                const schoolSelect = document.getElementById('school');
+                if (!menu || !schoolSelect) return;
+
+                schoolSelect.innerHTML = '<option value="">Select School</option>';
+                if (data.status === 'SUCCESS' && data.data) {
+                    data.data.forEach(school => {
+                        const option = document.createElement('option');
+                        option.value = school.id;
+                        option.textContent = school.name;
+                        schoolSelect.appendChild(option);
+                    });
+                }
+                
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            })
+            .catch(error => console.error('Error loading schools:', error));
+    }
+
+    // Load classes for selected school
+    function loadClasses(schoolId) {
+        if (!schoolId) return;
+        
+        // Update hidden input too
+        const schoolInput = document.getElementById('school-id-input');
+        if (schoolInput) schoolInput.value = schoolId;
+
+        fetch(`/api/classes/?school_id=${schoolId}`)
+            .then(response => response.json())
+            .then(data => {
+                const classSelect = document.getElementById('class');
+                if (classSelect) {
+                    classSelect.innerHTML = '<option value="">Select Class</option>';
+                    if (data.classes) {
+                        data.classes.forEach(cls => {
+                            const option = document.createElement('option');
+                            option.value = cls.ClassID || cls.id;
+                            option.textContent = cls.ClassName || cls.name;
+                            classSelect.appendChild(option);
+                        });
+                    }
+                }
+
+                // Reset Section
+                updateCustomDropdown('section', '', 'All Sections');
+                const sectionSelect = document.getElementById('section');
+                if (sectionSelect) sectionSelect.innerHTML = '<option value="">All Sections</option>';
+                
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            })
+            .catch(error => console.error('Error loading classes:', error));
+    }
+
+    function loadSections(classId) {
+        if (!classId) return;
+
+        fetch(`/api/sections/?class_id=${classId}`)
+            .then(response => response.json())
+            .then(data => {
+                const sectionSelect = document.getElementById('section');
+                if (sectionSelect) {
+                    sectionSelect.innerHTML = '<option value="">All Sections</option>';
+                    const sectionsToUse = data.sections || (data.status === 'SUCCESS' ? data.sections : []);
+                    if (sectionsToUse) {
+                        sectionsToUse.forEach(section => {
+                            const option = document.createElement('option');
+                            option.value = section.SectionID || section.id;
+                            option.textContent = section.SectionName || section.name;
+                            sectionSelect.appendChild(option);
+                        });
+                    }
+                }
+                
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            })
+            .catch(error => console.error('Error loading sections:', error));
+    }
+
+    function createCharts() {
+        if (!attendanceStats.total) return;
+
+        // Fetch colors from theme variables
+        const style = getComputedStyle(document.body);
+        const colors = {
+            present: style.getPropertyValue('--success-color').trim() || '#10b981',
+            absent: style.getPropertyValue('--error-color').trim() || '#ef4444',
+            late: style.getPropertyValue('--warning-color').trim() || '#f59e0b',
+            holiday: style.getPropertyValue('--primary-color').trim() || '#004aad'
+        };
+
+        const ctxPie = document.getElementById('attendancePieChart');
+        if (ctxPie) {
+            charts.pie = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Present', 'Absent', 'Late', 'Holiday'],
+                    datasets: [{
+                        data: [
+                            attendanceStats.present, 
+                            attendanceStats.absent, 
+                            attendanceStats.late, 
+                            attendanceStats.holiday
+                        ],
+                        backgroundColor: Object.values(colors),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        const ctxBar = document.getElementById('attendanceBarChart');
+        if (ctxBar) {
+            charts.bar = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Present', 'Absent', 'Late', 'Holiday'],
+                    datasets: [{
+                        label: 'Student Count',
+                        data: [
+                            attendanceStats.present, 
+                            attendanceStats.absent, 
+                            attendanceStats.late, 
+                            attendanceStats.holiday
+                        ],
+                        backgroundColor: Object.values(colors),
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize custom dropdowns from shiskahwave-list.js
+        if (window.initCustomDropdowns) window.initCustomDropdowns();
+        
+        // Setup initial view
+        if (currentProfileId === 1) {
+            // Schools for Super Admin already handled by initial HTML if selected, 
+            // but we can load them to ensure dropdown is populated
+            loadSchools();
+        }
+        
+        // Setup class->section dependency
+        const classSelect = document.getElementById('class');
+        if (classSelect) {
+            classSelect.addEventListener('change', (e) => loadSections(e.target.value));
+        }
+
+        const filterBtn = document.getElementById('filterBtn');
+        if (filterBtn) filterBtn.addEventListener('click', openFilterModal);
+
+        const closeBtn = document.getElementById('close-filter-modal');
+        if (closeBtn) closeBtn.addEventListener('click', closeFilterModal);
+        
+        setTimeout(createCharts, 300);
+    });
+</script>
+{% endblock %}

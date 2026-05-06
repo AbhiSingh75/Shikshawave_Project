@@ -1,0 +1,1013 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}View Timetable | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #64748b;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --bg-hover: #f8fafc;
+        --header-height: 70px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --secondary-color: #111827;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+        --bg-hover: #374151;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Standardized Spacing & Theme Fix */
+    .dashboard-container {
+        padding: 5px 0 40px 0 !important; /* Rely on sw-main-content for horizontal padding */
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    .controls-row {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 12px 24px !important;
+        background: var(--card-bg) !important;
+        border: 2px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        margin-bottom: 8px !important;
+        box-sizing: border-box !important;
+        box-shadow: var(--shadow-md) !important;
+    }
+
+    .controls-left {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .controls-left h3 {
+        font-size: 1.25rem !important; /* Slightly smaller for space */
+        font-weight: 800;
+        color: var(--primary-color);
+        letter-spacing: -0.02em;
+        margin: 0 !important;
+    }
+
+    .controls-right {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-grow: 1 !important;
+        justify-content: flex-end !important;
+    }
+
+    #filterForm {
+        display: block !important;
+        margin: 0 !important;
+    }
+
+    /* Premium Summary Pill */
+    .btn-secondary {
+        background: var(--bg-hover) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-light) !important;
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-color) !important;
+        color: var(--text-color) !important;
+    }
+    .summary-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--primary-light);
+        padding: 5px 12px;
+        border-radius: 20px;
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    body:not(.dark-mode) .summary-box {
+        background-color: var(--primary-light) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-color) !important;
+    }
+
+    .summary-item i {
+        color: var(--primary-color) !important;
+    }
+
+    /* Standardized Filter Grid for 2 Columns */
+    .filter-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 16px !important;
+        margin-bottom: 16px !important;
+    }
+
+    /* Minimal Modal Overrides for specific needs */
+    #filter-modal .sw-modal {
+        max-width: 600px !important;
+    }
+
+    @media (max-width: 768px) {
+        .filter-row {
+            flex-direction: column !important;
+            gap: 10px !important;
+            margin-bottom: 10px !important;
+        }
+        
+        .filter-row[style*="margin-bottom: 0"] {
+            margin-bottom: 0 !important;
+        }
+    }
+
+    .timetable-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        margin-bottom: 20px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        box-sizing: border-box !important;
+    }
+
+    .content-area {
+        width: 100% !important;
+        background: var(--card-bg) !important;
+        border: 2px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        box-shadow: var(--shadow-md) !important;
+        display: block !important; /* Force visibility on mobile */
+    }
+
+    /* Mobile Stacking & Visibility Fixes */
+    @media (max-width: 768px) {
+        .filter-row {
+            grid-template-columns: 1fr !important;
+        }
+
+        #filter-modal .sw-modal {
+            max-height: 90vh !important;
+            margin: 10px auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            width: 95% !important;
+            background: var(--card-bg) !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+        }
+
+        #filter-modal .sw-modal-body {
+            overflow-y: auto !important;
+            flex: 1 !important;
+            padding: 15px !important;
+            min-height: auto !important;
+        }
+
+        .sw-modal-footer {
+            flex-shrink: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            padding: 15px !important;
+            border-top: 1px solid var(--border-color) !important;
+            background: var(--card-bg) !important;
+        }
+
+        .sw-modal-footer button {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 12px !important;
+        }
+
+        /* Force Timetable visibility on mobile (override list.css cards-only) */
+        #timetableDisplay, .timetable-wrapper, .table-container {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+    }
+
+    .table-container {
+        width: 100% !important;
+        overflow-x: auto !important;
+        background: var(--card-bg) !important;
+        box-sizing: border-box !important;
+    }
+
+    .timetable-table {
+        border-radius: 11px; /* Slightly less than container */
+        overflow: hidden;
+        border: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border-collapse: collapse !important;
+    }
+
+    .timetable-table th {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
+        padding: 15px 20px !important; /* Unified padding */
+        font-size: 0.85rem !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        color: white !important;
+    }
+
+    .day-cell {
+        background: var(--light-gray) !important;
+        font-weight: 800 !important;
+        color: var(--primary-color) !important;
+        padding: 15px 20px !important; /* Unified padding */
+    }
+
+    .slot-cell {
+        padding: 12px !important;
+        transition: var(--transition);
+        min-width: 140px;
+    }
+
+    .slot-cell:hover {
+        background: rgba(0, 74, 173, 0.03);
+    }
+
+    .slot-subject {
+        color: var(--success-color) !important;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .break-cell {
+        background: repeating-linear-gradient(45deg, var(--light-gray), var(--light-gray) 10px, transparent 10px, transparent 20px) !important;
+        font-weight: 800 !important;
+        opacity: 0.7;
+    }
+
+    #timetableDisplay {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: auto !important;
+    }
+
+    .empty-state {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 80px 40px;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .empty-state i {
+        font-size: 4.5rem;
+        color: var(--border-color);
+        margin-bottom: 24px;
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 10px !important; }
+        .controls-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 15px !important;
+            padding: 15px !important;
+            height: auto !important;
+        }
+
+        .controls-left {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }
+
+        .summary-box {
+            width: 100% !important;
+            justify-content: flex-start !important;
+            padding: 8px 15px !important;
+        }
+
+        .controls-right {
+            width: 100% !important;
+        }
+
+        #filter-btn {
+            width: 100% !important;
+            justify-content: center !important;
+        }
+        
+        /* Table Mobile Fixes */
+        .table-container {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            position: relative !important;
+        }
+
+        .timetable-table {
+            min-width: 800px; /* Force scroll */
+            border-collapse: separate !important;
+        }
+
+        .timetable-table th:first-child,
+        .day-cell {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 30 !important;
+            background: var(--bg-hover) !important; /* Slightly distinct background */
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode .timetable-table th:first-child,
+        body.dark-mode .day-cell {
+            background: var(--card-bg) !important;
+        }
+    }
+
+    #filter-modal .sw-modal {
+        overflow: hidden !important;
+        max-height: 90vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    #filter-modal .sw-modal-body {
+        overflow-y: auto !important;
+        flex: 1 !important;
+        padding-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    #filter-modal .sw-modal-footer {
+        z-index: 10;
+    }
+
+    /* Ensure dropdowns are above everything in the modal */
+    #filter-modal .custom-dropdown-menu {
+        z-index: 11000 !important;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Standard Timetable View</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Loaded: <span id="summary-loaded">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-right">
+            <button class="btn btn-secondary" id="filter-btn" style="padding: 0 15px; height: 42px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-filter"></i>
+                <span>Filters</span>
+            </button>
+
+            <div id="printBtnContainer" style="display: none;">
+                <button id="mainPrintBtn" class="btn btn-success" style="padding: 10px; border-radius: 10px; height: 42px; width: 42px; justify-content: center;">
+                    <i class="fas fa-print"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div id="timetableDisplay"></div>
+    </div>
+    <!-- Standard Filter Modal (Staff List Style) -->
+    <div class="sw-modal-container" id="filter-modal" style="display: none;">
+        <div class="sw-modal">
+            <div class="sw-modal-header">
+                <div class="sw-modal-title">
+                    <i class="fas fa-filter"></i>
+                    <h2>Filter Timetable</h2>
+                </div>
+                <button type="button" class="sw-modal-close" id="close-filter-modal" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="sw-modal-body">
+                <form method="GET" action="{% url 'view_timetable_page' %}" id="filterForm">
+                    {% if profile_id == 1 %}
+                    <div class="filter-group" style="margin-bottom: 20px;">
+                        <label for="global_school_id"><i class="fas fa-university"></i> School</label>
+                        <select id="global_school_id" name="school_id" style="display:none;" onchange="onSchoolChange()">
+                            <option value="">-- Select School --</option>
+                            {% for school in schools %}
+                            <option value="{{ school.SchoolID }}" {% if school.SchoolID in selected_school_list %}selected{% endif %}>
+                                {{ school.DisplayName }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="custom-dropdown" data-target="global_school_id">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">{% if selected_school_id %}{{ selected_school_name|default:"-- Select School --" }}{% else %}-- Select School --{% endif %}</span>
+                                <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">-- Select School --</div>
+                                {% for school in schools %}
+                                <div class="custom-dropdown-option" data-value="{{ school.SchoolID }}">{{ school.DisplayName }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="class_id"><i class="fas fa-chalkboard"></i> Class</label>
+                            <select name="class_id" id="class_id" style="display:none;">
+                                <option value="">All Classes</option>
+                                {% for class in classes %}
+                                <option value="{{ class.EncryptedID }}" {% if class.ClassID in selected_class_list %}selected{% endif %}>
+                                    {{ class.ClassName }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-dropdown" data-target="class_id">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if selected_class_name %}{{ selected_class_name }}{% else %}All Classes{% endif %}</span>
+                                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Classes</div>
+                                    {% for class in classes %}
+                                    <div class="custom-dropdown-option" data-value="{{ class.EncryptedID }}">{{ class.ClassName }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="section_id"><i class="fas fa-users"></i> Section</label>
+                            <select name="section_id" id="section_id" style="display:none;">
+                                <option value="">All Sections</option>
+                                {% for section in sections %}
+                                <option value="{{ section.EncryptedID }}" {% if section.SectionID in selected_section_list %}selected{% endif %}>
+                                    {{ section.SectionName }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-dropdown" data-target="section_id">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if selected_section_name %}{{ selected_section_name }}{% else %}All Sections{% endif %}</span>
+                                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Sections</div>
+                                    {% for section in sections %}
+                                    <div class="custom-dropdown-option" data-value="{{ section.EncryptedID }}">{{ section.SectionName }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="teacher_id"><i class="fas fa-user-tie"></i> Teacher</label>
+                            <select name="teacher_id" id="teacher_id" style="display:none;">
+                                <option value="">All Teachers</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.EncryptedID }}" {% if teacher.EmployeeID in selected_teacher_list %}selected{% endif %}>
+                                    {{ teacher.UserName }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-dropdown" data-target="teacher_id">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if selected_teacher_name %}{{ selected_teacher_name }}{% else %}All Teachers{% endif %}</span>
+                                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Teachers</div>
+                                    {% for teacher in teachers %}
+                                    <div class="custom-dropdown-option" data-value="{{ teacher.EncryptedID }}">{{ teacher.UserName }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="day_of_week"><i class="fas fa-calendar-day"></i> Day</label>
+                            <select name="day" id="day_of_week" style="display:none;">
+                                <option value="">All Days</option>
+                                <option value="Monday" {% if selected_day == 'Monday' %}selected{% endif %}>Monday</option>
+                                <option value="Tuesday" {% if selected_day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+                                <option value="Wednesday" {% if selected_day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+                                <option value="Thursday" {% if selected_day == 'Thursday' %}selected{% endif %}>Thursday</option>
+                                <option value="Friday" {% if selected_day == 'Friday' %}selected{% endif %}>Friday</option>
+                                <option value="Saturday" {% if selected_day == 'Saturday' %}selected{% endif %}>Saturday</option>
+                            </select>
+                            <div class="custom-dropdown" data-target="day_of_week">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if selected_day %}{{ selected_day }}{% else %}All Days{% endif %}</span>
+                                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Days</div>
+                                    <div class="custom-dropdown-option" data-value="Monday">Monday</div>
+                                    <div class="custom-dropdown-option" data-value="Tuesday">Tuesday</div>
+                                    <div class="custom-dropdown-option" data-value="Wednesday">Wednesday</div>
+                                    <div class="custom-dropdown-option" data-value="Thursday">Thursday</div>
+                                    <div class="custom-dropdown-option" data-value="Friday">Friday</div>
+                                    <div class="custom-dropdown-option" data-value="Saturday">Saturday</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    {# Non-Admin Flow #}
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="class_id"><i class="fas fa-chalkboard"></i> Class</label>
+                            <select name="class_id" id="class_id" style="display:none;">
+                                <option value="">All Classes</option>
+                                {% for class in classes %}
+                                <option value="{{ class.EncryptedID }}" {% if class.ClassID in selected_class_list %}selected{% endif %}>
+                                    {{ class.ClassName }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-dropdown" data-target="class_id">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if selected_class_name %}{{ selected_class_name }}{% else %}All Classes{% endif %}</span>
+                                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Classes</div>
+                                    {% for class in classes %}
+                                    <div class="custom-dropdown-option" data-value="{{ class.EncryptedID }}">{{ class.ClassName }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="section_id"><i class="fas fa-users"></i> Section</label>
+                            <select name="section_id" id="section_id" style="display:none;">
+                                <option value="">All Sections</option>
+                                {% for section in sections %}
+                                <option value="{{ section.EncryptedID }}" {% if section.SectionID in selected_section_list %}selected{% endif %}>
+                                    {{ section.SectionName }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-dropdown" data-target="section_id">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if selected_section_name %}{{ selected_section_name }}{% else %}All Sections{% endif %}</span>
+                                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Sections</div>
+                                    {% for section in sections %}
+                                    <div class="custom-dropdown-option" data-value="{{ section.EncryptedID }}">{{ section.SectionName }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="teacher_id"><i class="fas fa-user-tie"></i> Teacher</label>
+                            <select name="teacher_id" id="teacher_id" style="display:none;">
+                                <option value="">All Teachers</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.EncryptedID }}" {% if teacher.EmployeeID in selected_teacher_list %}selected{% endif %}>
+                                    {{ teacher.UserName }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-dropdown" data-target="teacher_id">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if selected_teacher_name %}{{ selected_teacher_name }}{% else %}All Teachers{% endif %}</span>
+                                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Teachers</div>
+                                    {% for teacher in teachers %}
+                                    <div class="custom-dropdown-option" data-value="{{ teacher.EncryptedID }}">{{ teacher.UserName }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="day_of_week"><i class="fas fa-calendar-day"></i> Day</label>
+                            <select name="day" id="day_of_week" style="display:none;">
+                                <option value="">All Days</option>
+                                <option value="Monday" {% if selected_day == 'Monday' %}selected{% endif %}>Monday</option>
+                                <option value="Tuesday" {% if selected_day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+                                <option value="Wednesday" {% if selected_day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+                                <option value="Thursday" {% if selected_day == 'Thursday' %}selected{% endif %}>Thursday</option>
+                                <option value="Friday" {% if selected_day == 'Friday' %}selected{% endif %}>Friday</option>
+                                <option value="Saturday" {% if selected_day == 'Saturday' %}selected{% endif %}>Saturday</option>
+                            </select>
+                            <div class="custom-dropdown" data-target="day_of_week">
+                                <div class="custom-dropdown-toggle">
+                                    <span class="custom-dropdown-text">{% if selected_day %}{{ selected_day }}{% else %}All Days{% endif %}</span>
+                                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-option" data-value="">All Days</div>
+                                    <div class="custom-dropdown-option" data-value="Monday">Monday</div>
+                                    <div class="custom-dropdown-option" data-value="Tuesday">Tuesday</div>
+                                    <div class="custom-dropdown-option" data-value="Wednesday">Wednesday</div>
+                                    <div class="custom-dropdown-option" data-value="Thursday">Thursday</div>
+                                    <div class="custom-dropdown-option" data-value="Friday">Friday</div>
+                                    <div class="custom-dropdown-option" data-value="Saturday">Saturday</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+
+            <div class="sw-modal-footer">
+                <button type="button" class="btn btn-secondary" id="reset-filters">
+                    <i class="fas fa-undo"></i> Clear All
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    </div>
+
+
+    <div id="timetableDisplay">
+        {% if not all_data %}
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No Timetables Found</h3>
+            <p>
+                {% if profile_id == 1 and not selected_school_id %}
+                Please select a school to view timetables.
+                {% elif profile_id == 2 or profile_id == 1 %}
+                Use the filters above to load a timetable.
+                {% elif profile_id == 3 %}
+                You are not assigned to any timetable slots.
+                {% elif profile_id == 4 %}
+                No timetable published for your class yet.
+                {% else %}
+                No data available.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<script>
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const profileId = parseInt("{{ profile_id|default:0 }}");
+    const allData = JSON.parse("{{ all_data_json|default:'[]'|escapejs }}");
+    const SESSION_SCHOOL_ID = '{{ request.session.SchoolID|default:"" }}';
+
+    // Group data by timetable
+    const timetableMap = {};
+    const isTeacherView = new URLSearchParams(window.location.search).get('teacher_id') || profileId === 3;
+
+    allData.forEach(row => {
+        if (!timetableMap[row.TimetableID]) {
+            timetableMap[row.TimetableID] = {
+                TimetableID: row.TimetableID,
+                EncryptedTimetableID: row.EncryptedTimetableID,
+                ClassName: row.ClassName,
+                SectionName: row.SectionName,
+                AcademicYear: row.AcademicYear,
+                EffectiveFrom: row.EffectiveFrom,
+                periods: {},
+                slots: []
+            };
+        }
+        if (row.PeriodID && !timetableMap[row.TimetableID].periods[row.PeriodID]) {
+            timetableMap[row.TimetableID].periods[row.PeriodID] = {
+                PeriodID: row.PeriodID,
+                PeriodName: row.PeriodName,
+                PeriodType: row.PeriodType,
+                StartTime: row.StartTime,
+                EndTime: row.EndTime,
+                DisplayOrder: row.DisplayOrder
+            };
+        }
+        if (row.SlotID) {
+            timetableMap[row.TimetableID].slots.push({
+                SlotID: row.SlotID,
+                DayOfWeek: row.DayOfWeek,
+                PeriodID: row.PeriodID,
+                SubjectName: row.SubjectName,
+                TeacherName: row.TeacherName,
+                ClassName: row.ClassName,
+                SectionName: row.SectionName
+            });
+        }
+    });
+
+    function onSchoolChange() {
+        const sid = document.getElementById('global_school_id')?.value || '';
+        if (!sid) return;
+
+        // Save school selection to session via AJAX (no refresh)
+        fetch('/timetable/set-school/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ school_id: sid })
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Clear and reload dependent dropdowns
+                clearDropdown('class_id', 'Select Class');
+                clearDropdown('section_id', 'Select Section');
+                clearDropdown('teacher_id', 'Select Teacher');
+                
+                loadClasses(sid);
+                loadTeachers(sid);
+            }
+        });
+    }
+
+    function clearDropdown(id, placeholder) {
+        const select = document.getElementById(id);
+        if (!select) return;
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        if (window.refreshCustomDropdowns) window.refreshCustomDropdowns(id);
+    }
+
+    async function loadClasses(sid) {
+        try {
+            const response = await fetch(`/api/classes/?school_id=${sid}`);
+            const data = await response.json();
+            const select = document.getElementById('class_id');
+            if (!select) return;
+
+            select.innerHTML = '<option value="">Select Class</option>';
+            if (data.classes) {
+                data.classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.ClassID;
+                    opt.textContent = c.ClassName;
+                    select.appendChild(opt);
+                });
+            }
+            if (window.refreshCustomDropdowns) window.refreshCustomDropdowns('class_id');
+        } catch (err) {
+            console.error('Error loading classes:', err);
+        }
+    }
+
+    async function loadTeachers(sid) {
+        try {
+            const response = await fetch(`/timetable/teachers/?school_id=${sid}`);
+            const data = await response.json();
+            const select = document.getElementById('teacher_id');
+            if (!select) return;
+
+            select.innerHTML = '<option value="">Select Teacher</option>';
+            if (data.success && data.teachers) {
+                data.teachers.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.TeacherID;
+                    opt.textContent = t.TeacherName;
+                    select.appendChild(opt);
+                });
+            }
+            if (window.refreshCustomDropdowns) window.refreshCustomDropdowns('teacher_id');
+        } catch (err) {
+            console.error('Error loading teachers:', err);
+        }
+    }
+
+    function renderTimetable(timetableData) {
+        const periods = Object.values(timetableData.periods).sort((a, b) => a.DisplayOrder - b.DisplayOrder);
+        const slots = timetableData.slots;
+        const classSection = timetableData.SectionName ? `${timetableData.ClassName} - ${timetableData.SectionName}` : timetableData.ClassName;
+
+        // Update the main print button in the controls row
+        const printContainer = document.getElementById('printBtnContainer');
+        const mainPrintBtn = document.getElementById('mainPrintBtn');
+        if (printContainer && mainPrintBtn) {
+            printContainer.style.display = 'block';
+            mainPrintBtn.onclick = () => window.open(`/timetable/print/${timetableData.EncryptedTimetableID}/`, '_blank');
+        }
+
+        const html = `
+        <div class="timetable-wrapper">
+            <div class="timetable-header" style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px; padding: 0 20px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap;">
+                    <h4 style="margin: 0;">${classSection}</h4>
+                    <span class="timetable-meta" style="font-size: 0.9rem; font-weight: 600; color: var(--text-light); opacity: 0.8;">
+                        ${timetableData.AcademicYear || ''} | Published: ${timetableData.EffectiveFrom ? new Date(timetableData.EffectiveFrom).toLocaleDateString('en-GB') : ''}
+                    </span>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="timetable-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 100px; text-align: left;">Day</th>
+                            ${periods.map(p => `<th>
+                                <div>${p.PeriodName}</div>
+                                <div style="font-size:0.75rem; opacity:0.9; font-weight:400;">${p.StartTime?.substring(0, 5)}-${p.EndTime?.substring(0, 5)}</div>
+                            </th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${days.map((day, dayIndex) => `
+                            <tr>
+                                <td class="day-cell">${day}</td>
+                                ${periods.map(period => {
+            const slot = slots.find(s => s.DayOfWeek === dayIndex + 1 && s.PeriodID === period.PeriodID);
+            if (period.PeriodType === 'Break') {
+                return `<td class="break-cell">Break</td>`;
+            } else if (slot) {
+                const classInfo = isTeacherView && slot.SectionName ? `${slot.ClassName} - ${slot.SectionName}` : (isTeacherView ? slot.ClassName : '');
+                return `<td class="slot-cell">
+                                            <div class="slot-subject">${slot.SubjectName || '-'}</div>
+                                            ${isTeacherView ? `<div class="slot-class">${classInfo}</div>` : ''}
+                                            <div class="slot-teacher">${isTeacherView ? '' : slot.TeacherName || ''}</div>
+                                        </td>`;
+            } else {
+                return `<td style="color:var(--text-light);">-</td>`;
+            }
+        }).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+        return html;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Modal Logic
+        const filterModal = document.getElementById('filter-modal');
+        const filterBtn = document.getElementById('filter-btn');
+        const closeBtn = document.getElementById('close-filter-modal');
+        const applyBtn = document.getElementById('apply-filters');
+        const resetBtn = document.getElementById('reset-filters');
+        const filterForm = document.getElementById('filterForm');
+        
+        // Prevent accidental form submission on Enter if we want to control via Apply button
+        if (filterForm) {
+            filterForm.addEventListener('submit', (e) => {
+                // If we are already handling via applyBtn, we can either allow this or prevent
+                // Let's allow it but ensure it doesn't happen on every change
+            });
+        }
+
+        if (filterBtn) {
+            filterBtn.addEventListener('click', () => {
+                filterModal.style.display = 'flex';
+                setTimeout(() => filterModal.classList.add('show'), 10);
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                filterModal.classList.remove('show');
+                setTimeout(() => filterModal.style.display = 'none', 300);
+            });
+        }
+
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+                filterForm.submit();
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                filterForm.reset();
+                window.location.href = "{% url 'view_timetable_page' %}";
+            });
+        }
+
+        // No local initCustomDropdowns needed, using global shikshawave-list.js
+        if (typeof initCustomDropdowns === 'function') {
+            initCustomDropdowns();
+        }
+
+        const classSelect = document.getElementById('class_id');
+        const sectionSelect = document.getElementById('section_id');
+        const teacherSelect = document.getElementById('teacher_id');
+
+        function loadSections(classId) {
+            if (!sectionSelect) return;
+            
+            // Clear existing
+            sectionSelect.innerHTML = '<option value="">All Sections</option>';
+            
+            if (!classId) {
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns('section_id');
+                return;
+            }
+
+            fetch('/api/sections/?class_id=' + classId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS' && data.sections) {
+                        data.sections.forEach(section => {
+                            const option = document.createElement('option');
+                            option.value = section.SectionID;
+                            option.textContent = section.SectionName;
+                            sectionSelect.appendChild(option);
+                        });
+                    }
+                    // Refresh custom dropdown UI
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns('section_id');
+                })
+                .catch(err => console.error('Error loading sections:', err));
+        }
+
+        if (classSelect) {
+            classSelect.addEventListener('change', function () {
+                const classId = this.value;
+                
+                // Load Sections
+                loadSections(classId);
+
+                // Clear Teacher selection if Class changes
+                if (teacherSelect) {
+                    teacherSelect.value = '';
+                    const teacherDropdown = document.querySelector('.custom-dropdown[data-target="teacher_id"] .custom-dropdown-text');
+                    if (teacherDropdown) teacherDropdown.textContent = 'All Teachers';
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+                }
+            });
+        }
+
+        if (teacherSelect) {
+            teacherSelect.addEventListener('change', function () {
+                if (this.value && classSelect) {
+                    classSelect.value = '';
+                    const classDropdown = document.querySelector('.custom-dropdown[data-target="class_id"] .custom-dropdown-text');
+                    if (classDropdown) classDropdown.textContent = 'All Classes';
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+                }
+            });
+        }
+
+        // Render data if present
+        const timetables = Object.values(timetableMap);
+        document.getElementById('summary-loaded').innerText = timetables.length;
+
+        if (timetables.length > 0) {
+            document.getElementById('timetableDisplay').innerHTML = timetables.map(t => renderTimetable(t)).join('');
+        }
+    });
+</script>
+</div> <!-- Correctly closing dashboard-container -->
+{% endblock %}

@@ -1,0 +1,809 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShikshaWave - Home</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <img src="{% static 'images/ShikshaWave_Logo.png' %}" alt="ShikshaWave Logo" class="logo"
+                        aria-label="ShikshaWave Logo">
+                    <span class="header-brand">ShikshaWave</span>
+                </div>
+                <nav class="nav" role="navigation">
+                    <ul class="nav-list">
+                        <li><a href="#" class="nav-link">Home</a></li>
+                        <li><a href="#about" class="nav-link">About</a></li>
+                        <li><a href="#pricing" class="nav-link">Pricing</a></li>
+                        <li><a href="#roadmap" class="nav-link">Roadmap</a></li>
+                        <li><a href="#testimonials" class="nav-link">Testimonials</a></li>
+                        <li><a href="#team" class="nav-link">Team</a></li>
+                        <li><a href="#contact" class="nav-link">Contact</a></li>
+                        <li><a href="{% url 'login' %}" class="btn-login">Login</a></li>
+                    </ul>
+                </nav>
+
+                <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                    <span class="hamburger"></span>
+                </button>
+                <img src="{% static 'images/India.jpg' %}" alt="ShikshaWave Logo" class="logo"
+                    aria-label="ShikshaWave Logo">
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="brand-name">ShikshaWave</div>
+            <h1>Empowering Education with Technology</h1>
+            <p>Your complete School ERP solution, built for the future of learning.</p>
+            <a href="{% url 'login' %}" class="btn">Get Started</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About Us</h2>
+            <p>ShikshaWave is committed to revolutionizing school management with simplicity, efficiency, and
+                transparency.</p>
+            <div class="about-cards">
+                <div class="card">
+                    <h3>Our Motto</h3>
+                    <p>Revolutionizing school management with simplicity, efficiency, and transparency.</p>
+                </div>
+                <div class="card">
+                    <h3>Our Vision</h3>
+                    <p>To make quality education management accessible to every school in India, no matter the size.</p>
+                </div>
+                <div class="card">
+                    <h3>Future Goal</h3>
+                    <p>By 2026, become India’s most trusted school ERP platform, serving over 10,000 institutions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <h2>Pricing</h2>
+            <p style="font-size: 1.3rem; font-weight: 600; color: #1976D2; margin-bottom: 15px;">Transparent Plans. Scalable for Every School.</p>
+            <p style="max-width: 800px; margin: 0 auto 20px; font-size: 1.05rem; line-height: 1.8;">
+                We believe technology should simplify education, not drain budgets. That's why ShikshaWave ERP offers flexible and affordable pricing for schools of all sizes — from small institutions to large campuses.
+            </p>
+            <div style="background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%); padding: 25px; border-radius: 15px; margin: 30px auto; max-width: 850px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h3 style="color: #1976D2; margin-bottom: 15px; font-size: 1.2rem;">Why Choose ShikshaWave?</h3>
+                <div style="text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.95rem;">
+                    <div><strong>✅ No Limit for Users</strong><br><span style="color: #666;">Unlimited staff & student accounts</span></div>
+                    <div><strong>✅ 100% Cloud-Based</strong><br><span style="color: #666;">Access anytime, anywhere</span></div>
+                    <div><strong>✅ Secure & Reliable</strong><br><span style="color: #666;">Bank-grade data encryption</span></div>
+                    <div><strong>✅ Easy to Use</strong><br><span style="color: #666;">No tech skills required</span></div>
+                    <div><strong>✅ Free Updates Forever</strong><br><span style="color: #666;">New features at no extra cost</span></div>
+                    <div><strong>✅ 24/7 Support</strong><br><span style="color: #666;">We're here when you need us</span></div>
+                    <div><strong>✅ No Hidden Charges</strong><br><span style="color: #666;">What you see is what you pay</span></div>
+                    <div><strong>✅ Mobile App Included</strong><br><span style="color: #666;">Manage on-the-go (Coming Q2 2026)</span></div>
+                </div>
+            </div>
+            <div class="pricing-cards">
+                <div class="price-card">
+                    <h3>First 3 Months</h3>
+                    <p class="free">FREE</p>
+                    <button class="btn-price" onclick="openRegistrationModal('trial')">Start Your Trial</button>
+                </div>
+                <div class="price-card">
+                    <h3>Monthly Plan</h3>
+                    <p>₹250 / month</p>
+                    <button class="btn-price" onclick="openRegistrationModal('monthly')">Buy Subscription</button>
+                </div>
+                <div class="price-card">
+                    <h3>Yearly Plan</h3>
+                    <p>₹2500 / year</p>
+                    <button class="btn-price" onclick="openRegistrationModal('yearly')">Buy Subscription</button>
+                </div>
+            </div>
+            <p class="note">No hidden charges. Cancel anytime.</p>
+        </div>
+    </section>
+
+    <!-- Roadmap Section -->
+    <section id="roadmap" class="roadmap">
+        <div class="container">
+            <h2>Our Roadmap</h2>
+            <ul class="timeline">
+                <li class="timeline-item">
+                    <span>Q3 2025</span>
+                    <p>Launch 1st Phase beta version of ShikshaWave ERP</p>
+                </li>
+                <li class="timeline-item">
+                    <span>Q4 2025</span>
+                    <p>Official Public Release 1st Phase of ShikshaWave ERP</p>
+                </li>
+                <li class="timeline-item">
+                    <span>Q1 2026</span>
+                    <p>Intergarte Payment Getway Support</p>
+                </li>
+                <li class="timeline-item">
+                    <span>Q2 2026</span>
+                    <p>Mobile App Integration Support</p>
+                </li>
+                <li class="timeline-item">
+                    <span>Q3 2026</span>
+                    <p>AI-powered Analytics & Fee Prediction Tools</p>
+                </li>
+                <li class="timeline-item">
+                    <span>Q4 2026</span>
+                    <p>Add AI Agent for student e-leraning</p>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <h2>What Our Users Say</h2>
+            <div class="testimonial-cards">
+                <div class="testimonial-card">
+                    <p>"ShikshaWave has transformed the way we manage our school. Highly recommended!"</p>
+                    <h4>- Principal, Gyan Niketan Public School</h4>
+                </div>
+                <div class="testimonial-card">
+                    <p>"The platform is user-friendly and has made our administrative tasks so much easier."</p>
+                    <h4>- Admin, SS Public School</h4>
+                </div>
+                <div class="testimonial-card">
+                    <p>"The best ERP solution we've ever used. Great support team as well!"</p>
+                    <h4>- Teacher, Sanskar Bharti</h4>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="team">
+        <div class="container">
+            <h2>Meet Our Team</h2>
+            <div class="team-cards">
+                <div class="team-card">
+                    <img src="{% static 'images/Abhishek_new.jpg' %}" alt="John Doe" class="team-img">
+                    <h3>Abhishek Singh - Founder & Chief Architect</h3>
+                    <p>Founder and technical architect behind ShikshaWave, driving product vision, system design, and scalable architecture.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <div class="team-card">
+                    <img src="{% static 'images/Sumit_Singh.png' %}" alt="Sumit Singh" class="team-img">
+                    <h3>Sumit Singh - Co-Founder & Head of Infrastructure</h3>
+                    <p>Sumit leads the infrastructure. His expertise and investment in technology power our growth and stability across India.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <div class="team-card">
+                    <img src="{% static 'images/Rajesh_singh.jpeg' %}" alt="Alex Johnson" class="team-img">
+                    <h3>Rajesh Singh - Tech Mentor</h3>
+                    <p>Tech innovator specializing in scalable software architectures, ensuring ShikshaWave's platform
+                        is robust and future-proof.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <div class="team-card">
+                    <img src="{% static 'images/Greejesh_Prakash.jpg' %}" alt="Jane Smith" class="team-img">
+                    <h3>Greejesh Prakash - Investor & Mentor</h3>
+                    <p>Strategic investor with expertise in business growth and management, guiding ShikshaWave’s vision, scalability, and key decisions.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>                
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <div class="contact-card">
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form id="contactForm" method="post" action="{% url 'contact_submit' %}" class="contact-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="email">Your Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Your Message</label>
+                        <textarea id="message" name="message" placeholder="Enter your message" rows="5"
+                            required></textarea>
+                    </div>
+
+                    <!-- Hidden metadata -->
+                    <input type="hidden" name="ip_address" id="ip_address">
+                    <input type="hidden" name="browser_info" id="browser_info">
+                    <input type="hidden" name="location" id="location">
+
+                    <button type="submit" class="btn">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="success-modal" onclick="closeSuccessModal()">
+        <div class="success-modal-content" onclick="event.stopPropagation();">
+            <p id="successMessage" style="font-size: 1.1rem; line-height: 1.8;"></p>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registrationModal" class="reg-modal">
+        <div class="reg-modal-content">
+            <div class="reg-modal-header">
+                <h3 id="regModalTitle">School Registration & Subscription</h3>
+                <button class="reg-close-btn" onclick="closeRegistrationModal()">&times;</button>
+            </div>
+            <div style="padding: 12px 20px; background: #e3f2fd; border-bottom: 1px solid #90caf9; font-size: 0.85rem; color: #1565c0;">
+                <strong>📋 Registration Process:</strong> Complete school details → Select subscription plan → Submit for approval → Our team will contact you within 24 hours
+            </div>
+            <form id="registrationForm" onsubmit="handleRegistrationSubmit(event); return false;">
+                <div class="reg-modal-body">
+                    <input type="hidden" id="selectedPlan">
+                    
+                    <div class="reg-form-section">
+                        <h4>School Information</h4>
+                        <div class="reg-form-row">
+                            <div class="reg-form-group">
+                                <label>School Name *</label>
+                                <input type="text" id="schoolName" required placeholder="Enter school name">
+                            </div>
+                            <div class="reg-form-group">
+                                <label>Registration Number</label>
+                                <input type="text" id="registrationNumber" placeholder="Enter registration number">
+                            </div>
+                        </div>
+                        <div class="reg-form-group">
+                            <label>Address</label>
+                            <textarea id="schoolAddress" rows="2" placeholder="Enter school address"></textarea>
+                        </div>
+                        <div class="reg-form-row">
+                            <div class="reg-form-group">
+                                <label>Country *</label>
+                                <select id="country" required>
+                                    <option value="">Select Country</option>
+                                </select>
+                            </div>
+                            <div class="reg-form-group">
+                                <label>State *</label>
+                                <select id="state" required disabled>
+                                    <option value="">Select State</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="reg-form-row">
+                            <div class="reg-form-group">
+                                <label>District *</label>
+                                <select id="district" required disabled>
+                                    <option value="">Select District</option>
+                                </select>
+                            </div>
+                            <div class="reg-form-group">
+                                <label>Pincode</label>
+                                <input type="text" id="pincode" placeholder="Enter pincode" pattern="\d{6}">
+                            </div>
+                        </div>
+                        <div class="reg-form-row">
+                            <div class="reg-form-group">
+                                <label>Phone *</label>
+                                <input type="tel" id="schoolPhone" required placeholder="Enter 10 digit phone" pattern="[0-9]{10}" maxlength="10" title="Enter valid 10 digit phone number">
+                            </div>
+                            <div class="reg-form-group">
+                                <label>Email *</label>
+                                <input type="email" id="schoolEmail" required placeholder="school@example.com" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Enter valid email address">
+                            </div>
+                        </div>
+                        <div class="reg-form-row">
+                            <div class="reg-form-group">
+                                <label>Website</label>
+                                <input type="url" id="website" placeholder="Enter website URL">
+                            </div>
+                            <div class="reg-form-group">
+                                <label>Board</label>
+                                <select id="board">
+                                    <option value="">Select Board</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="reg-form-row">
+                            <div class="reg-form-group">
+                                <label>Medium</label>
+                                <select id="medium">
+                                    <option value="">Select Medium</option>
+                                </select>
+                            </div>
+                            <div class="reg-form-group">
+                                <label>Establish Date</label>
+                                <input type="date" id="establishDate">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="reg-form-section">
+                        <h4>Principal Information</h4>
+                        <div class="reg-form-row">
+                            <div class="reg-form-group">
+                                <label>Principal Name</label>
+                                <input type="text" id="principalName" placeholder="Enter principal name">
+                            </div>
+                            <div class="reg-form-group">
+                                <label>Principal Email</label>
+                                <input type="email" id="principalEmail" placeholder="Enter principal email">
+                            </div>
+                        </div>
+                        <div class="reg-form-group">
+                            <label>Principal Phone</label>
+                            <input type="tel" id="principalPhone" placeholder="Enter 10 digit phone" pattern="[0-9]{10}" maxlength="10" title="Enter valid 10 digit phone number">
+                        </div>
+                    </div>
+                    
+                    <div class="reg-form-section">
+                        <h4>Director Information</h4>
+                        <div class="reg-form-row">
+                            <div class="reg-form-group">
+                                <label>Director Name</label>
+                                <input type="text" id="directorName" placeholder="Enter director name">
+                            </div>
+                            <div class="reg-form-group">
+                                <label>Director Email</label>
+                                <input type="email" id="directorEmail" placeholder="Enter director email">
+                            </div>
+                        </div>
+                        <div class="reg-form-group">
+                            <label>Director Phone</label>
+                            <input type="tel" id="directorPhone" placeholder="Enter 10 digit phone" pattern="[0-9]{10}" maxlength="10" title="Enter valid 10 digit phone number">
+                        </div>
+                        <div class="reg-form-group">
+                            <label>School Logo (JPG/PNG, Max 5MB)</label>
+                            <input type="file" id="schoolLogo" accept="image/jpeg,image/jpg,image/png">
+                            <img id="logoPreview" style="display:none; max-width:100px; max-height:100px; margin-top:10px; border:2px solid #ddd; border-radius:6px;">
+                        </div>
+                    </div>
+                    
+                    <div class="reg-form-section">
+                        <h4>Subscription Plan</h4>
+                        <div class="reg-form-group">
+                            <label>Select Plan *</label>
+                            <select id="planSelect" required>
+                                <option value="">Loading plans...</option>
+                            </select>
+                            <small style="color: #666; display: block; margin-top: 4px;">
+                                💡 Choose a plan that fits your school size. You can upgrade anytime.
+                            </small>
+                        </div>
+                        <div class="reg-form-group">
+                            <label>Subscription Start Date *</label>
+                            <input type="date" id="subscriptionStartDate" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="reg-modal-footer">
+                    <button type="button" class="reg-btn-secondary" onclick="closeRegistrationModal()">Cancel</button>
+                    <button type="submit" class="reg-btn-primary" id="submitBtn">Register & Subscribe</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© 2025 ShikshaWave. All rights reserved.</p>
+            <div class="social-links">
+                <a href="https://www.youtube.com/@ShikshaWave-v3w" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Responsive navigation toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const nav = document.querySelector('.nav');
+        
+        function closeMenu() {
+            nav.classList.remove('nav-open');
+            navToggle.setAttribute('aria-expanded', 'false');
+        }
+        
+        navToggle.addEventListener('click', () => {
+            nav.classList.toggle('nav-open');
+            const isOpen = nav.classList.contains('nav-open');
+            navToggle.setAttribute('aria-expanded', isOpen);
+        });
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    closeMenu();
+                    setTimeout(() => {
+                        window.scrollTo({
+                            top: targetSection.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }, 100);
+                }
+            });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!nav.contains(e.target) && !navToggle.contains(e.target) && nav.classList.contains('nav-open')) {
+                closeMenu();
+            }
+        });
+
+        // Header background transition on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Trigger animations on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.card, .price-card, .testimonial-card, .team-card, .timeline-item, .contact-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+
+    <script>
+        // Helper to read CSRF token cookie (Django default)
+        function getCookie(name) {
+            const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+            return match ? match.pop() : '';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Browser/User-Agent
+            document.getElementById('browser_info').value = navigator.userAgent;
+
+            // Get IP + location from ipapi.co (free public API)
+            fetch('https://ipapi.co/json/')
+                .then(r => r.json())
+                .then(data => {
+                    if (data) {
+                        document.getElementById('ip_address').value = data.ip || '';
+                        // Nice human-friendly location
+                        document.getElementById('location').value = [data.city, data.region, data.country_name].filter(Boolean).join(', ');
+                    }
+                })
+                .catch(err => {
+                    console.warn('ipapi error', err);
+                    // Leave blank if failed
+                });
+
+            // AJAX submit for a smoother UX
+            const form = document.getElementById('contactForm');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                // Disable button to prevent double-submit
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Sending...';
+                }
+
+                const formData = new FormData(form);
+                const csrftoken = getCookie('csrftoken');
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData,
+                })
+                    .then(resp => resp.json())
+                    .then(data => {
+                        // Show message on screen
+                        const container = document.createElement('div');
+                        container.className = 'ajax-msg';
+                        container.style.padding = '10px';
+                        container.style.marginBottom = '15px';
+                        container.style.borderRadius = '6px';
+                        container.style.fontSize = '14px';
+                        container.style.fontWeight = '500';
+                        container.textContent = data.message || 'No response';
+                        
+                        if (data.status === 1) {
+                            container.style.backgroundColor = '#e8f5e9';
+                            container.style.color = '#2e7d32';
+                            container.style.border = '1px solid #c8e6c9';
+                            form.reset();
+                        } else {
+                            container.style.backgroundColor = '#ffebee';
+                            container.style.color = '#c62828';
+                            container.style.border = '1px solid #ffcdd2';
+                        }
+
+                        // Put message above form and remove after 6s
+                        form.parentNode.insertBefore(container, form);
+                        setTimeout(() => container.remove(), 6000);
+                    })
+                    .catch(err => {
+                        console.error('Submit error', err);
+                        alert('Error sending message. Try again later.');
+                    })
+                    .finally(() => {
+                        // Re-enable button
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Send Message';
+                        }
+                    });
+            });
+        });
+
+        // Registration Modal Functions
+        let plans = [];
+
+        function loadPlans() {
+            fetch('/public/plans/')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS') {
+                        plans = data.plans.filter(p => !p.IsDeleted);
+                        const select = document.getElementById('planSelect');
+                        select.innerHTML = '<option value="">Select Plan</option>';
+                        plans.forEach(plan => {
+                            select.innerHTML += `<option value="${plan.PlanID}">${plan.PlanName} - ₹${plan.FinalPrice} (${plan.DurationMonths} months)</option>`;
+                        });
+                    }
+                });
+        }
+
+        function openRegistrationModal(planType) {
+            loadPlans();
+            loadCountries();
+            loadBoards();
+            loadMediums();
+            document.getElementById('registrationModal').classList.add('show');
+            document.getElementById('selectedPlan').value = planType;
+        }
+
+        function loadCountries() {
+            fetch('/api/geo/countries/')
+                .then(r => r.json())
+                .then(countries => {
+                    const select = document.getElementById('country');
+                    select.innerHTML = '<option value="">Select Country</option>';
+                    countries.forEach(c => {
+                        select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                    });
+                });
+        }
+
+        document.getElementById('country')?.addEventListener('change', function() {
+            const countryId = this.value;
+            const stateSelect = document.getElementById('state');
+            const districtSelect = document.getElementById('district');
+            
+            if (countryId) {
+                fetch(`/api/geo/states/?country_id=${countryId}`)
+                    .then(r => r.json())
+                    .then(states => {
+                        stateSelect.innerHTML = '<option value="">Select State</option>';
+                        states.forEach(s => {
+                            stateSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+                        });
+                        stateSelect.disabled = false;
+                        districtSelect.disabled = true;
+                        districtSelect.innerHTML = '<option value="">Select District</option>';
+                    });
+            }
+        });
+
+        document.getElementById('state')?.addEventListener('change', function() {
+            const stateId = this.value;
+            const districtSelect = document.getElementById('district');
+            
+            if (stateId) {
+                fetch(`/api/geo/districts/?state_id=${stateId}`)
+                    .then(r => r.json())
+                    .then(districts => {
+                        districtSelect.innerHTML = '<option value="">Select District</option>';
+                        districts.forEach(d => {
+                            districtSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+                        });
+                        districtSelect.disabled = false;
+                    });
+            }
+        });
+
+        function loadBoards() {
+            fetch('/api/boards/')
+                .then(r => r.json())
+                .then(boards => {
+                    const select = document.getElementById('board');
+                    select.innerHTML = '<option value="">Select Board</option>';
+                    boards.forEach(b => {
+                        select.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+                    });
+                });
+        }
+
+        function loadMediums() {
+            fetch('/api/mediums/')
+                .then(r => r.json())
+                .then(mediums => {
+                    const select = document.getElementById('medium');
+                    select.innerHTML = '<option value="">Select Medium</option>';
+                    mediums.forEach(m => {
+                        select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+                    });
+                });
+        }
+
+        document.getElementById('schoolLogo')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('logoPreview');
+            
+            if (file) {
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                const maxSize = 5 * 1024 * 1024;
+                
+                if (!validTypes.includes(file.type)) {
+                    alert('Only JPG and PNG images are allowed');
+                    e.target.value = '';
+                    preview.style.display = 'none';
+                    return;
+                }
+                
+                if (file.size > maxSize) {
+                    alert('Image size must be less than 5MB');
+                    e.target.value = '';
+                    preview.style.display = 'none';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        })
+
+        function closeRegistrationModal() {
+            document.getElementById('registrationModal').classList.remove('show');
+            document.getElementById('registrationForm').reset();
+        }
+
+        function closeSuccessModal() {
+            const modal = document.getElementById('successModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+
+        function handleRegistrationSubmit(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            const phone = document.getElementById('schoolPhone').value;
+            const email = document.getElementById('schoolEmail').value;
+            
+            if (!/^[0-9]{10}$/.test(phone)) {
+                alert('Please enter valid 10 digit phone number');
+                return false;
+            }
+            
+            if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(email)) {
+                alert('Please enter valid email address');
+                return false;
+            }
+            
+            const formData = {
+                school_name: document.getElementById('schoolName').value,
+                registration_number: document.getElementById('registrationNumber').value,
+                address: document.getElementById('schoolAddress').value,
+                country: document.getElementById('country').value,
+                state: document.getElementById('state').value,
+                district: document.getElementById('district').value,
+                pincode: document.getElementById('pincode').value,
+                phone: phone,
+                email: email,
+                website: document.getElementById('website').value,
+                board: document.getElementById('board').value,
+                medium: document.getElementById('medium').value,
+                establish_date: document.getElementById('establishDate').value,
+                principal_name: document.getElementById('principalName').value,
+                principal_contact_mail: document.getElementById('principalEmail').value,
+                principal_contact_phone: document.getElementById('principalPhone').value,
+                director_name: document.getElementById('directorName').value,
+                director_contact_email: document.getElementById('directorEmail').value,
+                director_contact_phone: document.getElementById('directorPhone').value,
+                plan_id: document.getElementById('planSelect').value,
+                subscription_start_date: document.getElementById('subscriptionStartDate').value
+            };
+            
+            fetch('/public/save-draft/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    alert('Success! ' + data.message);
+                    closeRegistrationModal();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Error: Failed to submit. Please try again.');
+            });
+        }
+    </script>
+</body>
+
+</html>

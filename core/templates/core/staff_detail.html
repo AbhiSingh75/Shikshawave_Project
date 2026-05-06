@@ -1,0 +1,439 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Staff Detail - {{ staff.EmployeeName }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<!-- Staff detail specific styles are now in shikshawave-core.css -->
+<style>
+    /* Staff Detail Page Layout Adjustments */
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Page Header Card (Global Standard) */
+    .controls-row {
+        margin-bottom: 24px !important;
+        border-radius: 12px !important;
+        padding: 12px 20px !important;
+        background: var(--card-bg) !important;
+        color: var(--text-main) !important;
+        box-shadow: var(--shadow-md) !important;
+        border: 1px solid var(--border-color) !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        position: sticky;
+        top: 10px; /* Slight offset for standard look */
+        z-index: 100;
+    }
+
+    body.dark-mode .controls-row {
+        border-bottom-color: var(--border-color) !important;
+    }
+
+    /* Section Spacing */
+    .sections-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Component Section Header Styling (Premium Look) */
+    .table-container {
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        margin-bottom: 0; /* Gap handled by sections-container */
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 24px;
+        background: rgba(0, 74, 173, 0.03);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    body.dark-mode .section-header {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .section-title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    /* Profile Header Info (Matching Application Detail) */
+    .student-photo-small {
+        width: 50px;
+        height: 50px;
+        border-radius: 50% !important;
+        object-fit: cover;
+        border: 3px solid var(--primary-color) !important;
+        flex-shrink: 0;
+        margin: 0 10px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .student-header-info {
+        display: flex !important;
+        align-items: center;
+        gap: 0;
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+    .student-info-header {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-left: 5px;
+        min-width: 0;
+    }
+
+    .student-name-header {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    body.dark-mode .student-name-header {
+        color: #60a5fa;
+    }
+
+    .student-meta-header {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+    }
+
+    /* Overriding sw-btn for header specifically to match Global Theme (Purple) */
+    .btn-icon-only {
+        width: 42px;
+        height: 42px;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px !important;
+        background: var(--primary-light, rgba(0, 74, 173, 0.1)) !important;
+        border: 1px solid var(--primary-color, #004aad) !important;
+        color: var(--primary-color, #004aad) !important;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    body.dark-mode .btn-icon-only {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-color: var(--primary-color, #60a5fa) !important;
+        color: var(--primary-color, #60a5fa) !important;
+    }
+
+    .btn-icon-only:hover {
+        background: var(--primary-color, #004aad) !important;
+        color: white !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb, 0, 74, 173), 0.3) !important;
+    }
+    
+    body.dark-mode .student-header-info {
+        border-left-color: var(--border-color);
+    }
+
+    /* Table specifics for premium look - using sw- prefixed classes */
+    .sw-card {
+        border-radius: 12px !important;
+        border: 1px solid var(--border-color) !important;
+        box-shadow: var(--shadow-sm) !important;
+        margin-bottom: 24px !important;
+    }
+
+    .table-container .table td {
+        padding: 14px 24px;
+        vertical-align: middle;
+        word-wrap: break-word;
+        font-size: 0.95rem;
+        text-align: left !important;
+    }
+
+    .table-container .table td:first-child {
+        font-weight: 600;
+        color: var(--text-muted);
+        width: 30%;
+        min-width: 180px;
+        background: rgba(0, 0, 0, 0.02);
+        border-right: 1px solid var(--border-color);
+        text-align: left !important;
+    }
+
+    body.dark-mode .table-container .table td:first-child {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 10px !important;
+            overflow-y: visible !important;
+            display: block !important;
+        }
+
+        .controls-row {
+            position: static !important; /* Stop sticking on mobile to free up space */
+            margin: 0 0 15px 0 !important;
+            padding: 12px !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            align-items: stretch !important;
+            border-radius: 12px !important;
+            width: 100% !important;
+            min-height: auto !important;
+        }
+        
+        .controls-left {
+            width: 100% !important;
+        }
+
+        .student-header-info {
+            width: 100%;
+            padding: 10px 0 0 0;
+            margin: 10px 0 0 0 !important;
+            border-left: none;
+            border-top: 1px solid var(--border-color);
+            display: flex !important;
+            align-items: center;
+        }
+
+        .controls-right {
+            width: 100% !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            margin-top: 5px;
+        }
+
+        .btn-icon-only {
+            width: 100% !important;
+            height: 42px !important;
+            border-radius: 8px !important;
+        }
+
+        .sections-container {
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 0 !important;
+            gap: 16px !important;
+            width: 100% !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .table-container {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 !important;
+            border-radius: 12px;
+            display: block !important;
+            margin-bottom: 0 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-id-card"></i> Staff Details</h3>
+            <div class="student-header-info">
+                {% if photo_base64 %}
+                <img src="data:image/jpeg;base64,{{ photo_base64 }}" alt="Staff Photo" class="student-photo-small">
+                {% elif staff.PhotoBase64 %}
+                <img src="data:image/jpeg;base64,{{ staff.PhotoBase64 }}" alt="Staff Photo" class="student-photo-small">
+                {% else %}
+                <div class="student-photo-small" style="background: var(--primary-light, rgba(0, 74, 173, 0.1));">
+                    <i class="fas fa-user-tie" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                </div>
+                {% endif %}
+                <div class="student-info-header">
+                    <div class="student-name-header">{{ staff.EmployeeName|default:"N/A" }}</div>
+                    <div class="student-meta-header">
+                        <span><strong>Code:</strong> {{ staff.EmployeeCode|default:"N/A" }}</span>
+                        <span>|</span>
+                        <span><strong>Designation:</strong> {{ staff.ProfileName|default:"N/A" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right" style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-primary btn-icon-only" onclick="openSalaryModal('{{ staff.EmployeeCode }}')" title="View Salary">
+                <i class="fas fa-money-bill-wave"></i>
+            </button>
+            <button class="btn btn-primary btn-icon-only" onclick="openTimetableModal('{{ staff.EmployeeCode }}', '{% if staff.EmployeeName %}{{ staff.EmployeeName|escapejs }}{% else %}N/A{% endif %}')" title="Assign Class Timetable">
+                <i class="fas fa-calendar-alt"></i>
+            </button>
+            <button class="btn btn-primary btn-icon-only" 
+                data-sw-download="{% url 'print_job_letter' %}?employee_code={{ staff.EmployeeCode }}"
+                data-sw-filename="Job_Letter_{{ staff.EmployeeCode }}.pdf"
+                data-sw-success-msg="Job letter downloaded successfully!"
+                title="Download Job Letter">
+                <i class="fas fa-file-contract"></i>
+            </button>
+            <a href="{% url 'view_teachers' %}" class="btn btn-primary btn-icon-only" title="Back to List">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="sections-container" style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- All Sections are now vertically stacked -->
+        {% include 'components/staff/staff_personal_info.html' %}
+        {% include 'components/staff/staff_contact_info.html' %}
+        {% include 'components/staff/staff_additional_info.html' %}
+        
+        {% if staff.ProfileName == 'Teacher' %}
+        {% include 'components/staff/staff_subject_specialization.html' %}
+        {% endif %}
+        
+        {% include 'components/staff/staff_salary_breakup.html' %}
+        {% include 'components/staff/staff_documents_section.html' %}
+    </div>
+</div>
+
+<!-- Modals -->
+{% include 'components/staff/staff_modals.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Pass Django context to external JS -->
+<script>
+    window.config = {
+        csrfToken: '{{ csrf_token }}',
+    };
+
+    window.staff = {
+        EmployeeCode: '{{ staff.EmployeeCode }}',
+        EmployeeName: '{{ staff.EmployeeName }}',
+        SchoolID: '{{ staff.SchoolID }}',
+        Country: '{{ staff.Country }}',
+        State: '{{ staff.State }}',
+        District: '{{ staff.District }}'
+    };
+
+    window.urls = {
+        updatePersonal: "{% url 'update_staff_personal' token=request.resolver_match.kwargs.token %}",
+        updateContact: "{% url 'update_staff_contact' token=request.resolver_match.kwargs.token %}",
+        updateSalary: "{% url 'update_staff_salary' token=request.resolver_match.kwargs.token %}",
+        updateDocument: "{% url 'update_staff_document' token=request.resolver_match.kwargs.token %}",
+        getSubjects: "{% url 'get_subject_list' token=request.resolver_match.kwargs.token %}",
+        updateSubjects: "{% url 'update_staff_subjects' token=request.resolver_match.kwargs.token %}",
+        getTimetable: "{% url 'get_teacher_timetable' %}",
+        previewSlip: "{% url 'preview_salary_slip' encrypted_payment_id='placeholder' %}",
+        downloadSlip: "{% url 'download_salary_slip' encrypted_payment_id='placeholder' %}"
+    };
+
+    /**
+     * Optimized High-Speed PDF Downloader
+     */
+    async function downloadSalarySlip(pid, refId = '') {
+        try {
+            if (!refId) refId = `SalarySlip-${pid}`;
+
+            // Reset buttons if they were stuck in processing (UI safety)
+            const fetchUrl = window.urls.previewSlip.replace('placeholder', pid);
+            const response = await fetch(fetchUrl);
+            let htmlContent = await response.text();
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            
+            const noPrint = tempDiv.querySelector('.no-print');
+            if (noPrint) noPrint.remove();
+
+            const opt = {
+                margin: 0,
+                filename: `${refId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            await html2pdf().set(opt).from(tempDiv).save();
+        } catch (error) {
+            console.error('Staff Detail PDF Error:', error);
+            const downloadUrl = window.urls.downloadSlip.replace('placeholder', pid);
+            window.open(downloadUrl, '_blank');
+        }
+    }
+</script>
+
+<!-- Document Data Store (Hidden) -->
+<div id="document-data-store" style="display: none;">
+    {% for doc in documents %}
+    {% if doc.FileContentBase64 %}
+    <div class="doc-data-item" data-id="{{ doc.DocumentID }}" data-content="{{ doc.FileContentBase64 }}"
+        data-name="{{ doc.FilesName }}" data-mime="{{ doc.MimeType|default:'application/pdf' }}">
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+<script src="{% static 'js/staff_detail.js' %}"></script>
+{% endblock %}

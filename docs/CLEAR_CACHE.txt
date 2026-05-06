@@ -1,0 +1,9 @@
+Browser cache issue detected.
+
+STEPS TO FIX:
+1. Press Ctrl+Shift+Delete in your browser
+2. Clear cached images and files
+3. Press Ctrl+F5 to hard refresh
+4. OR open in Incognito mode (Ctrl+Shift+N)
+
+The modal code is already in base.html and should work after clearing cache.

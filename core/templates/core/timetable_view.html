@@ -1,0 +1,902 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}View Timetable | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --header-height: 70px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Global Layout Overrides for Sticky Support */
+    html, body, .sw-layout {
+        overflow: visible !important;
+        height: auto !important;
+        background-color: var(--bg-color) !important;
+    }
+
+    /* Standardized Spacing & Theme Fix */
+    .sw-main-content {
+        padding: 0 !important;
+        background-color: var(--bg-color) !important;
+        min-height: calc(100vh - var(--header-height));
+        overflow: visible !important;
+    }
+
+    .timetable-container {
+        padding: 5px 24px 40px 24px !important; /* Minimal top padding */
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        background-color: var(--bg-color) !important;
+        overflow: visible !important;
+        align-items: stretch !important; /* Synchronize widths of controls and grid */
+    }
+
+    /* Global Control Row - Forced Sticky Alignment */
+    .controls-row {
+        width: 100%; /* Full width for control row */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 24px !important;
+        background: var(--card-bg) !important;
+        border: 2px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        position: sticky !important;
+        top: var(--header-height) !important;
+        z-index: 1000 !important;
+        margin-bottom: 5px !important;
+        box-shadow: var(--shadow-sm) !important;
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .controls-left h3 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--primary-color);
+        letter-spacing: -0.02em;
+    }
+
+    /* Standard Summary Pill Redesign */
+    .sw-summary-container {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        background: none !important;
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .sw-summary-pill {
+        background: var(--light-gray) !important;
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        padding: 6px 14px !important;
+        border-radius: 30px !important;
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: #94a3b8 !important;
+        transition: var(--transition) !important;
+        white-space: nowrap !important;
+    }
+
+    body:not(.dark-mode) .sw-summary-pill {
+        background-color: #f3f4f6 !important;
+        border-color: #e5e7eb !important;
+        color: #4b5563 !important;
+    }
+
+    .sw-summary-pill i {
+        color: var(--primary-color) !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Grid Modernization */
+    .grid-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        background: var(--border-color);
+        margin-top: 8px;
+    }
+
+    .timetable-grid {
+        display: grid;
+        grid-template-columns: 100px repeat(6, 1fr); /* Slightly narrower period column */
+        gap: 1px;
+        background: var(--border-color);
+        min-width: 100%;
+        width: max-content; /* Ensure grid doesn't squeeze columns below min-content */
+    }
+
+    /* For non-mobile, ensure it fills container */
+    @media (min-width: 1025px) {
+        .timetable-grid {
+            width: 100%;
+        }
+    }
+
+    .grid-cell {
+        background: var(--card-bg);
+        padding: 8px;
+        min-height: 95px;
+        transition: var(--transition);
+        min-width: 150px; /* Base width for slots on mobile */
+    }
+
+    .grid-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        font-weight: 700;
+        text-align: center;
+        padding: 18px 10px;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        position: sticky !important;
+        top: 0 !important; /* Managed by grid wrapper if needed, but let's keep it simple */
+        z-index: 900 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .grid-period {
+        background: var(--light-gray) !important; /* Solid background */
+        font-weight: 800;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        border-right: 1.5px solid var(--border-color) !important;
+        color: var(--primary-color);
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 850 !important;
+        min-width: 100px !important;
+        box-shadow: 6px 0 10px -5px rgba(0, 0, 0, 0.1); /* Indicate it's above other cards */
+    }
+
+    body.dark-mode .grid-period {
+        background: #111827 !important; /* Solid dark background */
+        border-right-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .period-time {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    /* Slots Styling */
+    .slot {
+        min-height: 75px;
+        padding: 12px;
+        border-radius: 14px;
+        transition: var(--transition);
+        position: relative;
+        border: 1.5px solid transparent;
+    }
+
+    .slot:not(.filled):not(.break) {
+        border: 1.5px dashed var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        cursor: pointer;
+        opacity: 0.6;
+    }
+
+    .slot:not(.filled):not(.break):hover {
+        background: rgba(0, 74, 173, 0.05);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        opacity: 1;
+    }
+
+    .slot.filled {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+        padding: 8px 10px !important;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-height: auto !important;
+        height: auto !important;
+        transition: var(--transition);
+    }
+
+    body.dark-mode .slot.filled {
+        background: #1e293b !important; /* Force Dark Card Background */
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+    }
+
+    .slot.filled:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-color);
+    }
+
+    .slot.break {
+        background: repeating-linear-gradient(45deg, var(--light-gray), var(--light-gray) 8px, transparent 8px, transparent 16px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: var(--text-muted);
+        opacity: 0.5;
+    }
+
+    .slot-subject {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #22c55e !important; /* Bright Green - Visible in both */
+        margin-bottom: 0;
+    }
+
+    .slot-teacher {
+        font-size: 0.82rem;
+        color: var(--text-muted) !important;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .slot-footer {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-top: 6px !important;
+        width: 100% !important;
+        flex-wrap: wrap !important; /* Allow buttons to drop down if column is too narrow */
+        gap: 5px;
+    }
+
+    .slot-room {
+        font-size: 0.75rem;
+        color: #64748b !important; /* Fixed Slate */
+        font-weight: 500;
+    }
+
+    body.dark-mode .slot-room {
+        color: #94a3b8 !important; /* Lighter Slate for Dark Mode visibility */
+    }
+
+    .slot-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .edit-slot-btn, .delete-slot-btn {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        transition: var(--transition);
+        color: var(--text-muted);
+    }
+
+    body.dark-mode .edit-slot-btn, body.dark-mode .delete-slot-btn {
+        background: rgba(255,255,255,0.05);
+    }
+
+    .edit-slot-btn:hover { color: #004aad; border-color: #004aad; }
+    .delete-slot-btn:hover { color: #ef4444; border-color: #ef4444; }
+
+    /* Buttons Re-Standardization */
+    .btn {
+        padding: 10px 22px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: var(--transition);
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-secondary {
+        background: var(--light-gray);
+        color: var(--text-main);
+        border: 1.5px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Modal Styling Fixes */
+    .sw-modal-container {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(10px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 20px;
+    }
+
+    .sw-modal-container.show {
+        display: flex;
+    }
+
+    .sw-modal {
+        background: var(--card-bg);
+        border-radius: 24px;
+        width: 100%;
+        max-width: 580px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        overflow: visible !important;
+        border: 2px solid var(--border-color);
+    }
+
+    /* Custom Dropdowns */
+    .custom-dropdown {
+        position: relative;
+        width: 100%;
+    }
+
+    .custom-dropdown-toggle {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1.5px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--card-bg);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: var(--transition);
+        font-weight: 600;
+    }
+
+    .custom-dropdown-toggle:hover {
+        border-color: var(--primary-color);
+    }
+
+    .custom-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        display: none;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    .custom-dropdown.open .custom-dropdown-menu {
+        display: block;
+    }
+
+    .custom-dropdown-option {
+        padding: 10px 16px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .custom-dropdown-option:hover {
+        background: var(--light-gray);
+        color: var(--primary-color);
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+        .timetable-container { padding: 8px !important; }
+        .controls-row { 
+            flex-direction: column !important; 
+            align-items: stretch !important; 
+            gap: 12px !important; 
+            padding: 12px !important; 
+            position: relative !important; 
+            top: 0 !important;
+        }
+        .controls-left { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
+        .controls-left h3 { font-size: 1.2rem !important; }
+        
+        .sw-summary-container {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+        }
+
+        .sw-summary-pill {
+            width: 100% !important;
+            justify-content: center !important;
+        }
+
+        .grid-header { font-size: 0.75rem !important; padding: 12px 6px !important; }
+
+        .sw-form-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    @media print {
+        body { padding-top: 0; background: white; color: black; }
+        .controls-row, .modal, .sw-modal-container, .edit-slot-btn, .delete-slot-btn, .no-print { display: none !important; }
+        .timetable-grid { border: 1.5px solid black; box-shadow: none; border-radius: 0; }
+        .grid-cell { border: 0.5px solid black; }
+        .grid-header { background: #f0f0f0 !important; color: black !important; border-bottom: 1.5px solid black; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="timetable-container">
+    <div class="controls-row no-print">
+        <div class="controls-left">
+            <h3>{{ timetable.ClassName|default:"Untitled" }} {% if timetable.SectionName %}- {{ timetable.SectionName }}{% endif %}</h3>
+            
+            <div class="sw-summary-container">
+                <div class="sw-summary-pill">
+                    <i class="fas fa-calendar-check"></i> 
+                    <span>{{ timetable.AcademicYear|default:"N/A" }}</span>
+                </div>
+                {% if timetable.EffectiveFrom %}
+                <div class="sw-summary-pill">
+                    <i class="fas fa-clock"></i> 
+                    <span>{{ timetable.EffectiveFrom|date:"d M Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="controls-right">
+            {% if profile_id == 1 %}
+            <a href="/timetable/management/?school_id={{ request.GET.school_id }}&tab=timetables" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> <span>Back</span>
+            </a>
+            {% else %}
+            <a href="/timetable/management/?tab=timetables" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> <span>Back</span>
+            </a>
+            {% endif %}
+            <button class="btn btn-success" onclick="printTimetable()">
+                <i class="fas fa-print"></i> <span>Print</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="grid-wrapper">
+        <div class="timetable-grid">
+            <div class="grid-header">Period</div>
+            <div class="grid-header">Monday</div>
+            <div class="grid-header">Tuesday</div>
+            <div class="grid-header">Wednesday</div>
+            <div class="grid-header">Thursday</div>
+            <div class="grid-header">Friday</div>
+            <div class="grid-header">Saturday</div>
+
+            {% for period in periods %}
+            <div class="grid-cell grid-period">
+                {{ period.PeriodName }}
+                <span class="period-time">{{ period.StartTime|slice:":5" }} - {{ period.EndTime|slice:":5" }}</span>
+            </div>
+
+            {% for day in "123456" %}
+            <div class="grid-cell">
+                {% for s in slots %}
+                {% if s.DayOfWeek == day|add:0 and s.PeriodID == period.PeriodID %}
+                {% if period.PeriodType == 'Break' or period.PeriodType == 'Assembly' %}
+                <div class="slot break">
+                    <div class="slot-subject">{{ period.PeriodType }}</div>
+                </div>
+                {% else %}
+                <div class="slot filled" draggable="true" data-day="{{ day }}" data-period="{{ period.PeriodID }}"
+                    data-subject-id="{{ s.SubjectID }}" data-teacher-id="{{ s.TeacherID }}"
+                    data-room="{{ s.RoomNumber|default:'' }}" data-notes="{{ s.Notes|default:'' }}"
+                    data-slot-id="{{ s.SlotID }}" data-timetable-id="{{ encrypted_timetable_id }}"
+                    ondragstart="dragStart(event)" ondragend="dragEnd(event)">
+                    <div class="slot-subject">{{ s.SubjectName|default:'No Subject' }}</div>
+                    <div class="slot-teacher">{{ s.TeacherName|default:'No Teacher' }}</div>
+                    <div class="slot-footer">
+                        <div class="slot-room">{% if s.RoomNumber %}Room: {{ s.RoomNumber }}{% endif %}</div>
+                        <div class="slot-actions no-print">
+                            <button class="edit-slot-btn" onclick="event.stopPropagation(); editSlotFromData(this.parentElement.parentElement.parentElement)"><i class="fas fa-edit"></i></button>
+                            <button class="delete-slot-btn" onclick="event.stopPropagation(); deleteSlot('{{ s.SlotID }}')"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+                {% endfor %}
+
+                {% if period.PeriodType == 'Class' %}
+                {% slot_exists slots day period.PeriodID as has_slot %}
+                {% if not has_slot %}
+                <div class="slot no-print" data-day="{{ day }}" data-period="{{ period.PeriodID }}" ondrop="drop(event)"
+                    ondragover="allowDrop(event)" ondragleave="dragLeave(event)"
+                    onclick="editSlot(null, '{{ encrypted_timetable_id }}', '{{ day }}', '{{ period.PeriodID }}')">
+                    <div style="text-align: center; color: #9ca3af;">+ Add</div>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="slotModal" class="sw-modal-container no-scroll-modal">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <h3 class="sw-modal-title"><i class="fas fa-calendar-plus"></i> Assign Period</h3>
+            <button type="button" class="sw-modal-close" onclick="closeSlotModal()">&times;</button>
+        </div>
+        <div class="sw-modal-body">
+            <form id="slotForm">
+                <input type="hidden" id="slot_id">
+                <input type="hidden" id="slot_timetable_id">
+                <input type="hidden" id="slot_day">
+                <input type="hidden" id="slot_period_id">
+                
+                <div class="sw-form-grid">
+                    <div class="sw-form-group">
+                        <label><i class="fas fa-book"></i> Subject *</label>
+                        <div class="custom-dropdown" id="subject-dropdown">
+                            <input type="hidden" id="slot_subject_id" required>
+                            <div class="custom-dropdown-toggle">
+                                <span class="selected-text">-- Select Subject --</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="custom-dropdown-menu"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="sw-form-group">
+                        <label><i class="fas fa-chalkboard-teacher"></i> Teacher *</label>
+                        <div class="custom-dropdown" id="teacher-dropdown">
+                            <input type="hidden" id="slot_teacher_id" required>
+                            <div class="custom-dropdown-toggle">
+                                <span class="selected-text">-- Select Teacher --</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="custom-dropdown-menu"></div>
+                        </div>
+                    </div>
+
+                    <div class="sw-form-group">
+                        <label><i class="fas fa-door-open"></i> Room Number</label>
+                        <input type="text" id="slot_room" class="sw-form-control" placeholder="e.g. 101">
+                    </div>
+                    
+                    <div class="sw-form-group">
+                        <label><i class="fas fa-sticky-note"></i> Notes</label>
+                        <input type="text" id="slot_notes" class="sw-form-control" placeholder="Optional notes">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="sw-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeSlotModal()">Cancel</button>
+            <button type="button" class="btn btn-success"
+                onclick="document.getElementById('slotForm').dispatchEvent(new Event('submit'))">
+                <i class="fas fa-check"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let draggedData = null;
+
+    // Standardized Custom Dropdown Logic
+    function initCustomDropdowns() {
+        document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+            const toggle = dropdown.querySelector('.custom-dropdown-toggle');
+            const menu = dropdown.querySelector('.custom-dropdown-menu');
+            const input = dropdown.querySelector('input[type="hidden"]');
+            const selectedText = dropdown.querySelector('.selected-text');
+
+            if (!toggle || !menu) return;
+
+            // Remove existing listeners to avoid duplicates
+            const newToggle = toggle.cloneNode(true);
+            toggle.parentNode.replaceChild(newToggle, toggle);
+
+            newToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close other dropdowns
+                document.querySelectorAll('.custom-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('open');
+                });
+                dropdown.classList.toggle('open');
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('open'));
+        });
+    }
+
+    function refreshCustomDropdowns(dropdownId, options, selectedValue) {
+        const dropdown = document.getElementById(dropdownId);
+        if (!dropdown) return;
+
+        const menu = dropdown.querySelector('.custom-dropdown-menu');
+        const input = dropdown.querySelector('input[type="hidden"]');
+        const selectedText = dropdown.querySelector('.selected-text');
+
+        // Clear existing options
+        menu.innerHTML = '';
+
+        // Add default "-- Select --" option
+        const defaultOpt = document.createElement('div');
+        defaultOpt.className = 'custom-dropdown-option';
+        defaultOpt.dataset.value = '';
+        defaultOpt.textContent = '-- Select --';
+        defaultOpt.onclick = () => selectOption('', '-- Select --');
+        menu.appendChild(defaultOpt);
+
+        options.forEach(opt => {
+            const div = document.createElement('div');
+            div.className = 'custom-dropdown-option';
+            div.dataset.value = opt.value;
+            div.textContent = opt.text;
+            div.onclick = () => selectOption(opt.value, opt.text);
+            menu.appendChild(div);
+
+            if (opt.value == selectedValue) {
+                input.value = opt.value;
+                selectedText.textContent = opt.text;
+            }
+        });
+
+        if (!selectedValue) {
+            input.value = '';
+            selectedText.textContent = '-- Select --';
+        }
+
+        function selectOption(val, text) {
+            input.value = val;
+            selectedText.textContent = text;
+            dropdown.classList.remove('open');
+            // Trigger change event if needed
+            input.dispatchEvent(new Event('change'));
+        }
+    }
+
+    function getSelectedSchoolId() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('school_id') || '';
+    }
+
+    function editSlotFromData(slotElement) {
+        const slotId = slotElement.dataset.slotId;
+        const timetableId = slotElement.dataset.timetableId;
+        const day = slotElement.dataset.day;
+        const periodId = slotElement.dataset.period;
+        const subjectId = slotElement.dataset.subjectId;
+        const teacherId = slotElement.dataset.teacherId;
+        const room = slotElement.dataset.room;
+        const notes = slotElement.dataset.notes;
+        editSlot(slotId, timetableId, day, periodId, subjectId, teacherId, room, notes);
+    }
+
+    function editSlot(slotId, timetableId, day, periodId, subjectId, teacherId, room, notes) {
+        document.getElementById('slot_id').value = slotId || '';
+        document.getElementById('slot_timetable_id').value = timetableId;
+        document.getElementById('slot_day').value = day;
+        document.getElementById('slot_period_id').value = periodId;
+        document.getElementById('slot_room').value = room || '';
+        document.getElementById('slot_notes').value = notes || '';
+        
+        loadSubjects(subjectId);
+        loadTeachers(teacherId);
+        
+        document.getElementById('slotModal').classList.add('show');
+    }
+
+    function closeSlotModal() {
+        document.getElementById('slotModal').classList.remove('show');
+    }
+
+    function loadSubjects(selectedId) {
+        try {
+            const subjectsData = '{{ subjects|escapejs }}';
+            const subjectList = JSON.parse(subjectsData);
+            const options = subjectList.map(s => ({ value: s.SubjectID, text: s.SubjectName }));
+            refreshCustomDropdowns('subject-dropdown', options, selectedId);
+        } catch (e) {
+            console.error('Error loading subjects:', e);
+        }
+    }
+
+    function loadTeachers(selectedId) {
+        try {
+            const teachersData = '{{ teachers|escapejs }}';
+            const teacherList = JSON.parse(teachersData);
+            const options = teacherList.map(t => ({ value: t.TeacherID, text: t.TeacherName }));
+            refreshCustomDropdowns('teacher-dropdown', options, selectedId);
+        } catch (e) {
+            console.error('Error loading teachers:', e);
+        }
+    }
+
+    document.getElementById('slotForm').onsubmit = function (e) {
+        e.preventDefault();
+        const data = {
+            slot_id: document.getElementById('slot_id').value || null,
+            timetable_id: document.getElementById('slot_timetable_id').value,
+            day_of_week: document.getElementById('slot_day').value,
+            period_id: document.getElementById('slot_period_id').value,
+            subject_id: document.getElementById('slot_subject_id').value,
+            teacher_id: document.getElementById('slot_teacher_id').value,
+            room_number: document.getElementById('slot_room').value,
+            notes: document.getElementById('slot_notes').value,
+            school_id: getSelectedSchoolId()
+        };
+
+        if (!data.subject_id || !data.teacher_id) {
+            alert('Subject and Teacher are required');
+            return;
+        }
+
+        fetch('/timetable/slot/save/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify(data)
+        }).then(r => r.json()).then(data => { 
+            if (data.success) location.reload(); 
+            else alert(data.message); 
+        });
+    };
+
+    function deleteSlot(slotId) {
+        if (!confirm('Are you sure you want to delete this period assignment?')) return;
+        fetch('/timetable/slot/delete/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ slot_id: slotId, school_id: getSelectedSchoolId() })
+        }).then(r => r.json()).then(data => { if (data.success) location.reload(); else alert(data.message); });
+    }
+
+    function printTimetable() {
+        const timetableId = '{{ encrypted_timetable_id|escapejs }}';
+        window.open(`/timetable/print/${timetableId}/`, '_blank');
+    }
+
+    // Drag and Drop Logic
+    function allowDrop(e) {
+        e.preventDefault();
+        const target = e.currentTarget.closest('.slot');
+        if (target) target.classList.add('drag-over');
+    }
+
+    function dragLeave(e) {
+        const target = e.currentTarget.closest('.slot');
+        if (target) target.classList.remove('drag-over');
+    }
+
+    function dragStart(e) {
+        e.target.classList.add('dragging');
+        draggedData = {
+            subjectId: e.target.dataset.subjectId,
+            teacherId: e.target.dataset.teacherId,
+            room: e.target.dataset.room,
+            notes: e.target.dataset.notes,
+            slotId: e.target.dataset.slotId
+        };
+        e.dataTransfer.setData('text/plain', e.target.dataset.slotId);
+    }
+
+    function dragEnd(e) {
+        e.target.classList.remove('dragging');
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('drag-over'));
+    }
+
+    function drop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const target = e.currentTarget.closest('.slot');
+        if (target) target.classList.remove('drag-over');
+
+        if (!draggedData) return;
+
+        const data = {
+            timetable_id: '{{ encrypted_timetable_id|escapejs }}',
+            day_of_week: target.dataset.day,
+            period_id: target.dataset.period,
+            subject_id: draggedData.subjectId,
+            teacher_id: draggedData.teacherId,
+            room_number: draggedData.room,
+            notes: draggedData.notes,
+            school_id: getSelectedSchoolId()
+        };
+
+        fetch('/timetable/slot/save/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify(data)
+        }).then(r => r.json()).then(res => {
+            if (res.success) {
+                if (draggedData.slotId) {
+                    deleteSlotSilently(draggedData.slotId);
+                } else {
+                    location.reload();
+                }
+            } else {
+                alert(res.message);
+            }
+        });
+    }
+
+    function deleteSlotSilently(slotId) {
+        fetch('/timetable/slot/delete/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ slot_id: slotId, school_id: getSelectedSchoolId() })
+        }).then(() => location.reload());
+    }
+
+    // Initialize dropdowns on load
+    document.addEventListener('DOMContentLoaded', () => {
+        initCustomDropdowns();
+    });
+</script>
+{% endblock %}

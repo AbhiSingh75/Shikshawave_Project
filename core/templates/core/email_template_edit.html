@@ -1,0 +1,1823 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Edit Email Template | ShikshaWave ERP{% endblock %}
+
+{% block extra_head %}
+    <meta name="cache-buster" content="v1.0">
+    <!-- TinyMCE CDN -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Use project's existing CSS variables for consistency */
+        .email-template-container {
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 10px !important;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        /* Desktop margins - 10px left and right */
+        @media (min-width: 1024px) {
+            .email-template-container {
+                padding: 0 10px !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+        }
+
+        /* Desktop margins for larger screens */
+        @media (min-width: 768px) {
+            .email-template-container {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+        }
+
+        /* Responsive margins */
+        @media (max-width: 1200px) {
+            .email-template-container {
+                padding: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .email-template-container {
+                padding: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .email-template-container {
+                padding: 0;
+            }
+        }
+
+        .page-header {
+            background: var(--secondary-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Dark mode specific overrides */
+        body.dark-mode .page-header {
+            background: var(--dark-bg-secondary);
+            border-color: var(--dark-border);
+            box-shadow: 0 4px 12px var(--dark-shadow);
+        }
+
+        .page-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .page-header p {
+            color: var(--text-light);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .form-container {
+            background: var(--secondary-color);
+            border-radius: 12px;
+            padding: 40px;
+            margin: 24px 0;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Dark mode specific overrides */
+        body.dark-mode .form-container {
+            background: var(--dark-bg-secondary);
+            border-color: var(--dark-border);
+            box-shadow: 0 4px 12px var(--dark-shadow);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group label.required::after {
+            content: " *";
+            color: var(--error-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--secondary-color);
+            color: var(--text-color);
+            transition: all var(--transition-speed) ease;
+        }
+
+        /* Dark mode form controls */
+        body.dark-mode .form-control {
+            background: var(--dark-bg-secondary);
+            color: var(--dark-text-primary);
+            border-color: var(--dark-border);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-control.error {
+            border-color: var(--error-color);
+        }
+
+        .form-control.success {
+            border-color: var(--success-color);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* HTML Editor Styles */
+        .html-editor-container {
+            position: relative;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .html-editor {
+            min-height: 300px;
+            border: none;
+            border-radius: 0;
+            resize: vertical;
+        }
+
+        .toggle-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+
+        /* TinyMCE Custom Styles */
+        .tox-tinymce {
+            border: none !important;
+            border-radius: 0 !important;
+        }
+
+        .tox .tox-editor-header {
+            background: var(--light-gray);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tox .tox-toolbar {
+            background: var(--light-gray);
+        }
+
+        .tox .tox-edit-area {
+            background: white;
+        }
+
+        /* Dark mode for TinyMCE */
+        body.dark-mode .tox .tox-editor-header {
+            background: var(--dark-bg-hover);
+            border-bottom-color: var(--dark-border);
+        }
+
+        body.dark-mode .tox .tox-toolbar {
+            background: var(--dark-bg-hover);
+        }
+
+        body.dark-mode .tox .tox-edit-area {
+            background: var(--dark-bg-secondary);
+        }
+
+        /* Modern Email Builder Styles */
+        .email-builder-container {
+            background: #ffffff;
+            border: 1px solid #e1e5e9;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .builder-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .builder-title h3 {
+            margin: 0 0 2px 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .builder-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .builder-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .builder-content {
+            display: flex;
+            height: 400px;
+            max-height: 400px;
+        }
+
+        /* Template Library Sidebar */
+        .template-library-sidebar {
+            width: 250px;
+            background: #f8f9fa;
+            border-right: 1px solid #e1e5e9;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .library-header {
+            padding: 12px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .library-header h4 {
+            margin: 0 0 4px 0;
+            color: #2c3e50;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .library-header p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 11px;
+        }
+
+        .library-sections {
+            padding: 12px;
+        }
+
+        .library-section {
+            margin-bottom: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .template-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .template-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .template-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .template-item:active {
+            cursor: grabbing;
+        }
+
+        .template-item.dragging {
+            opacity: 0.6;
+            transform: rotate(2deg);
+        }
+
+        .item-preview {
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 500;
+            color: white;
+            background: #667eea;
+            flex-shrink: 0;
+        }
+
+        .preview-header {
+            background: #3498db;
+        }
+
+        .preview-logo {
+            background: #e74c3c;
+        }
+
+        .preview-text {
+            background: #2ecc71;
+        }
+
+        .preview-image {
+            background: #f39c12;
+        }
+
+        .preview-button {
+            background: #9b59b6;
+        }
+
+        .preview-columns {
+            display: flex;
+            gap: 2px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .preview-columns .col {
+            flex: 1;
+            background: #34495e;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+        }
+
+        .preview-footer {
+            background: #95a5a6;
+        }
+
+        .preview-links {
+            background: #16a085;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-name {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 11px;
+            margin-bottom: 1px;
+        }
+
+        .item-desc {
+            display: block;
+            color: #6c757d;
+            font-size: 9px;
+        }
+
+        /* Email Canvas */
+        .email-canvas {
+            flex: 1;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .canvas-header {
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .canvas-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .canvas-content {
+            flex: 1;
+            padding: 12px;
+            height: calc(100% - 40px);
+            overflow-y: auto;
+        }
+
+        .drop-zone-placeholder {
+            height: 100%;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone-placeholder.drag-over {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .placeholder-content {
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .placeholder-content i {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: #adb5bd;
+        }
+
+        .placeholder-content h4 {
+            margin: 0 0 4px 0;
+            color: #495057;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .placeholder-content p {
+            margin: 0 0 8px 0;
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .placeholder-tips {
+            display: flex;
+            justify-content: center;
+        }
+
+        .tip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #e3f2fd;
+            border-radius: 20px;
+            color: #1976d2;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Template Blocks */
+        .template-block {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            margin: 8px 0;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .template-block:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+        }
+
+        .template-block-header {
+            background: #f8f9fa;
+            padding: 6px 10px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .template-block-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+
+        .template-block-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .template-block-action {
+            padding: 3px 8px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            color: #6c757d;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .template-block-action:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .template-block-content {
+            padding: 8px 10px;
+            color: #2c3e50;
+            line-height: 1.4;
+            font-size: 12px;
+        }
+
+        /* Code Editor Styles */
+        .code-editor-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        .editor-toolbar {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e1e5e9;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-tools {
+            display: flex;
+            gap: 8px;
+        }
+
+        .editor-btn {
+            padding: 4px 8px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            color: #6c757d;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .editor-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .editor-info {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .html-editor-textarea {
+            flex: 1;
+            width: 100%;
+            border: none;
+            outline: none;
+            padding: 12px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            background: #ffffff;
+            color: #2c3e50;
+            resize: none;
+            tab-size: 2;
+        }
+
+        .html-editor-textarea:focus {
+            background: #fafbfc;
+        }
+
+        /* Dark mode for code editor */
+        body.dark-mode .code-editor-container {
+            background: var(--dark-bg-secondary);
+        }
+
+        body.dark-mode .editor-toolbar {
+            background: var(--dark-bg-hover);
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .editor-btn {
+            background: var(--dark-bg-secondary);
+            border-color: var(--dark-border);
+            color: var(--dark-text-primary);
+        }
+
+        body.dark-mode .editor-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        body.dark-mode .editor-info {
+            color: var(--dark-text-secondary);
+        }
+
+        body.dark-mode .html-editor-textarea {
+            background: var(--dark-bg-secondary);
+            color: var(--dark-text-primary);
+        }
+
+        body.dark-mode .html-editor-textarea:focus {
+            background: var(--dark-bg-hover);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .builder-content {
+                flex-direction: column;
+                height: 300px;
+            }
+            
+            .template-library-sidebar {
+                width: 100%;
+                height: 120px;
+                max-height: 120px;
+            }
+            
+            .library-sections {
+                display: flex;
+                gap: 12px;
+                overflow-x: auto;
+                padding-bottom: 8px;
+            }
+            
+            .library-section {
+                min-width: 150px;
+                margin-bottom: 0;
+            }
+            
+            .email-canvas {
+                height: 180px;
+            }
+        }
+
+        /* Dark mode styles */
+        body.dark-mode .email-builder-container {
+            background: var(--dark-bg-secondary);
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .template-library-sidebar {
+            background: var(--dark-bg-hover);
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .library-header {
+            background: var(--dark-bg-secondary);
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .template-item {
+            background: var(--dark-bg-secondary);
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .email-canvas {
+            background: var(--dark-bg-secondary);
+        }
+
+        body.dark-mode .canvas-header {
+            background: var(--dark-bg-hover);
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .template-block {
+            background: var(--dark-bg-secondary);
+            border-color: var(--dark-border);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            white-space: nowrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            text-shadow: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            color: white !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:focus {
+            color: white !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            outline: 2px solid rgba(255, 255, 255, 0.5);
+            outline-offset: 2px;
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .form-actions-left {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-actions-right {
+            display: flex;
+            gap: 16px;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+
+        /* Textarea specific styles */
+        .form-control.textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-control.textarea.large {
+            min-height: 200px;
+        }
+
+        /* Checkbox styles */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-weight: 500;
+        }
+
+
+        @media (max-width: 768px) {
+            body {
+                margin-left: 0;
+                margin-right: 0;
+                overflow-x: hidden;
+                width: 100%;
+                max-width: 100vw;
+            }
+
+            .email-template-container {
+                padding: 0;
+                margin: 0;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .page-header {
+                padding: 12px 16px;
+                margin: 80px 0 12px 0;
+                position: relative;
+                z-index: 10;
+                display: block !important;
+                visibility: visible !important;
+            }
+
+            .page-header h1 {
+                font-size: 18px;
+                display: block !important;
+                visibility: visible !important;
+            }
+
+            .page-header p {
+                font-size: 13px;
+                display: block !important;
+                visibility: visible !important;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions-left,
+            .form-actions-right {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="email-template-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Edit Email Template</h1>
+        <p>Update the email template settings and content</p>
+    </div>
+
+
+    <!-- Form Container -->
+    <div class="form-container">
+        {% if errors %}
+        <div class="error-message">
+            <strong>Please correct the following errors:</strong>
+            <ul style="margin: 8px 0 0 20px;">
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="code" class="required">Template Code</label>
+                    <input type="text" 
+                           id="code" 
+                           name="code" 
+                           class="form-control" 
+                           value="{{ form_data.code|default:template.code|default:'' }}"
+                           placeholder="e.g., WELCOME_EMAIL, FEE_REMINDER"
+                           required>
+                    <div class="form-help">Unique identifier for this template</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="language" class="required">Language</label>
+                    <select id="language" name="language" class="form-control" required>
+                        <option value="en" {% if form_data.language == 'en' or template.language == 'en' or not form_data.language and not template.language %}selected{% endif %}>English</option>
+                        <option value="hi" {% if form_data.language == 'hi' or template.language == 'hi' %}selected{% endif %}>Hindi</option>
+                        <option value="es" {% if form_data.language == 'es' or template.language == 'es' %}selected{% endif %}>Spanish</option>
+                        <option value="fr" {% if form_data.language == 'fr' or template.language == 'fr' %}selected{% endif %}>French</option>
+                    </select>
+                    <div class="form-help">Language for this template</div>
+                </div>
+            </div>
+
+            <!-- School Selection -->
+            <div class="form-group">
+                <label for="school_id">School</label>
+                <select id="school_id" name="school_id" class="form-control">
+                    <option value="">Global Template (All Schools)</option>
+                    {% for school in schools %}
+                        <option value="{{ school.SchoolID }}" 
+                                {% if form_data.school_id == school.SchoolID|stringformat:"s" or template.school_id == school.SchoolID %}selected{% endif %}>
+                            {{ school.SchoolName }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="form-help">
+                    Select a specific school or leave as "Global Template" for all schools. 
+                    {% if not is_super_admin %}
+                        <strong>Note:</strong> As a School Admin, you can only edit templates for your school.
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Subject Template -->
+            <div class="form-group">
+                <label for="subject_template" class="required">Subject Template</label>
+                <input type="text" 
+                       id="subject_template" 
+                       name="subject_template" 
+                       class="form-control" 
+                       value="{{ form_data.subject_template|default:template.subject_template|default:'' }}"
+                       placeholder="e.g., Welcome to {{ school_name }}, {{ student_name }}!"
+                       required>
+                <div class="form-help">Use placeholders like {{ student_name }}, {{ school_name }}, etc.</div>
+            </div>
+
+            <!-- Body Templates -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="body_text_template">Text Body Template</label>
+                    <textarea id="body_text_template" 
+                              name="body_text_template" 
+                              class="form-control textarea" 
+                              placeholder="Plain text version of the email...">{{ form_data.body_text_template|default:template.body_text_template|default:'' }}</textarea>
+                    <div class="form-help">Plain text version of the email body</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="body_html_template">HTML Body Template</label>
+                    
+                    <!-- Modern Email Builder Interface -->
+                    <div class="email-builder-container">
+                        <!-- Builder Header -->
+                        <div class="builder-header">
+                            <div class="builder-title">
+                                <i class="fas fa-magic"></i>
+                                <h3>Email Template Builder</h3>
+                                <span class="builder-subtitle">Create beautiful emails with drag & drop</span>
+                            </div>
+                            <div class="builder-actions">
+                                <button type="button" id="preview-html" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Preview
+                                </button>
+                                <button type="button" id="clear-template" class="btn btn-outline">
+                                    <i class="fas fa-trash"></i> Clear All
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Builder Content -->
+                        <div class="builder-content">
+                            <!-- Template Library Sidebar -->
+                            <div class="template-library-sidebar">
+                                <div class="library-header">
+                                    <h4><i class="fas fa-puzzle-piece"></i> Template Library</h4>
+                                    <p>Drag elements to build your email</p>
+                                </div>
+                                
+                                <div class="library-sections">
+                                    <!-- Headers Section -->
+                                    <div class="library-section">
+                                        <div class="section-header">
+                                            <i class="fas fa-heading"></i>
+                                            <span>Headers</span>
+                                        </div>
+                                        <div class="template-items">
+                                            <div class="template-item" draggable="true" data-part="header-simple">
+                                                <div class="item-preview">
+                                                    <div class="preview-header">Company Name</div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Simple Header</span>
+                                                    <span class="item-desc">Company name & tagline</span>
+                                                </div>
+                                            </div>
+                                            <div class="template-item" draggable="true" data-part="header-logo">
+                                                <div class="item-preview">
+                                                    <div class="preview-logo">LOGO</div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Header with Logo</span>
+                                                    <span class="item-desc">Logo & welcome message</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Content Section -->
+                                    <div class="library-section">
+                                        <div class="section-header">
+                                            <i class="fas fa-align-left"></i>
+                                            <span>Content</span>
+                                        </div>
+                                        <div class="template-items">
+                                            <div class="template-item" draggable="true" data-part="text-block">
+                                                <div class="item-preview">
+                                                    <div class="preview-text">Text Content</div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Text Block</span>
+                                                    <span class="item-desc">Heading & paragraph</span>
+                                                </div>
+                                            </div>
+                                            <div class="template-item" draggable="true" data-part="image-block">
+                                                <div class="item-preview">
+                                                    <div class="preview-image">📷</div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Image Block</span>
+                                                    <span class="item-desc">Image with caption</span>
+                                                </div>
+                                            </div>
+                                            <div class="template-item" draggable="true" data-part="button-block">
+                                                <div class="item-preview">
+                                                    <div class="preview-button">Button</div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Button Block</span>
+                                                    <span class="item-desc">Call-to-action button</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Layout Section -->
+                                    <div class="library-section">
+                                        <div class="section-header">
+                                            <i class="fas fa-th"></i>
+                                            <span>Layouts</span>
+                                        </div>
+                                        <div class="template-items">
+                                            <div class="template-item" draggable="true" data-part="two-column">
+                                                <div class="item-preview">
+                                                    <div class="preview-columns">
+                                                        <div class="col">Left</div>
+                                                        <div class="col">Right</div>
+                                                    </div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Two Column</span>
+                                                    <span class="item-desc">Side-by-side layout</span>
+                                                </div>
+                                            </div>
+                                            <div class="template-item" draggable="true" data-part="three-column">
+                                                <div class="item-preview">
+                                                    <div class="preview-columns">
+                                                        <div class="col">1</div>
+                                                        <div class="col">2</div>
+                                                        <div class="col">3</div>
+                                                    </div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Three Column</span>
+                                                    <span class="item-desc">Three-column layout</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Footer Section -->
+                                    <div class="library-section">
+                                        <div class="section-header">
+                                            <i class="fas fa-flag"></i>
+                                            <span>Footers</span>
+                                        </div>
+                                        <div class="template-items">
+                                            <div class="template-item" draggable="true" data-part="footer-simple">
+                                                <div class="item-preview">
+                                                    <div class="preview-footer">© 2024</div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Simple Footer</span>
+                                                    <span class="item-desc">Copyright notice</span>
+                                                </div>
+                                            </div>
+                                            <div class="template-item" draggable="true" data-part="footer-links">
+                                                <div class="item-preview">
+                                                    <div class="preview-links">Links</div>
+                                                </div>
+                                                <div class="item-info">
+                                                    <span class="item-name">Footer with Links</span>
+                                                    <span class="item-desc">Privacy, terms, contact</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Email Canvas -->
+                            <div class="email-canvas">
+                                <div class="canvas-header">
+                                    <h4><i class="fas fa-envelope"></i> Email Preview</h4>
+                                    <div class="canvas-actions">
+                                        <button type="button" id="toggle-editor" class="btn btn-sm btn-outline">
+                                            <i class="fas fa-code"></i> Code View
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Drag & Drop Interface -->
+                                <div class="canvas-content" id="template-drop-zone">
+                                    <div class="drop-zone-placeholder">
+                                        <div class="placeholder-content">
+                                            <i class="fas fa-plus-circle"></i>
+                                            <h4>Start Building Your Email</h4>
+                                            <p>Drag elements from the library to create your email template</p>
+                                            <div class="placeholder-tips">
+                                                <div class="tip">
+                                                    <i class="fas fa-lightbulb"></i>
+                                                    <span>Start with a header, then add content blocks</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- HTML Code Editor -->
+                                <div class="code-editor-container" id="code-editor" style="display: none;">
+                                    <div class="editor-toolbar">
+                                        <div class="editor-tools">
+                                            <button type="button" class="editor-btn" onclick="formatCode()" title="Format HTML">
+                                                <i class="fas fa-magic"></i> Format
+                                            </button>
+                                            <button type="button" class="editor-btn" onclick="insertTemplate()" title="Insert Template">
+                                                <i class="fas fa-plus"></i> Insert Template
+                                            </button>
+                                            <button type="button" class="editor-btn" onclick="previewCode()" title="Preview">
+                                                <i class="fas fa-eye"></i> Preview
+                                            </button>
+                                        </div>
+                                        <div class="editor-info">
+                                            <span class="line-count">Lines: <span id="line-count">1</span></span>
+                                            <span class="char-count">Chars: <span id="char-count">0</span></span>
+                                        </div>
+                                    </div>
+                                    <textarea id="html-code-editor" 
+                                              class="html-editor-textarea"
+                                              placeholder="Enter your HTML code here..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden textarea for form submission -->
+                    <textarea id="body_html_template" 
+                              name="body_html_template" 
+                              style="display: none;">{{ form_data.body_html_template|default:template.body_html_template|default:'' }}</textarea>
+                    
+                    <div class="form-help">
+                        <i class="fas fa-info-circle"></i> 
+                        Use the drag & drop builder above to create your email template visually, or switch to code view for advanced editing.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Settings -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="default_from">Default From Email</label>
+                    <input type="email" 
+                           id="default_from" 
+                           name="default_from" 
+                           class="form-control" 
+                           value="{{ form_data.default_from|default:template.default_from|default:'' }}"
+                           placeholder="noreply@school.com">
+                    <div class="form-help">Default sender email address</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cc">CC Recipients</label>
+                    <input type="text" 
+                           id="cc" 
+                           name="cc" 
+                           class="form-control" 
+                           value="{{ form_data.cc|default:template.cc|default:'' }}"
+                           placeholder="admin@school.com, principal@school.com">
+                    <div class="form-help">Comma-separated list of CC recipients</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="bcc">BCC Recipients</label>
+                    <input type="text" 
+                           id="bcc" 
+                           name="bcc" 
+                           class="form-control" 
+                           value="{{ form_data.bcc|default:template.bcc|default:'' }}"
+                           placeholder="archive@school.com">
+                    <div class="form-help">Comma-separated list of BCC recipients</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="placeholders">Available Placeholders</label>
+                    <textarea id="placeholders" 
+                              name="placeholders" 
+                              class="form-control textarea" 
+                              placeholder="List of available placeholders...">{{ form_data.placeholders|default:template.placeholders|default:'' }}</textarea>
+                    <div class="form-help">Documentation of available placeholders for this template</div>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" 
+                           id="is_active" 
+                           name="is_active" 
+                           value="1" 
+                           {% if form_data.is_active != '0' and template.is_active != False %}checked{% endif %}>
+                    <label for="is_active">Active Template</label>
+                </div>
+                <div class="form-help">Uncheck to disable this template</div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <div class="form-actions-left">
+                    <a href="javascript:history.back()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+                <div class="form-actions-right">
+                    <a href="{% url 'email_template_delete' template.id %}" 
+                       class="btn btn-danger"
+                       onclick="return confirm('Are you sure you want to delete this email template? This action cannot be undone.')">
+                        <i class="fas fa-trash"></i> Delete Template
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Email Template
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let isEditorMode = false; // Start with drag-drop mode
+    let editorInstance = null;
+    let templateBlocks = [];
+    
+    // Template parts HTML definitions
+    const templateParts = {
+        'header-simple': {
+            title: 'Simple Header',
+            html: `
+                <div style="background: #f8f9fa; padding: 20px; text-align: center; border-bottom: 1px solid #dee2e6;">
+                    <h1 style="margin: 0; color: #333; font-size: 24px;">Your Company Name</h1>
+                    <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Your tagline or description</p>
+                </div>
+            `
+        },
+        'header-logo': {
+            title: 'Header with Logo',
+            html: `
+                <div style="background: #ffffff; padding: 20px; text-align: center; border-bottom: 1px solid #dee2e6;">
+                    <img src="https://via.placeholder.com/200x60/4a90e2/ffffff?text=LOGO" alt="Company Logo" style="max-width: 200px; height: auto;">
+                    <h2 style="margin: 15px 0 0 0; color: #333; font-size: 20px;">Welcome to Our Newsletter</h2>
+                </div>
+            `
+        },
+        'footer-simple': {
+            title: 'Simple Footer',
+            html: `
+                <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #dee2e6; margin-top: 20px;">
+                    <p style="margin: 0; color: #666; font-size: 12px;">&copy; 2024 Your Company. All rights reserved.</p>
+                </div>
+            `
+        },
+        'footer-links': {
+            title: 'Footer with Links',
+            html: `
+                <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #dee2e6; margin-top: 20px;">
+                    <div style="margin-bottom: 10px;">
+                        <a href="#" style="color: #4a90e2; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+                        <a href="#" style="color: #4a90e2; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+                        <a href="#" style="color: #4a90e2; text-decoration: none; margin: 0 10px;">Contact Us</a>
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 12px;">&copy; 2024 Your Company. All rights reserved.</p>
+                </div>
+            `
+        },
+        'text-block': {
+            title: 'Text Block',
+            html: `
+                <div style="padding: 20px; background: #ffffff;">
+                    <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">Your Heading Here</h3>
+                    <p style="color: #666; line-height: 1.6; margin: 0;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                </div>
+            `
+        },
+        'image-block': {
+            title: 'Image Block',
+            html: `
+                <div style="padding: 20px; text-align: center; background: #ffffff;">
+                    <img src="https://via.placeholder.com/400x200/4a90e2/ffffff?text=Your+Image" alt="Description" style="max-width: 100%; height: auto; border-radius: 8px;">
+                    <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">Image caption or description</p>
+                </div>
+            `
+        },
+        'button-block': {
+            title: 'Button Block',
+            html: `
+                <div style="padding: 20px; text-align: center; background: #ffffff;">
+                    <a href="#" style="display: inline-block; background: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">Call to Action</a>
+                </div>
+            `
+        },
+        'divider': {
+            title: 'Divider',
+            html: `
+                <div style="padding: 20px; text-align: center; background: #ffffff;">
+                    <hr style="border: none; border-top: 1px solid #dee2e6; margin: 0;">
+                </div>
+            `
+        },
+        'two-column': {
+            title: 'Two Column Layout',
+            html: `
+                <div style="padding: 20px; background: #ffffff;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td width="50%" style="padding-right: 10px; vertical-align: top;">
+                                <h4 style="color: #333; margin: 0 0 10px 0;">Left Column</h4>
+                                <p style="color: #666; margin: 0; line-height: 1.6;">Content for the left column goes here.</p>
+                            </td>
+                            <td width="50%" style="padding-left: 10px; vertical-align: top;">
+                                <h4 style="color: #333; margin: 0 0 10px 0;">Right Column</h4>
+                                <p style="color: #666; margin: 0; line-height: 1.6;">Content for the right column goes here.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            `
+        },
+        'three-column': {
+            title: 'Three Column Layout',
+            html: `
+                <div style="padding: 20px; background: #ffffff;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td width="33.33%" style="padding-right: 10px; vertical-align: top;">
+                                <h4 style="color: #333; margin: 0 0 10px 0;">Column 1</h4>
+                                <p style="color: #666; margin: 0; line-height: 1.6;">Content for column 1.</p>
+                            </td>
+                            <td width="33.33%" style="padding: 0 10px; vertical-align: top;">
+                                <h4 style="color: #333; margin: 0 0 10px 0;">Column 2</h4>
+                                <p style="color: #666; margin: 0; line-height: 1.6;">Content for column 2.</p>
+                            </td>
+                            <td width="33.33%" style="padding-left: 10px; vertical-align: top;">
+                                <h4 style="color: #333; margin: 0 0 10px 0;">Column 3</h4>
+                                <p style="color: #666; margin: 0; line-height: 1.6;">Content for column 3.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            `
+        },
+        'card-layout': {
+            title: 'Card Layout',
+            html: `
+                <div style="padding: 20px; background: #ffffff;">
+                    <div style="border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; background: #f8f9fa;">
+                        <h4 style="color: #333; margin: 0 0 10px 0;">Card Title</h4>
+                        <p style="color: #666; margin: 0; line-height: 1.6;">This is a card layout that can contain any content you want to highlight.</p>
+                    </div>
+                </div>
+            `
+        }
+    };
+    
+    // Initialize drag and drop functionality
+    function initDragAndDrop() {
+        const templateItems = document.querySelectorAll('.template-item');
+        const dropZone = document.getElementById('template-drop-zone');
+        const placeholder = dropZone.querySelector('.drop-zone-placeholder');
+        
+        // Make template items draggable
+        templateItems.forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', this.dataset.part);
+                this.classList.add('dragging');
+            });
+            
+            item.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
+            });
+        });
+        
+        // Handle drop zone events
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (placeholder) {
+                placeholder.classList.add('drag-over');
+            }
+        });
+        
+        dropZone.addEventListener('dragleave', function(e) {
+            if (placeholder) {
+                placeholder.classList.remove('drag-over');
+            }
+        });
+        
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (placeholder) {
+                placeholder.classList.remove('drag-over');
+            }
+            
+            const partType = e.dataTransfer.getData('text/plain');
+            addTemplateBlock(partType);
+        });
+    }
+    
+    // Add template block to the editor
+    function addTemplateBlock(partType) {
+        const part = templateParts[partType];
+        if (!part) return;
+        
+        const blockId = 'block_' + Date.now();
+        const blockHtml = `
+            <div class="template-block" data-block-id="${blockId}">
+                <div class="template-block-header">
+                    <div class="template-block-title">${part.title}</div>
+                    <div class="template-block-actions">
+                        <span class="template-block-action" onclick="editBlock('${blockId}')">Edit</span>
+                        <span class="template-block-action" onclick="deleteBlock('${blockId}')">Delete</span>
+                    </div>
+                </div>
+                <div class="template-block-content">
+                    ${part.html}
+                </div>
+            </div>
+        `;
+        
+        const dropZone = document.getElementById('template-drop-zone');
+        const placeholder = dropZone.querySelector('.drop-zone-placeholder');
+        
+        if (placeholder) {
+            placeholder.style.display = 'none';
+        }
+        
+        dropZone.insertAdjacentHTML('beforeend', blockHtml);
+        templateBlocks.push({ id: blockId, type: partType, html: part.html });
+        updateHiddenTextarea();
+    }
+    
+    // Edit block function
+    window.editBlock = function(blockId) {
+        const block = document.querySelector(`[data-block-id="${blockId}"]`);
+        if (block) {
+            const content = block.querySelector('.template-block-content');
+            const newContent = prompt('Edit HTML content:', content.innerHTML);
+            if (newContent !== null) {
+                content.innerHTML = newContent;
+                updateHiddenTextarea();
+            }
+        }
+    };
+    
+    // Delete block function
+    window.deleteBlock = function(blockId) {
+        if (confirm('Are you sure you want to delete this block?')) {
+            const block = document.querySelector(`[data-block-id="${blockId}"]`);
+            if (block) {
+                block.remove();
+                templateBlocks = templateBlocks.filter(b => b.id !== blockId);
+                updateHiddenTextarea();
+                
+                // Show placeholder if no blocks remain
+                const dropZone = document.getElementById('template-drop-zone');
+                const blocks = dropZone.querySelectorAll('.template-block');
+                if (blocks.length === 0) {
+                    const placeholder = dropZone.querySelector('.drop-zone-placeholder');
+                    if (placeholder) {
+                        placeholder.style.display = 'flex';
+                    }
+                }
+            }
+        }
+    };
+    
+    // Update hidden textarea with current template
+    function updateHiddenTextarea() {
+        const dropZone = document.getElementById('template-drop-zone');
+        const blocks = dropZone.querySelectorAll('.template-block');
+        let htmlContent = '';
+        
+        blocks.forEach(block => {
+            const content = block.querySelector('.template-block-content');
+            if (content) {
+                htmlContent += content.innerHTML;
+            }
+        });
+        
+        const textarea = document.getElementById('body_html_template');
+        textarea.value = htmlContent;
+    }
+    
+    // Clear all blocks
+    function clearTemplate() {
+        if (confirm('Are you sure you want to clear all template blocks?')) {
+            const dropZone = document.getElementById('template-drop-zone');
+            const blocks = dropZone.querySelectorAll('.template-block');
+            blocks.forEach(block => block.remove());
+            templateBlocks = [];
+            updateHiddenTextarea();
+            
+            const placeholder = dropZone.querySelector('.drop-zone-placeholder');
+            if (placeholder) {
+                placeholder.style.display = 'flex';
+            }
+        }
+    }
+    
+    // Toggle between drag-drop and code view
+    function toggleEditor() {
+        const toggleBtn = document.getElementById('toggle-editor');
+        const dropZone = document.getElementById('template-drop-zone');
+        const codeEditor = document.getElementById('code-editor');
+        const htmlCodeEditor = document.getElementById('html-code-editor');
+        
+        if (isEditorMode) {
+            // Switch to drag-drop mode
+            dropZone.style.display = 'block';
+            codeEditor.style.display = 'none';
+            toggleBtn.innerHTML = '<i class="fas fa-code"></i> Code View';
+            isEditorMode = false;
+        } else {
+            // Switch to code view
+            dropZone.style.display = 'none';
+            codeEditor.style.display = 'flex';
+            toggleBtn.innerHTML = '<i class="fas fa-magic"></i> Drag & Drop';
+            isEditorMode = true;
+            
+            // Load current HTML content into code editor
+            const currentHtml = document.getElementById('body_html_template').value;
+            htmlCodeEditor.value = currentHtml;
+            updateCodeStats();
+        }
+    }
+    
+    // Code Editor Functions
+    function formatCode() {
+        const editor = document.getElementById('html-code-editor');
+        let code = editor.value;
+        
+        // Basic HTML formatting
+        code = code.replace(/></g, '>\n<');
+        code = code.replace(/^\s+|\s+$/g, '');
+        
+        // Indent properly
+        const lines = code.split('\n');
+        let formatted = '';
+        let indent = 0;
+        
+        for (let line of lines) {
+            line = line.trim();
+            if (line === '') continue;
+            
+            if (line.includes('</')) {
+                indent = Math.max(0, indent - 1);
+            }
+            
+            formatted += '  '.repeat(indent) + line + '\n';
+            
+            if (line.includes('<') && !line.includes('</') && !line.includes('/>')) {
+                indent++;
+            }
+        }
+        
+        editor.value = formatted.trim();
+        updateCodeStats();
+    }
+    
+    function insertTemplate() {
+        const editor = document.getElementById('html-code-editor');
+        const template = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Your email content here -->
+        <h1>Hello World!</h1>
+        <p>This is your email template.</p>
+    </div>
+</body>
+</html>`;
+        
+        editor.value = template;
+        updateCodeStats();
+    }
+    
+    function previewCode() {
+        const editor = document.getElementById('html-code-editor');
+        const htmlContent = editor.value;
+        
+        if (!htmlContent.trim()) {
+            alert('Please enter some HTML code first.');
+            return;
+        }
+        
+        const previewWindow = window.open('', '_blank', 'width=800,height=600');
+        previewWindow.document.write(htmlContent);
+        previewWindow.document.close();
+    }
+    
+    function updateCodeStats() {
+        const editor = document.getElementById('html-code-editor');
+        const content = editor.value;
+        const lines = content.split('\n').length;
+        const chars = content.length;
+        
+        document.getElementById('line-count').textContent = lines;
+        document.getElementById('char-count').textContent = chars;
+    }
+    
+    // Sync code editor with hidden textarea
+    function syncCodeEditor() {
+        const editor = document.getElementById('html-code-editor');
+        const hiddenTextarea = document.getElementById('body_html_template');
+        hiddenTextarea.value = editor.value;
+    }
+    
+    // Preview functionality
+    function previewHTML() {
+        const textarea = document.getElementById('body_html_template');
+        const htmlContent = textarea.value;
+        
+        if (htmlContent.trim()) {
+            const previewWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+            previewWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>HTML Email Preview</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .preview-header { background: #f5f5f5; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="preview-header">
+                        <h3>HTML Email Preview</h3>
+                        <p>This is how your email template will look when sent.</p>
+                    </div>
+                    ${htmlContent}
+                </body>
+                </html>
+            `);
+            previewWindow.document.close();
+        } else {
+            alert('No HTML content to preview. Please add some template blocks first.');
+        }
+    }
+    
+    // Initialize everything
+    initDragAndDrop();
+    
+    // Event listeners
+    document.getElementById('clear-template').addEventListener('click', clearTemplate);
+    document.getElementById('toggle-editor').addEventListener('click', toggleEditor);
+    document.getElementById('preview-html').addEventListener('click', previewHTML);
+    
+    // Code editor event listeners
+    const htmlCodeEditor = document.getElementById('html-code-editor');
+    if (htmlCodeEditor) {
+        htmlCodeEditor.addEventListener('input', function() {
+            updateCodeStats();
+            syncCodeEditor();
+        });
+        
+        htmlCodeEditor.addEventListener('keydown', function(e) {
+            // Auto-indent on Enter
+            if (e.key === 'Enter') {
+                const cursorPos = this.selectionStart;
+                const textBefore = this.value.substring(0, cursorPos);
+                const lines = textBefore.split('\n');
+                const currentLine = lines[lines.length - 1];
+                const indent = currentLine.match(/^\s*/)[0];
+                
+                // Add extra indent if line ends with opening tag
+                if (currentLine.trim().endsWith('>') && !currentLine.trim().endsWith('/>')) {
+                    setTimeout(() => {
+                        this.value = this.value.substring(0, cursorPos) + '  ' + this.value.substring(cursorPos);
+                        this.setSelectionRange(cursorPos + 2, cursorPos + 2);
+                    }, 0);
+                }
+            }
+        });
+    }
+    
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const code = document.getElementById('code').value.trim();
+            const subject = document.getElementById('subject_template').value.trim();
+            const textBody = document.getElementById('body_text_template').value.trim();
+            const htmlBody = document.getElementById('body_html_template').value.trim();
+            
+            if (!code) {
+                alert('Template code is required');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!subject) {
+                alert('Subject template is required');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!textBody && !htmlBody) {
+                alert('At least one body template (text or HTML) is required');
+                e.preventDefault();
+                return;
+            }
+            
+            // Update textarea before submission
+            if (isEditorMode) {
+                syncCodeEditor();
+            } else {
+                updateHiddenTextarea();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

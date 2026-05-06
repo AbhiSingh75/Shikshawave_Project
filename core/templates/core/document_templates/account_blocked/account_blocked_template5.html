@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Inter', Tahoma, Verdana, sans-serif; background: #f1f5f9; margin: 0; padding: 50px 0; }
+        .page-container { max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-top: 4px solid #003B73; overflow: hidden; }
+        .header-section { padding: 30px 40px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+        .school-name { font-size: 18px; font-weight: 700; color: #1e293b; color: #003B73; }
+        .main-body { padding: 40px; }
+        .subject-line { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .message-content { color: #334155; font-size: 15px; line-height: 1.7; margin-bottom: 30px; }
+        .data-table { width: 100%; border-collapse: collapse; margin: 25px 0; border: 1px solid #e2e8f0; }
+        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        .data-table th { background: #f8fafc; font-size: 12px; color: #64748b; text-transform: uppercase; width: 40%; }
+        .data-table td { font-size: 14px; color: #1e293b; font-weight: 600; }
+        .otp-callout { background: #003B73; color: white; padding: 25px; border-radius: 4px; text-align: center; margin: 30px 0; }
+        .otp-title { font-size: 11px; font-weight: 700; opacity: 0.8; text-transform: uppercase; margin-bottom: 8px; }
+        .otp-value { font-size: 36px; font-weight: 800; letter-spacing: 6px; }
+        .footer-info { padding: 25px 40px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; line-height: 1.5; }
+        .accent-text { color: #f59e0b; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="header-section">
+            <span class="school-name">{{ school_name }}</span>
+            {% if school_logo %}<img src="{{ school_logo }}" height="32">{% endif %}
+        </div>
+        <div class="main-body">
+            <div class="subject-line">
+                {% if code == 'LOGIN_OTP' %}Authentication Required{% elif code == 'ACCOUNT_BLOCKED' %}Security Alert: Blocked{% else %}Security Notification{% endif %}
+            </div>
+            <div class="message-content">
+                Dear {{ user_name }},<br><br>
+                This is an official security dispatch regarding your account on the ShikshaWave Education Portal.
+            </div>
+
+            {% if code == 'LOGIN_OTP' or code == 'PASSWORD_RESET_OTP' %}
+                <div class="otp-callout">
+                    <div class="otp-title">One-Time Password (OTP)</div>
+                    <div class="otp-value">{{ otp }}</div>
+                    <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">Expires in {{ valid_minutes }} minutes</div>
+                </div>
+            {% elif code == 'ACCOUNT_BLOCKED' %}
+                <div style="padding: 20px; border: 2px solid #ef4444; border-radius: 4px; color: #b91c1c; margin-bottom: 30px; background: #fef2f2;">
+                    <strong style="display: block; margin-bottom: 5px;">ACCOUNT ACCESS RESTRICTED</strong>
+                    Your account has been locked for a period of 24 hours due to repeated incorrect password attempts.
+                </div>
+            {% elif code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+                <div style="padding: 20px; border: 2px solid #10b981; border-radius: 4px; color: #047857; margin-bottom: 30px; background: #ecfdf5;">
+                    <strong style="display: block; margin-bottom: 5px;">PASSWORD RECOVERY SUCCESS</strong>
+                    The credentials associated with your User ID have been successfully modified.
+                </div>
+            {% endif %}
+
+            <table class="data-table">
+                <tr><th>User Identity</th><td>{{ user_name }}</td></tr>
+                <tr><th>Assigned Profile</th><td>{{ profile | default:"Authorized Personnel" }}</td></tr>
+                <tr><th>Origin IP Address</th><td>{{ ip_address }}</td></tr>
+                <tr><th>Access Device</th><td>{{ browser }}</td></tr>
+            </table>
+        </div>
+        <div class="footer-info">
+            <strong>Security Disclaimer:</strong> This is a secure communication. If you did not initiate this action, please 
+            secure your account immediately by contacting the 
+            <span class="accent-text">IT Department of {{ school_name }}</span>.
+            <br><br>
+            Sent via ShikshaWave Official Security Layer &copy; 2026.
+        </div>
+    </div>
+</body>
+</html>

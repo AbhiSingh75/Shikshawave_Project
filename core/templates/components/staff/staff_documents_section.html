@@ -1,0 +1,78 @@
+{% if documents %}
+<style>
+    .btn-icon {
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-icon:hover {
+        transform: scale(1.15) translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .btn-icon:hover i.fa-eye {
+        transform: scale(1.1);
+    }
+    .btn-icon:hover i.fa-sync-alt {
+        animation: fa-spin 1s linear infinite;
+    }
+    @keyframes fa-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+<div class="table-container" id="documents-section" style="margin-top: 24px;">
+    <div class="section-header">
+        <div class="section-title-wrapper">
+            <div class="section-icon"><i class="fas fa-file-alt"></i></div>
+            Documents & Attachments
+        </div>
+    </div>
+
+    <div class="view-mode">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="padding: 12px 24px; text-align: left; font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); border-bottom: 2px solid var(--border-color);">Document Type</th>
+                    <th style="padding: 12px 24px; text-align: left; font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); border-bottom: 2px solid var(--border-color);">File Name</th>
+                    <th style="padding: 12px 24px; text-align: center; font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); border-bottom: 2px solid var(--border-color);">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr>
+                    <td>{{ doc.DocumentType }}</td>
+                    <td>{{ doc.FilesName|default:"No file uploaded" }}</td>
+                    <td style="text-align: center !important;">
+                        <div class="doc-actions" style="display: flex; gap: 8px; justify-content: center;">
+                            <input type="file" id="doc_{{ forloop.counter }}" accept=".pdf,.jpg,.jpeg,.png"
+                                style="display: none;" onchange="handleDocumentUpload(this, '{{ doc.DocumentType }}')">
+                            
+                            {% if doc.FileContentBase64 %}
+                            <button type="button" class="btn-icon" onclick="viewDocument('{{ doc.DocumentID }}')" title="View" style="background: var(--primary-color, #004aad); color: white; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer;">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn-icon" onclick="document.getElementById('doc_{{ forloop.counter }}').click()" title="Replace" style="background: #f59e0b; color: white; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer;">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn-icon" onclick="document.getElementById('doc_{{ forloop.counter }}').click()" title="Upload" style="background: #10b981; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Add New Document Type Action -->
+        <div style="padding: 24px; text-align: right; border-top: 1px solid var(--border-color); background: var(--light-gray);">
+            <button type="button" class="btn btn-secondary" onclick="addDocumentRow()">
+                <i class="fas fa-plus-circle"></i> Add New Document Type
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}

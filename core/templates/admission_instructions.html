@@ -1,0 +1,650 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Admission Instructions | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --error-color: #ef4444;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --border-color: #4b5563;
+        --card-bg: #1f2937;
+    }
+
+    body { 
+        background-color: var(--secondary-color); 
+        background-color: var(--bg-color); 
+        color: var(--text-main);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        padding-top: 2px;
+    }
+
+    .dashboard-container { 
+        padding: 5px 24px; 
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Standardized Control Row (Sync with Academic Year) */
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--card-bg, #fff);
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color, #e5e7eb);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .controls-row {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .controls-left { flex-shrink: 0; display: flex; align-items: center; }
+    .controls-left h3 { 
+        margin: 0; 
+        font-size: 1.25rem; 
+        font-weight: 700; 
+        color: var(--text-main); 
+        display: flex; 
+        align-items: center; 
+        gap: 10px;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+    }
+    .controls-right { display: flex; align-items: center; gap: 12px; }
+
+    .count-badge {
+        font-size: 0.75rem;
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    /* Premium Table Styling (Sync with Academic Year) */
+    .sw-table-container {
+        background: var(--card-bg, #fff);
+        border-radius: 16px;
+        border: 1px solid var(--border-color, #e5e7eb);
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .sw-table-container {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .sw-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .sw-table thead th { 
+        background: var(--primary-color);
+        color: #ffffff;
+        text-align: left;
+        padding: 14px 20px;
+        font-size: 0.725rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border: none;
+    }
+    .sw-table thead th:first-child { border-top-left-radius: 12px; }
+    .sw-table thead th:last-child { border-top-right-radius: 12px; text-align: right; }
+
+    .sw-table tbody td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        font-size: 0.9rem;
+        font-weight: 500;
+        vertical-align: middle;
+    }
+    .sw-table tbody tr:last-child td { border-bottom: none; }
+    .sw-table tbody tr:hover td { background: var(--bg-hover); transition: background 0.2s; }
+
+    .instruction-text { 
+        color: var(--text-muted); 
+        max-width: 400px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Badges & Actions (Sync with Academic Year) */
+    .order-badge { 
+        background: var(--bg-hover); 
+        color: var(--primary-color); 
+        padding: 4px 10px; 
+        border-radius: 8px; 
+        font-size: 0.75rem; 
+        font-weight: 700; 
+        border: 1px solid var(--border-color);
+    }
+    
+    .status-badge { 
+        padding: 4px 12px; 
+        border-radius: 20px; 
+        font-size: 0.75rem; 
+        font-weight: 700; 
+        display: inline-block;
+    }
+    .status-active { background: var(--success-light, rgba(16, 185, 129, 0.1)); color: var(--success-color); }
+    .status-inactive { background: var(--error-light, rgba(239, 68, 68, 0.1)); color: var(--error-color); }
+
+    .table-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .action-btn { 
+        width: 32px; 
+        height: 32px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        border-radius: 8px; 
+        border: 1px solid var(--border-color); 
+        cursor: pointer; 
+        transition: all 0.2s; 
+        background: var(--card-bg);
+    }
+    .edit-btn { color: var(--warning-color); background: var(--warning-light, rgba(245, 158, 11, 0.05)); border: 1px solid var(--warning-color); }
+    .edit-btn:hover { background: var(--warning-color); color: #fff; transform: translateY(-2px); }
+    .delete-btn { color: var(--error-color); background: var(--error-light, rgba(239, 68, 68, 0.05)); border: 1px solid var(--error-color); }
+    body.dark-mode .btn-cancel { background: var(--border-color); color: var(--text-color); }
+    body.dark-mode .btn-cancel:hover { background: var(--border-color); filter: brightness(1.2); }
+    .delete-btn:hover { background: var(--error-color); color: #fff; transform: translateY(-2px); }
+
+    /* Buttons (Standardized Gradient) */
+    .btn-standard {
+        height: 40px;
+        padding: 0 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .btn-standard:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(124, 58, 237, 0.3); filter: brightness(1.1); }
+
+    /* Modal Styling (Sync with Academic Year) */
+    .sw-modal-container {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .sw-modal-container.show { display: flex !important; }
+
+    .sw-modal {
+        background: var(--card-bg);
+        width: 100%;
+        max-width: 500px;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+    }
+    @keyframes modalPop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    .sw-modal-header {
+        padding: 16px 24px;
+        background: var(--primary-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: none;
+    }
+    .sw-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: white;
+    }
+    .sw-modal-title h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: white !important;
+        letter-spacing: -0.01em;
+    }
+    .sw-modal-close {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1.1rem;
+    }
+    .sw-modal-close:hover { background: rgba(255, 255, 255, 0.25); transform: rotate(90deg); }
+
+    .sw-modal-body { padding: 20px 24px; }
+    .sw-modal-footer {
+        padding: 24px 32px;
+        background: var(--bg-hover, #f1f5f9);
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        border-top: 1px solid var(--border-color);
+    }
+    body.dark-mode .sw-modal-footer { background: rgba(0, 0, 0, 0.2); }
+
+    .sw-form-group { margin-bottom: 15px; }
+    .sw-form-group label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .sw-form-control {
+        width: 100%; padding: 12px 16px;
+        border: 1.5px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-main);
+        border-radius: 12px; font-size: 0.95rem; font-weight: 600;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+    select.sw-form-control { padding-right: 40px; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 16px; }
+    .sw-form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1); }
+
+    .sw-checkbox-row {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 18px; background: var(--card-bg);
+        border-radius: 12px; cursor: pointer;
+        border: 1.5px solid var(--border-color);
+        transition: all 0.2s;
+        height: 48px;
+        box-sizing: border-box;
+    }
+    .sw-checkbox-row input { width: 18px; height: 18px; accent-color: var(--primary-color); }
+    .sw-checkbox-row label { margin: 0; cursor: pointer; font-weight: 700; color: var(--text-main); font-size: 0.9rem; }
+
+    .btn-cancel {
+        background: var(--border-color);
+        color: var(--text-muted);
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 10px 24px;
+        border-radius: 12px;
+        transition: all 0.2s;
+    }
+    .btn-save {
+        background: var(--primary-color);
+        color: #fff !important;
+        padding: 10px 24px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-save:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3); }
+
+    /* Mobile Adaptations (Centered Modal) */
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 12px; }
+        .controls-row { 
+            flex-direction: column; 
+            gap: 16px; 
+            align-items: stretch; 
+            padding: 16px; 
+            margin-bottom: 20px;
+        }
+        .controls-left { width: 100%; }
+        .controls-right { 
+            flex-direction: column; 
+            align-items: stretch; 
+            width: 100%; 
+            gap: 12px;
+        }
+        .controls-right select {
+            width: 100% !important;
+            min-width: 0 !important;
+            margin-right: 0 !important;
+            white-space: normal;
+            height: auto !important;
+            min-height: 40px;
+            padding: 8px 12px;
+            padding-right: 40px;
+        }
+        .controls-right button {
+            width: 100% !important;
+            margin-right: 0 !important;
+        }
+        .sw-modal-container { align-items: center; justify-content: center; padding: 20px; }
+        .sw-modal { 
+            width: 95%;
+            max-width: 450px; 
+            border-radius: 20px; 
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-list-check" style="color: var(--primary-color);"></i> Admission Instructions <span class="count-badge" id="instructionCount">{{ instructions|length }}</span></h3>
+        </div>
+        <div class="controls-right">
+            {% if is_super_admin %}
+            <select id="school_selector" onchange="loadInstructions()" class="sw-form-control" style="min-width: 250px; max-width: 350px; height: 40px; width: auto; text-overflow: ellipsis;">
+                <option value="">-- Select School --</option>
+                {% for school in schools %}
+                <option value="{{ school.SchoolID }}" {% if selected_school_id == school.SchoolID %}selected{% endif %}>{{ school.DisplayName }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <button class="btn-standard btn-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i> Add Instruction
+            </button>
+        </div>
+    </div>
+
+    <div id="instructionsList">
+        {% if instructions %}
+        <!-- Desktop Table -->
+        <div class="sw-table-container">
+            <table class="sw-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">SN</th>
+                        <th>Title</th>
+                        <th>Instruction Text</th>
+                        <th style="width: 100px;">Order</th>
+                        <th style="width: 120px;">Status</th>
+                        <th style="width: 120px; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="instructionTableBody">
+                    {% for inst in instructions %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><div class="instruction-title" style="font-weight: 700; color: var(--primary-color);">{{ inst.InstructionTitle }}</div></td>
+                        <td><div class="instruction-text" title="{{ inst.InstructionText }}">{{ inst.InstructionText }}</div></td>
+                        <td><span class="order-badge">#{{ inst.DisplayOrder }}</span></td>
+                        <td>
+                            <span class="status-badge {% if inst.IsActive %}status-active{% else %}status-inactive{% endif %}">
+                                {% if inst.IsActive %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="action-btn edit-btn" onclick="editInstruction({{ inst.InstructionID }}, '{{ inst.InstructionTitle|escapejs }}', '{{ inst.InstructionText|escapejs }}', {{ inst.DisplayOrder }}, {{ inst.IsActive|yesno:'true,false' }})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick="deleteInstruction({{ inst.InstructionID }})" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <p>{% if is_super_admin and not selected_school_id %}Please select a school to view instructions.{% else %}No admission instructions found. Click "Add Instruction" to create one.{% endif %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="instructionModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-edit" style="color: white; font-size: 1.2rem;"></i>
+                <h2 id="modalTitle">Add Instruction</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="POST" action="{% url 'admission_instructions_save' %}">
+            {% csrf_token %}
+            <input type="hidden" name="instruction_id" id="instruction_id">
+            {% if is_super_admin %}
+            <input type="hidden" name="school_id" id="modal_school_id">
+            {% endif %}
+            
+            <div class="sw-modal-body">
+                <div class="sw-form-group">
+                    <label>Title *</label>
+                    <input type="text" name="title" id="title" class="sw-form-control" required placeholder="Enter instruction title">
+                </div>
+                
+                <div class="sw-form-group">
+                    <label>Instruction Text *</label>
+                    <textarea name="text" id="text" class="sw-form-control" style="min-height: 120px;" required placeholder="Enter instruction details"></textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="sw-form-group">
+                        <label>Display Order</label>
+                        <input type="number" name="display_order" id="display_order" class="sw-form-control" value="0" min="0">
+                    </div>
+                    
+                    <div class="sw-form-group">
+                        <label>Status</label>
+                        <div class="sw-checkbox-row" onclick="document.getElementById('is_active').click()">
+                            <input type="checkbox" name="is_active" id="is_active" checked onclick="event.stopPropagation()">
+                            <label for="is_active">ACTIVE</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sw-modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-save"><i class="fas fa-check"></i> Save Instruction</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal() {
+    {% if is_super_admin %}
+    const schoolId = document.getElementById('school_selector').value;
+    if (!schoolId) {
+        alert('Please select a school first');
+        return;
+    }
+    document.getElementById('modal_school_id').value = schoolId;
+    {% endif %}
+    
+    document.getElementById('modalTitle').textContent = 'Add Instruction';
+    document.getElementById('instruction_id').value = '';
+    document.getElementById('title').value = '';
+    document.getElementById('text').value = '';
+    document.getElementById('display_order').value = '0';
+    document.getElementById('is_active').checked = true;
+    document.getElementById('instructionModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('instructionModal').classList.remove('show');
+}
+
+function editInstruction(id, title, text, order, active) {
+    {% if is_super_admin %}
+    const schoolId = document.getElementById('school_selector').value;
+    document.getElementById('modal_school_id').value = schoolId;
+    {% endif %}
+    
+    document.getElementById('modalTitle').textContent = 'Edit Instruction';
+    document.getElementById('instruction_id').value = id;
+    document.getElementById('title').value = title;
+    document.getElementById('text').value = text;
+    document.getElementById('display_order').value = order;
+    document.getElementById('is_active').checked = active;
+    document.getElementById('instructionModal').classList.add('show');
+}
+
+function deleteInstruction(id) {
+    if (confirm('Are you sure you want to delete this instruction?')) {
+        {% if is_super_admin %}
+        const schoolId = document.getElementById('school_selector').value;
+        {% endif %}
+        
+        fetch('{% url "admission_instructions_delete" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: 'instruction_id=' + id{% if is_super_admin %} + '&school_id=' + schoolId{% endif %}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+}
+
+{% if is_super_admin %}
+function loadInstructions() {
+    const schoolId = document.getElementById('school_selector').value;
+    if (!schoolId) {
+        document.getElementById('instructionsList').innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><p>Please select a school to view instructions.</p></div>';
+        document.getElementById('instructionCount').textContent = '(0)';
+        return;
+    }
+    
+    fetch('{% url "admission_instructions_load" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'school_id=' + schoolId
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'SUCCESS') {
+            const instructions = data.data;
+            document.getElementById('instructionCount').textContent = '(' + instructions.length + ')';
+            
+            if (instructions.length === 0) {
+                document.getElementById('instructionsList').innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><p>No admission instructions found. Click "Add Instruction" to create one.</p></div>';
+            } else {
+                // Build the new standardized table
+                let tableHtml = `
+                    <div class="sw-table-container">
+                        <table class="sw-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">SN</th>
+                                    <th>Title</th>
+                                    <th>Instruction Text</th>
+                                    <th style="width: 100px;">Order</th>
+                                    <th style="width: 120px;">Status</th>
+                                    <th style="width: 120px; text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                instructions.forEach((inst, index) => {
+                    tableHtml += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><div class="instruction-title" style="font-weight: 700; color: var(--primary-color);">${escapeHtml(inst.InstructionTitle)}</div></td>
+                            <td><div class="instruction-text" title="${escapeHtml(inst.InstructionText)}">${escapeHtml(inst.InstructionText)}</div></td>
+                            <td><span class="order-badge">#${inst.DisplayOrder}</span></td>
+                            <td>
+                                <span class="status-badge ${inst.IsActive ? 'status-active' : 'status-inactive'}">
+                                    ${inst.IsActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="action-btn edit-btn" onclick="editInstruction(${inst.InstructionID}, '${escapeJs(inst.InstructionTitle)}', '${escapeJs(inst.InstructionText)}', ${inst.DisplayOrder}, ${inst.IsActive ? 'true' : 'false'})" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="deleteInstruction(${inst.InstructionID})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += '</tbody></table></div>';
+                document.getElementById('instructionsList').innerHTML = tableHtml;
+            }
+        } else {
+            alert('Error loading instructions: ' + data.message);
+        }
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function escapeJs(text) {
+    return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
+{% endif %}
+
+document.getElementById('instructionModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

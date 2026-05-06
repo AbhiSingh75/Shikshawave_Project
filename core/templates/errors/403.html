@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error 403 - Forbidden</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1976D2, #4CAF50);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #fff;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+            position: relative;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+        border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        max-width: 600px;
+            width: 90%;
+            animation: containerFade 1s ease-out;
+    }
+    
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #F5F5DC, #ffffff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            text-shadow: 0 0 20px rgba(245, 245, 220, 0.5);
+            animation: glitch 2s infinite alternate-reverse;
+        }
+    
+    .error-title {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #f1f1f1;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+    }
+    
+    .error-message {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        line-height: 1.6;
+            color: #e1e1e1;
+    }
+    
+        .action-buttons {
+        display: flex;
+        justify-content: center;
+            gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+    }
+    
+        .btn-primary {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+    
+    .btn-secondary {
+            background: transparent;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* Particle background */
+        #particles-js {
+        position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+        left: 0;
+    }
+    
+        /* Animations */
+        @keyframes glitch {
+            0%, 100% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-5px, 5px);
+            }
+            40% {
+                transform: translate(-5px, -5px);
+            }
+            60% {
+                transform: translate(5px, 5px);
+            }
+            80% {
+                transform: translate(5px, -5px);
+            }
+        }
+
+        @keyframes containerFade {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 6rem;
+            }
+            
+            .error-title {
+                font-size: 1.5rem;
+            }
+            
+            .error-message {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                padding: 0.8rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .error-code {
+                font-size: 4rem;
+            }
+            
+            .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+            .btn {
+            width: 100%;
+                max-width: 250px;
+        }
+    }
+</style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="container">
+        <h1 class="error-code">403</h1>
+        <h2 class="error-title">Access Forbidden</h2>
+        <p class="error-message">You don't have permission to access this resource. Please contact the administrator if you believe this is an error.</p>
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="goHome()">Go Home</button>
+            <button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+        </div>
+        </div>
+        
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Initialize particles.js
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#ffffff" },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#ffffff",
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: true, mode: "push" },
+                    resize: true
+                }
+            },
+            retina_detect: true
+        });
+
+        // Button functions
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // Add occasional glitch effect to the error code
+        const errorCode = document.querySelector('.error-code');
+        setInterval(() => {
+            errorCode.style.animation = 'none';
+            setTimeout(() => {
+                errorCode.style.animation = 'glitch 2s infinite alternate-reverse';
+            }, 10);
+        }, 5000);
+    </script>
+</body>
+</html>

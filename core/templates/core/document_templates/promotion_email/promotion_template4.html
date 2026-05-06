@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background: #fafafa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #d4af37;
+            border-radius: 4px;
+            padding: 50px;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid #d4af37;
+            pointer-events: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #d4af37;
+            margin: 0;
+            font-size: 32px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, #d4af37, transparent);
+            margin: 20px auto;
+            width: 80%;
+        }
+
+        .content {
+            color: #333;
+            line-height: 1.8;
+            text-align: center;
+        }
+
+        .promotion-box {
+            background: #fffcf0;
+            border: 1px solid #eee;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 0 20px;
+            border-bottom: 1px dotted #d4af37;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            font-weight: bold;
+            color: #d4af37;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-style: italic;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" width="60" style="margin-bottom: 15px;">
+            <h1>Roll of Honor</h1>
+            <div class="divider"></div>
+        </div>
+        <div class="content">
+            <p>This is to certify that</p>
+            <h2 style="color: #111; margin: 10px 0;">{{ student_name }}</h2>
+            <p>has demonstrated exceptional progress and is hereby promoted.</p>
+
+            <div class="promotion-box">
+                <div class="detail-row">
+                    <span class="detail-label">From Level</span>
+                    <span class="detail-value">{{ prev_class }} ({{ prev_section }})</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">To Level</span>
+                    <span class="detail-value">{{ new_class }} ({{ new_section }})</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">New Roll No</span>
+                    <span class="detail-value">{{ roll_no }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Session</span>
+                    <span class="detail-value">{{ academic_year }}</span>
+                </div>
+            </div>
+
+            <p style="font-size: 18px; color: #d4af37; font-weight: bold;">Excelsior!</p>
+        </div>
+        <div class="footer">
+            <p>Issued by Office of the Registrar<br><strong>{{ school_name }}</strong></p>
+            <p style="font-size: 12px; margin-top: 20px;">Dated: {{ current_date }}</p>
+        </div>
+    </div>
+</body>
+
+</html>

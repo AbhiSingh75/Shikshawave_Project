@@ -1,0 +1,501 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}View Results | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=3.0">
+<style>
+    /* ── PHASE 5: ZERO GAP & THEME SYNC ── */
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #64748b;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --bg-hover: #f8fafc;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --secondary-color: #111827;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+        --bg-hover: #374151;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    body { padding-top: 0 !important; }
+    .sw-main-content { margin-top: var(--header-height, 70px) !important; padding: 0 !important; }
+    
+    .dashboard-container { 
+        padding: 16px 20px 24px 20px !important; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 12px; 
+    }
+
+    @media (min-width: 1025px) {
+        .controls-row {
+            position: sticky !important;
+            top: calc(var(--header-height, 70px) + 12px) !important;
+            z-index: 1001 !important;
+            margin: 0 !important;
+        }
+    }
+
+    .controls-row {
+        background: var(--card-bg, white) !important;
+        padding: 12px 20px !important;
+        border-radius: 12px !important;
+        box-shadow: var(--shadow-sm) !important;
+        border: 1px solid var(--border-color) !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        overflow: visible !important;
+    }
+
+    .controls-left { display: flex; align-items: center; gap: 15px; }
+    .controls-left h3 {
+        color: var(--primary-color) !important;
+        font-weight: 700 !important;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+    }
+
+    /* Stats grid */
+    .exam-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .exam-stat-card {
+        background: var(--card-bg, white); border: 1px solid var(--border-color);
+        border-radius: 10px; padding: 14px 16px; box-shadow: var(--card-shadow);
+        display: flex; align-items: center; gap: 12px; transition: transform 0.2s;
+    }
+    .exam-stat-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: white; flex-shrink: 0;
+    }
+    .exam-stat-icon.total     { background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); }
+    .exam-stat-icon.passed    { background: var(--success-color); }
+    .exam-stat-icon.failed    { background: var(--error-color); }
+    .exam-stat-info h4 { font-size: 0.7rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: .5px; margin: 0 0 2px; }
+    .exam-stat-value  { font-size: 1.5rem; font-weight: 800; color: var(--text-main, #1e293b); line-height: 1; }
+
+    /* Table & Header */
+    .table-header { padding: 12px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .shikshawave-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .shikshawave-table th { background: var(--primary-color) !important; color: white !important; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; padding: 14px 16px; }
+    .shikshawave-table td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+    
+    .percentage-bar-container { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+    .percentage-track { flex: 1; height: 6px; background: rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; }
+    .percentage-fill { height: 100%; transition: width 0.5s ease; }
+    .percentage-text { font-size: 0.8rem; font-weight: 700; width: 35px; text-align: right; }
+
+    body.dark-mode .percentage-track { background: rgba(255,255,255,0.1); }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="dashboard-container">
+    <!-- ===== PREMIUM CONTROLS ROW ===== -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-graduation-cap" style="color: var(--warning-color);"></i> View Exam Results</h3>
+            
+            {% if is_super_admin %}
+            <div class="school-selector-container">
+                <input type="hidden" id="schoolSelect" onchange="onSchoolChange()">
+                <div class="custom-dropdown" id="schoolDropdown">
+                    <div class="custom-dropdown-toggle">
+                        <span class="custom-dropdown-text">Select School</span>
+                        <span class="custom-dropdown-arrow"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="custom-dropdown-menu" id="schoolDropdownMenu">
+                        <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
+                            <input type="text" class="dropdown-search" placeholder="Search school..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); outline: none;">
+                        </div>
+                        <div class="custom-dropdown-option selected" data-value="">Select School</div>
+                        <!-- Options filled via JS -->
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="controls-right">
+            <div id="filterSummary" style="margin-right: 15px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display: none;">
+                <span id="summaryExam"></span> • <span id="summaryClass"></span>
+            </div>
+            <button id="openFilterBtn" class="btn btn-secondary" style="height: 38px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-filter"></i> <span>Filters</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== SUMMARY STATS ===== -->
+    <div class="exam-stats-grid">
+        <div class="exam-stat-card">
+            <div class="exam-stat-icon total"><i class="fas fa-users"></i></div>
+            <div class="exam-stat-info">
+                <h4>Total Students</h4>
+                <div class="exam-stat-value" id="statTotal">0</div>
+            </div>
+        </div>
+        <div class="exam-stat-card">
+            <div class="exam-stat-icon passed"><i class="fas fa-user-check"></i></div>
+            <div class="exam-stat-info">
+                <h4>Passed</h4>
+                <div class="exam-stat-value" id="statPassed">0</div>
+            </div>
+        </div>
+        <div class="exam-stat-card">
+            <div class="exam-stat-icon failed"><i class="fas fa-user-times"></i></div>
+            <div class="exam-stat-info">
+                <h4>Failed</h4>
+                <div class="exam-stat-value" id="statFailed">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== RESULTS LIST SECTION ===== -->
+    <div class="list-card" id="resultsSection" style="display: none; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-sm);">
+        <div class="table-header">
+            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-list-ul"></i> Student Merit List
+                <span id="studentCountBadge" style="background: var(--warning-color); color: white; border-radius: 20px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700;">0</span>
+            </div>
+            <div class="search-container" style="position: relative; width: 200px;">
+                <input type="text" id="searchName" placeholder="Search student..." onkeyup="filterTable()" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.85rem;">
+            </div>
+        </div>
+
+        <div class="sw-table-wrapper">
+            <table class="shikshawave-table">
+                <thead>
+                    <tr>
+                        <th width="50" style="text-align: center;">SN</th>
+                        <th width="120">Code</th>
+                        <th>Student Name</th>
+                        <th>Aggregate</th>
+                        <th>Percentage</th>
+                        <th width="100">Status</th>
+                        <th width="100">Publish</th>
+                        <th width="100" style="text-align: center;">Details</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="emptyState" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 60px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+        <i class="fas fa-clipboard-list fa-4x" style="opacity: 0.1;"></i>
+        <h3 style="margin: 0; color: var(--text-main);">Performance Data Missing</h3>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Please select an exam and class from filters to view student records.</p>
+        <button id="emptyStateFilterBtn" class="btn btn-primary" style="margin-top: 10px;">
+            <i class="fas fa-search"></i> Select Filters
+        </button>
+    </div>
+</div>
+
+<!-- ===== FILTER MODAL ===== -->
+<div class="sw-modal-container" id="filterModal" style="display: none;">
+    <div class="sw-modal" style="max-width: 500px;">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title"><i class="fas fa-filter"></i> <h2>Filter Results</h2> </div>
+            <button class="sw-modal-close" onclick="closeFilterModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sw-modal-body">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Exam</label>
+                    <select id="examSelect" class="sw-form-control" style="border: 2px solid var(--primary-color);">
+                        <option value="">Select Exam</option>
+                    </select>
+                </div>
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Class</label>
+                    <select id="classSelect" class="sw-form-control" style="border: 2px solid var(--primary-color);">
+                        <option value="">Select Class</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="sw-modal-footer">
+            <button class="btn btn-secondary" onclick="closeFilterModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="applyFilters()">
+                <i class="fas fa-check"></i> Apply Filters
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block main_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if is_super_admin %}
+    initSchoolDropdown();
+    {% endif %}
+    loadExams(); // Call for everyone to load session-based defaults if available
+});
+
+// School Dropdown Logic
+function initSchoolDropdown() {
+    const dropdown = document.getElementById('schoolDropdown');
+    const toggle = dropdown.querySelector('.custom-dropdown-toggle');
+    const menu = document.getElementById('schoolDropdownMenu');
+    const text = dropdown.querySelector('.custom-dropdown-text');
+    const search = dropdown.querySelector('.dropdown-search');
+    const hiddenInput = document.getElementById('schoolSelect');
+
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+        if(dropdown.classList.contains('active')) search.focus();
+    });
+
+    search.addEventListener('click', (e) => e.stopPropagation());
+    search.addEventListener('keyup', () => {
+        const val = search.value.toLowerCase();
+        dropdown.querySelectorAll('.custom-dropdown-option').forEach(opt => {
+            const txt = opt.textContent.toLowerCase();
+            opt.style.display = txt.includes(val) ? 'block' : 'none';
+        });
+    });
+
+    fetch('/api/school-dropdown/')
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'SUCCESS') {
+                res.data.forEach(s => {
+                    const opt = document.createElement('div');
+                    opt.className = 'custom-dropdown-option';
+                    opt.dataset.value = s.id;
+                    opt.textContent = s.name;
+                    opt.addEventListener('click', () => {
+                        dropdown.querySelectorAll('.custom-dropdown-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        text.textContent = s.name;
+                        hiddenInput.value = s.id;
+                        dropdown.classList.remove('active');
+                        onSchoolChange();
+                    });
+                    menu.appendChild(opt);
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching schools:', err);
+            text.textContent = 'Error loading schools';
+        });
+
+    window.addEventListener('click', () => {
+        if(dropdown) dropdown.classList.remove('active');
+    });
+}
+
+function onSchoolChange() {
+    const schoolId = document.getElementById('schoolSelect').value;
+    // Reset dependent dropdowns
+    document.getElementById('examSelect').innerHTML = '<option value="">Loading Exams...</option>';
+    document.getElementById('classSelect').innerHTML = '<option value="">Select Class</option>';
+    loadExams(schoolId);
+}
+
+function loadExams(schoolId = '') {
+    let url = '/api/exams/';
+    if(schoolId) url += `?school_id=${schoolId}`;
+    
+    fetch(url).then(r => r.json()).then(data => {
+        const select = document.getElementById('examSelect');
+        select.innerHTML = '<option value="">Select Exam</option>';
+        if (data.length === 0) {
+            const op = document.createElement('option');
+            op.value = "";
+            op.textContent = "No exams found (Select School)";
+            select.appendChild(op);
+            return;
+        }
+        data.forEach(e => {
+            const op = document.createElement('option');
+            op.value = e.ExamID;
+            op.textContent = `${e.ExamName} (${e.AcademicYear})`;
+            select.appendChild(op);
+        });
+    }).catch(err => {
+        console.error('Error loading exams:', err);
+        document.getElementById('examSelect').innerHTML = '<option value="">Error loading exams</option>';
+    });
+}
+
+function openFilterModal() {
+    console.log("Opening Filter Modal...");
+    const modal = document.getElementById('filterModal');
+    if (modal) {
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.classList.add('active');
+    } else {
+        console.error("Filter modal element not found!");
+    }
+}
+
+function closeFilterModal() {
+    const modal = document.getElementById('filterModal');
+    if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('active');
+    }
+}
+
+// Ensure they are truly global
+window.openFilterModal = openFilterModal;
+window.closeFilterModal = closeFilterModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const filterBtn = document.getElementById('openFilterBtn');
+    if(filterBtn) filterBtn.addEventListener('click', openFilterModal);
+    
+    const emptyBtn = document.getElementById('emptyStateFilterBtn');
+    if(emptyBtn) emptyBtn.addEventListener('click', openFilterModal);
+    
+    const closeBtn = document.querySelector('.sw-modal-close');
+    if(closeBtn) closeBtn.addEventListener('click', closeFilterModal);
+});
+
+function applyFilters() {
+    const ex = document.getElementById('examSelect');
+    const cl = document.getElementById('classSelect');
+    
+    if(!ex.value || !cl.value) {
+        Swal.fire('Required', 'Please select both Exam and Class', 'warning');
+        return;
+    }
+
+    document.getElementById('filterSummary').style.display = 'block';
+    document.getElementById('summaryExam').textContent = ex.options[ex.selectedIndex].text;
+    document.getElementById('summaryClass').textContent = cl.options[cl.selectedIndex].text;
+    
+    closeFilterModal();
+    loadStudents();
+}
+
+function loadStudents() {
+    const eid = document.getElementById('examSelect').value;
+    const cid = document.getElementById('classSelect').value;
+    let url = `/exams/results/list/?exam_id=${eid}&class_id=${cid}`;
+
+    {% if is_super_admin %}
+    const sid = document.getElementById('schoolSelect').value;
+    if(sid) url += `&school_id=${sid}`;
+    {% endif %}
+
+    fetch(url).then(r => r.json()).then(data => {
+        const section = document.getElementById('resultsSection');
+        const empty = document.getElementById('emptyState');
+        
+        if(data.status === 'SUCCESS' && data.students.length > 0) {
+            section.style.display = 'block';
+            empty.style.display = 'none';
+            renderTable(data.students);
+            
+            // Update Stats
+            document.getElementById('statTotal').textContent = data.stats.total;
+            document.getElementById('statPassed').textContent = data.stats.passed;
+            document.getElementById('statFailed').textContent = data.stats.failed;
+            document.getElementById('studentCountBadge').textContent = data.students.length;
+        } else {
+            section.style.display = 'none';
+            empty.style.display = 'flex';
+        }
+    });
+}
+
+function renderTable(students) {
+    const tbody = document.getElementById('resultsBody');
+    tbody.innerHTML = '';
+    
+    const style = getComputedStyle(document.body);
+    const colors = {
+        success: style.getPropertyValue('--success-color').trim() || '#10b981',
+        primary: style.getPropertyValue('--primary-color').trim() || '#004aad',
+        warning: style.getPropertyValue('--warning-color').trim() || '#f59e0b',
+        error: style.getPropertyValue('--error-color').trim() || '#ef4444'
+    };
+
+    students.forEach((s, i) => {
+        const perc = parseFloat(s.Percentage || 0);
+        const color = perc >= 75 ? colors.success : perc >= 60 ? colors.primary : perc >= 40 ? colors.warning : colors.error;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="text-align: center; color: var(--text-muted); font-weight: 600;">${i+1}</td>
+            <td><code style="background: var(--primary-light); color: var(--primary-color); padding: 2px 6px; border-radius: 4px;">${s.StudentCode}</code></td>
+            <td style="font-weight: 700;">${s.StudentName}</td>
+            <td style="font-weight: 600;">${s.TotalObtainedMarks} / ${s.TotalMaxMarks}</td>
+            <td>
+                <div class="percentage-bar-container">
+                    <div class="percentage-track">
+                        <div class="percentage-fill" style="width: ${perc}%; background: ${color};"></div>
+                    </div>
+                    <span class="percentage-text" style="color: ${color};">${perc}%</span>
+                </div>
+            </td>
+            <td><span class="status-badge" style="background: ${color}15; color: ${color}; border: 1px solid ${color}30;">${s.ResultStatus}</span></td>
+            <td><span class="status-badge ${s.PublishStatus ? 'badge-published' : 'badge-draft'}">${s.PublishStatus ? 'Published' : 'Draft'}</span></td>
+            <td style="text-align: center;">
+                <button class="btn-action" onclick="viewDetail(${s.StudentID})" style="color: var(--primary-color); background: none; border: none; cursor: pointer;">
+                    <i class="fas fa-file-invoice fa-lg"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function filterTable() {
+    const q = document.getElementById('searchName').value.toLowerCase();
+    const rows = document.querySelectorAll('#resultsBody tr');
+    rows.forEach(r => {
+        const name = r.cells[2].textContent.toLowerCase();
+        const code = r.cells[1].textContent.toLowerCase();
+        r.style.display = (name.includes(q) || code.includes(q)) ? '' : 'none';
+    });
+}
+
+function viewDetail(sid) {
+    const eid = document.getElementById('examSelect').value;
+    const cid = document.getElementById('classSelect').value;
+    let url = `/exams/results/print/?exam_id=${eid}&class_id=${cid}&student_id=${sid}`;
+    
+    {% if is_super_admin %}
+    const schoolId = document.getElementById('schoolSelect').value;
+    if(schoolId) url += `&school_id=${schoolId}`;
+    {% endif %}
+    
+    window.open(url, '_blank');
+}
+</script>
+{% endblock %}

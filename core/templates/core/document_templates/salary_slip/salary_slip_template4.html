@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Salary Slip - {{ employee_name }}</title>
+    <style>
+        @media print { .no-print { display: none; } @page { size: A4; margin: 8mm; } * { -webkit-print-color-adjust: exact !important; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tahoma', sans-serif; background: #f9fafb; padding: 10px; font-size: 10px; }
+        .btn-print { background: #7c3aed; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .container { max-width: 210mm; margin: 0 auto; background: white; padding: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .header { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; padding: 25px; text-align: center; }
+        .school-name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+        .content { padding: 25px; }
+        .title { text-align: center; font-size: 18px; font-weight: bold; color: #7c3aed; margin-bottom: 20px; padding: 10px; background: #f5f3ff; border-radius: 8px; }
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+        .info-card { background: linear-gradient(135deg, #f5f3ff, #ede9fe); padding: 12px; border-radius: 8px; border-left: 4px solid #7c3aed; }
+        .info-label { font-size: 9px; color: #6b21a8; font-weight: bold; margin-bottom: 4px; }
+        .info-value { font-size: 11px; color: #3b0764; font-weight: 600; }
+        .salary-container { display: flex; gap: 15px; margin: 20px 0; }
+        .salary-col { flex: 1; background: #fafafa; border-radius: 8px; padding: 15px; border: 1px solid #e9d5ff; }
+        .col-header { background: #7c3aed; color: white; padding: 10px; margin: -15px -15px 12px -15px; font-weight: bold; text-align: center; border-radius: 8px 8px 0 0; }
+        .item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e9d5ff; }
+        .total-item { background: #f5f3ff; padding: 10px; margin-top: 10px; font-weight: bold; color: #6b21a8; border-radius: 6px; }
+        .net-salary { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: white; padding: 18px; text-align: center; font-size: 16px; font-weight: bold; border-radius: 8px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">Print</button>
+        <button class="btn-print" onclick="window.close()">Close</button>
+    </div>
+    <div class="container">
+        <div class="header">
+            {% if school_logo %}<img src = "{{ school_logo }}" style = "width: 55px; height: 55px; border-radius: 50%; border: 3px solid white; margin-bottom: 10px;">{% endif %}
+            <div class="school-name">{{ school_name }}</div>
+            <div style="font-size: 11px; opacity: 0.95;">{{ school_address }}</div>
+        </div>
+        <div class="content">
+            <div class="title">SALARY SLIP</div>
+            <div class="info-grid">
+                <div class="info-card"><div class="info-label">EMPLOYEE CODE</div><div class="info-value">{{ employee_code }}</div></div>
+                <div class="info-card"><div class="info-label">EMPLOYEE NAME</div><div class="info-value">{{ employee_name }}</div></div>
+                <div class="info-card"><div class="info-label">DESIGNATION</div><div class="info-value">{{ designation }}</div></div>
+                <div class="info-card"><div class="info-label">SALARY MONTH</div><div class="info-value">{{ salary_month }}</div></div>
+                <div class="info-card"><div class="info-label">PAYMENT DATE</div><div class="info-value">{{ payment_date }}</div></div>
+                <div class="info-card"><div class="info-label">REFERENCE ID</div><div class="info-value">{{ salary_reference_id }}</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 15px 0; padding: 10px; background: linear-gradient(135deg, #f5f3ff, #ede9fe); border-radius: 6px; border: 2px solid #a78bfa;">
+                <div style="text-align: center;"><div style="font-size: 18px; margin-bottom: 4px;">🏦</div><div style="font-size: 9px; color: #6b21a8; font-weight: 600;">BANK ACCOUNT</div><div style="font-size: 11px; color: #3b0764; font-weight: bold;">{{ bank_account }}</div></div>
+                <div style="text-align: center;"><div style="font-size: 18px; margin-bottom: 4px;">📱</div><div style="font-size: 9px; color: #6b21a8; font-weight: 600;">UPI ID</div><div style="font-size: 11px; color: #3b0764; font-weight: bold;">{{ upi_id }}</div></div>
+                <div style="text-align: center;"><div style="font-size: 18px; margin-bottom: 4px;">🔢</div><div style="font-size: 9px; color: #6b21a8; font-weight: 600;">UAN NUMBER</div><div style="font-size: 11px; color: #3b0764; font-weight: bold;">{{ uan_number }}</div></div>
+            </div>
+            <div class="salary-container">
+                <div class="salary-col">
+                    <div class="col-header">EARNINGS</div>
+                    {% for earning in earnings %}<div class = "item"><span>{{ earning.name }}</span><span>₹{{ earning.amount }}</span></div>{% endfor %}
+                    <div class="total-item"><span>Gross Salary</span><span style="float: right;">₹{{ gross_salary }}</span></div>
+                </div>
+                <div class="salary-col">
+                    <div class="col-header">DEDUCTIONS</div>
+                    {% if deductions %}{% for deduction in deductions %}<div class = "item"><span>{{ deduction.name }}</span><span>₹{{ deduction.amount }}</span></div>{% endfor %}{% else %}<div style = "text-align: center; padding: 20px; color: #9ca3af;">No deductions</div>{% endif %}
+                    <div class="total-item"><span>Total Deductions</span><span style="float: right;">₹{{ total_deductions }}</span></div>
+                </div>
+            </div>
+            <div class="net-salary">NET SALARY PAYABLE: ₹{{ net_salary }}</div>
+            <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                <div style="text-align: center;"><div style="border-top: 2px solid #7c3aed; padding-top: 5px; min-width: 120px; font-size: 10px; font-weight: 600; margin-top: 30px;">Employee Signature</div></div>
+                <div style="text-align: center;"><div style="border-top: 2px solid #7c3aed; padding-top: 5px; min-width: 120px; font-size: 10px; font-weight: 600; margin-top: 30px;">Authorized Signatory</div></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1032 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Timetable Management | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<style>
+    /* Premium Redesign for Timetable Management */
+    
+    /* Global Control Row Standard Alignment */
+    .controls-row {
+        border: 2px solid var(--border-color) !important;
+        box-shadow: none !important;
+        background: var(--card-bg) !important;
+        margin-bottom: 5px !important;
+        border-radius: 12px !important;
+        padding: 15px 20px !important;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .controls-left h3 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    /* Standard Summary Box */
+    .summary-box {
+        background: var(--light-gray);
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1.5px solid var(--border-color);
+    }
+
+    .summary-item i {
+        color: var(--primary-color);
+    }
+
+    /* Premium Tab Bar */
+    .tab-bar {
+        background: var(--light-gray);
+        padding: 4px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        display: flex;
+        gap: 2px;
+    }
+
+    .bar-tab {
+        padding: 8px 20px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .bar-tab.active {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Content Area Standardizer */
+    .content-area {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px;
+        min-height: 400px;
+    }
+
+    /* Premium Item Cards */
+    .item-card {
+        background: var(--bg-hover);
+        border: 1.5px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    body.dark-mode .item-card {
+        border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    /* Standard Modals & Custom Dropdowns Fixes */
+    .sw-modal {
+        overflow: visible !important;
+        border-radius: 20px;
+    }
+
+    .sw-modal-header {
+        border-radius: 20px 20px 0 0;
+    }
+
+    .sw-modal-body {
+        overflow: visible !important;
+        position: relative;
+    }
+
+    .sw-modal-footer {
+        border-radius: 0 0 20px 20px;
+    }
+
+    /* Fixed height specifically for the roster modal so it doesn't jump */
+    #timetableModal .sw-modal-body {
+        min-height: 250px;
+    }
+
+    .item-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-color);
+        background: var(--card-bg);
+    }
+
+    .card-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .card-detail {
+        font-size: 0.92rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+    }
+
+    .card-footer {
+        display: flex;
+        gap: 10px;
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+        justify-content: flex-end;
+    }
+
+    .btn-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    /* Standard Modals Handled by Global CSS */
+    .sw-modal { max-width: 550px !important; }
+    .sw-modal-body { padding: 24px !important; }
+
+    /* Form and Filter Enhancements */
+    .filter-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 180px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 0.95rem;
+        background: var(--card-bg);
+        color: var(--text-color);
+        transition: all 0.3s;
+        outline: none;
+        
+        /* Aggressively override any global hiding of selects */
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        min-height: 42px !important;
+    }
+
+    body.dark-mode .form-control {
+        border-color: rgba(255, 255, 255, 0.25) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+    }
+
+    /* Premium Card Grid - 5 Columns Regular */
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+        margin-top: 15px;
+    }
+
+    /* Responsive Grid Adjustments */
+    @media (max-width: 1600px) {
+        .card-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    @media (max-width: 1200px) {
+        .card-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 900px) {
+        .card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Responsive Overrides */
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 10px !important; }
+        
+        .controls-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 15px !important;
+            padding: 15px !important;
+            position: relative !important; /* Stacked header shouldn't be sticky if too tall */
+            top: 0 !important;
+        }
+
+        .controls-left {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+        }
+
+        .summary-box { 
+            width: 100% !important; 
+            justify-content: space-between !important; 
+        }
+
+        .tab-bar { 
+            width: 100% !important; 
+            margin-top: 5px !important;
+        }
+
+        .bar-tab { 
+            flex: 1 !important; 
+            justify-content: center !important; 
+            padding: 10px 5px !important;
+            font-size: 0.75rem !important;
+        }
+        
+        .controls-right {
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 10px !important;
+        }
+
+        .controls-right .custom-dropdown, 
+        .controls-right .btn-primary { 
+            width: 100% !important; 
+            max-width: none !important;
+            justify-content: center !important; 
+        }
+
+        /* Modal Mobile Optimization */
+        .sw-modal {
+            width: 95% !important;
+            max-width: none !important;
+            margin: 10px auto !important;
+            max-height: 90vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .sw-modal-body {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            padding: 15px !important;
+        }
+
+        .filter-row {
+            flex-direction: column !important;
+            gap: 10px !important;
+            margin-bottom: 10px !important;
+        }
+
+        .filter-group {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .sw-modal-footer {
+            flex-direction: column !important;
+            gap: 10px !important;
+            padding: 15px !important;
+        }
+
+        .sw-modal-footer button {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+        
+        /* Grid Adjustments */
+        .card-grid { 
+            grid-template-columns: 1fr !important;
+            gap: 15px !important;
+            margin-top: 10px !important;
+        }
+
+        .content-area {
+            padding: 15px !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Timetables</h3>
+
+            <div class="tab-bar">
+                <div class="bar-tab active" onclick="switchTab('periods')">
+                    <i class="fas fa-list"></i> Periods
+                </div>
+                <div class="bar-tab" onclick="switchTab('timetables')">
+                    <i class="fas fa-th"></i> Classes
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-right" style="display:flex; gap:10px; align-items:center;">
+            {% if profile_id == 1 %}
+            <select id="global_school_id" onchange="onSchoolChange()" style="display:none;">
+                <option value="">All Schools</option>
+                {% for school in schools %}
+                <option value="{{ school.SchoolID }}" {% if school.SchoolID == selected_school_id %}selected{% endif %}>
+                    {{ school.DisplayName }}</option>
+                {% endfor %}
+            </select>
+            <div class="custom-dropdown" data-target="global_school_id" style="min-width: 260px; max-width: 350px; width: auto;">
+                <div class="custom-dropdown-toggle" style="white-space: nowrap;">
+                    <span class="custom-dropdown-text" style="overflow: hidden; text-overflow: ellipsis;">All Schools</span>
+                    <span class="custom-dropdown-arrow">▼</span>
+                </div>
+                <div class="custom-dropdown-menu">
+                    <div class="custom-dropdown-option" data-value="">All Schools</div>
+                    {% for school in schools %}
+                    <div class="custom-dropdown-option" data-value="{{ school.SchoolID }}">{{ school.DisplayName }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <button class="btn-primary" id="main-btn" onclick="openPeriodModal()" style="padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 0.875rem; height: 36px; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(29, 78, 216, 0.2);">
+                <i class="fas fa-plus"></i> <span id="btn-text">Add Period</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <!-- Period Setup -->
+        <div id="periods-tab" class="tab-pane active">
+            <h4 style="margin-bottom: 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div><i class="fas fa-clock" style="color:var(--primary-color);"></i> Configured Time Periods</div>
+                <div class="summary-item" style="font-size: 0.9rem; padding: 4px 12px; background: var(--light-gray); border-radius: 20px; border: 1px solid var(--border-color);">
+                    Periods: <span id="summary-periods" style="font-weight: 800; color: var(--primary-color);">0</span>
+                </div>
+            </h4>
+            <div id="period-list" class="card-grid">
+                <!-- Data via JS -->
+            </div>
+        </div>
+
+        <!-- Timetables -->
+        <div id="timetables-tab" class="tab-pane" style="display:none;">
+            <h4 style="margin-bottom: 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div><i class="fas fa-calendar" style="color:var(--primary-color);"></i> Academic Rosters</div>
+                <div class="summary-item" style="font-size: 0.9rem; padding: 4px 12px; background: var(--light-gray); border-radius: 20px; border: 1px solid var(--border-color);">
+                    Rosters: <span id="summary-rosters" style="font-weight: 800; color: var(--primary-color);">0</span>
+                </div>
+            </h4>
+
+            <!-- List Filter Bar -->
+            <div class="filter-row" style="margin-bottom: 20px;">
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar-alt"></i> Academic Year</label>
+                    <select id="list-year-filter" onchange="renderTimetables()" style="display:none;">
+                        <option value="">All Years</option>
+                    </select>
+                    <div class="custom-dropdown" data-target="list-year-filter">
+                        <div class="custom-dropdown-toggle">
+                            <span class="custom-dropdown-text">All Years</span>
+                            <span class="custom-dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-dropdown-menu"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-graduation-cap"></i> Class</label>
+                    <select id="list-class-filter" onchange="onListClassChange()" style="display:none;">
+                        <option value="">All Classes</option>
+                    </select>
+                    <div class="custom-dropdown" data-target="list-class-filter">
+                        <div class="custom-dropdown-toggle">
+                            <span class="custom-dropdown-text">All Classes</span>
+                            <span class="custom-dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-dropdown-menu"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-users"></i> Section</label>
+                    <select id="list-section-filter" onchange="renderTimetables()" style="display:none;">
+                        <option value="">All Sections</option>
+                    </select>
+                    <div class="custom-dropdown" data-target="list-section-filter">
+                        <div class="custom-dropdown-toggle">
+                            <span class="custom-dropdown-text">All Sections</span>
+                            <span class="custom-dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-dropdown-menu"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Count -->
+            <p id="list-count" style="font-size:0.85rem; color:var(--text-light); margin-bottom:12px;"></p>
+
+            <div id="timetable-list" class="card-grid">
+                <!-- Data via JS -->
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="periodModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-clock"></i>
+                <h2 id="pModalTitle">Period Configuration</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closePeriodModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="periodForm">
+            <div class="sw-modal-body">
+                <input type="hidden" id="period_id">
+                <div class="filter-group">
+                    <label><i class="fas fa-tag"></i> Period Name</label>
+                    <input type="text" id="period_name" placeholder="e.g. Period 1" required>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label><i class="fas fa-filter"></i> Type</label>
+                        <select id="period_type" style="display:none;">
+                            <option value="Class">Class</option>
+                            <option value="Break">Break</option>
+                            <option value="Assembly">Assembly</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="period_type">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Class</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="Class">Class</div>
+                                <div class="custom-dropdown-option" data-value="Break">Break</div>
+                                <div class="custom-dropdown-option" data-value="Assembly">Assembly</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="fas fa-sort-numeric-down"></i> Order</label>
+                        <input type="number" id="display_order" required>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label><i class="fas fa-hourglass-start"></i> Start</label>
+                        <input type="time" id="start_time" required>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="fas fa-hourglass-end"></i> End</label>
+                        <input type="time" id="end_time" required>
+                    </div>
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closePeriodModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Period</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="timetableModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-calendar-plus"></i>
+                <h2>New Academic Roster</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeTimetableModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="timetableForm">
+            <div class="sw-modal-body">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label><i class="fas fa-graduation-cap"></i> Class</label>
+                        <select id="class_id" onchange="loadSections()" required style="display:none;">
+                            <option value="">-- Select Class --</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="class_id">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">-- Select Class --</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar-alt"></i> Academic Year *</label>
+                        <select id="academic_year_id" required style="display:none;">
+                            <option value="">-- Select Year --</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="academic_year_id">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">-- Select Year --</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-users"></i> Section</label>
+                    <select id="section_id" style="display:none;">
+                        <option value="">-- All Sections --</option>
+                    </select>
+                    <div class="custom-dropdown" data-target="section_id">
+                        <div class="custom-dropdown-toggle">
+                            <span class="custom-dropdown-text">-- All Sections --</span>
+                            <span class="custom-dropdown-arrow">▼</span>
+                        </div>
+                        <div class="custom-dropdown-menu"></div>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar-check"></i> Effective From</label>
+                        <input type="date" id="effective_from" required>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar-times"></i> Effective To</label>
+                        <input type="date" id="effective_to">
+                    </div>
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeTimetableModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Publish Roster</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentTab = '{{ request.GET.tab|default:"periods" }}';
+    let periods = [];
+    let timetables = [];
+    const SESSION_SCHOOL_ID = '{{ request.session.SchoolID|default:"" }}';
+
+    function getSchoolId() {
+        const ddVal = document.getElementById('global_school_id')?.value;
+        if (ddVal) return ddVal;
+        return SESSION_SCHOOL_ID;
+    }
+
+    function onSchoolChange() {
+        const sid = document.getElementById('global_school_id')?.value || '';
+        fetch('/timetable/set-school/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ school_id: sid })
+        }).then(() => {
+            if (currentTab === 'periods') loadPeriods();
+            else if (currentTab === 'timetables') loadTimetables();
+        });
+    }
+
+    function switchTab(tab) {
+        const validTabs = ['periods', 'timetables'];
+        if (!validTabs.includes(tab)) tab = 'periods';
+        currentTab = tab;
+
+        document.querySelectorAll('.bar-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+
+        const activeTab = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+        if (activeTab) activeTab.classList.add('active');
+
+        const tabContent = document.getElementById(`${tab}-tab`);
+        if (tabContent) tabContent.style.display = 'block';
+
+        const mainBtn = document.getElementById('main-btn');
+        const btnText = document.getElementById('btn-text');
+
+        if (tab === 'periods') {
+            if (mainBtn) mainBtn.style.display = 'flex';
+            if (btnText) btnText.innerText = 'Add Period';
+            if (mainBtn) mainBtn.onclick = () => openPeriodModal();
+            loadPeriods();
+        } else if (tab === 'timetables') {
+            if (mainBtn) mainBtn.style.display = 'flex';
+            if (btnText) btnText.innerText = 'New Roster';
+            if (mainBtn) mainBtn.onclick = () => openTimetableModal();
+            loadTimetables();
+        }
+    }
+
+    function loadPeriods() {
+        const list = document.getElementById('period-list');
+        list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+        fetch(`/timetable/periods/?school_id=${getSchoolId()}`)
+            .then(r => r.json()).then(data => {
+                periods = data.periods || [];
+                document.getElementById('summary-periods').innerText = periods.length;
+                renderPeriods();
+            });
+    }
+
+    function renderPeriods() {
+        const list = document.getElementById('period-list');
+        if (!periods.length) {
+            list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; opacity:0.5;">No periods found.</div>';
+            return;
+        }
+        list.innerHTML = periods.map(p => `
+            <div class="item-card">
+                <div class="card-title">
+                    <i class="fas fa-clock" style="color:var(--primary-color);"></i> ${p.PeriodName}
+                </div>
+                <div class="card-detail">
+                    Type: ${p.PeriodType} | Order: ${p.DisplayOrder}<br>
+                    Time: ${p.StartTime.substring(0, 5)} - ${p.EndTime.substring(0, 5)}
+                </div>
+                <div class="card-footer">
+                    <button class="btn-icon" onclick="openPeriodModal(${p.PeriodID})"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon" style="color:var(--error-color)" onclick="deletePeriod(${p.PeriodID})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openPeriodModal(pid = null) {
+        document.getElementById('periodModal').classList.add('show');
+        if (pid) {
+            const p = periods.find(x => x.PeriodID === pid);
+            document.getElementById('period_id').value = p.PeriodID;
+            document.getElementById('period_name').value = p.PeriodName;
+            document.getElementById('period_type').value = p.PeriodType;
+            document.getElementById('display_order').value = p.DisplayOrder;
+            document.getElementById('start_time').value = (p.StartTime && p.StartTime.length >= 5) ? p.StartTime.substring(0, 5) : '';
+            document.getElementById('end_time').value = (p.EndTime && p.EndTime.length >= 5) ? p.EndTime.substring(0, 5) : '';
+        } else {
+            document.getElementById('periodForm').reset();
+            document.getElementById('period_id').value = '';
+        }
+    }
+    function closePeriodModal() { document.getElementById('periodModal').classList.remove('show'); }
+
+    document.getElementById('periodForm').onsubmit = function (e) {
+        e.preventDefault();
+        const data = {
+            period_id: document.getElementById('period_id').value || null,
+            period_name: document.getElementById('period_name').value,
+            period_type: document.getElementById('period_type').value,
+            display_order: document.getElementById('display_order').value,
+            start_time: document.getElementById('start_time').value,
+            end_time: document.getElementById('end_time').value,
+            school_id: getSchoolId()
+        };
+        fetch('/timetable/period/save/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify(data)
+        }).then(r => r.json()).then(res => {
+            if (res.success) { closePeriodModal(); loadPeriods(); } else alert(res.message);
+        });
+    }
+
+    function deletePeriod(id) {
+        if (!confirm('Delete this period?')) return;
+        fetch('/timetable/period/delete/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ period_id: id, school_id: getSchoolId() })
+        }).then(r => r.json()).then(res => {
+            if (res.success) loadPeriods(); else alert(res.message);
+        });
+    }
+
+    function loadTimetables() {
+        const list = document.getElementById('timetable-list');
+        list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+        loadListClasses();
+        loadListAcademicYears();
+        fetch(`/timetable/list/?school_id=${getSchoolId()}`)
+            .then(r => r.json()).then(data => {
+                timetables = data.timetables || [];
+                document.getElementById('summary-rosters').innerText = timetables.length;
+                renderTimetables();
+            });
+    }
+
+    function renderTimetables() {
+        const yearFilter = document.getElementById('list-year-filter')?.value || '';
+        const classFilter = document.getElementById('list-class-filter')?.value || '';
+        const sectionFilter = document.getElementById('list-section-filter')?.value || '';
+        const normalizeYear = (y) => String(y || '').trim().replace(/20/g, '');
+        let filtered = timetables.filter(t => {
+            const matchYear = !yearFilter || (normalizeYear(t.AcademicYear) === normalizeYear(yearFilter));
+            const matchClass = !classFilter || (String(t.ClassID) === classFilter);
+            const matchSection = !sectionFilter || (String(t.SectionID || '') === sectionFilter);
+            return matchYear && matchClass && matchSection;
+        });
+
+        // Sort: ClassID ascending, then CreatedAt descending (newest first)
+        filtered.sort((a, b) => {
+            if (a.ClassID !== b.ClassID) return a.ClassID - b.ClassID;
+            const da = a.CreatedAt ? new Date(a.CreatedAt) : new Date(0);
+            const db = b.CreatedAt ? new Date(b.CreatedAt) : new Date(0);
+            return db - da;
+        });
+
+        const list = document.getElementById('timetable-list');
+        const countEl = document.getElementById('list-count');
+        countEl.textContent = filtered.length ? `Showing ${filtered.length} of ${timetables.length} rosters` : '';
+        if (!filtered.length) {
+            list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; opacity:0.5;">No rosters found matching filters.</div>';
+            return;
+        }
+        list.innerHTML = filtered.map(t => {
+            const createdStr = t.CreatedAt
+                ? new Date(t.CreatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                : '—';
+            return `
+            <div class="item-card">
+                <div class="card-title">
+                    <i class="fas fa-graduation-cap" style="color:var(--primary-color);"></i> ${t.ClassName}
+                </div>
+                <div class="card-detail">
+                    Section: ${t.SectionName || 'All'}<br>
+                    Year: ${t.AcademicYear}<br>
+                    <span style="font-size:0.8rem; opacity:0.75;"><i class="fas fa-calendar-plus" style="margin-right:3px;"></i>Created: ${createdStr}</span>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-icon" onclick="viewDetail('${t.EncryptedID}')"><i class="fas fa-external-link-alt"></i></button>
+                    <button class="btn-icon" style="color:var(--error-color)" onclick="deleteRoster('${t.EncryptedID}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function openTimetableModal() {
+        document.getElementById('timetableModal').classList.add('show');
+        loadClasses();
+        loadAcademicYears();
+    }
+    function closeTimetableModal() {
+        document.getElementById('timetableModal').classList.remove('show');
+        document.getElementById('timetableForm').reset();
+    }
+
+    function loadAcademicYears() {
+        fetch(`/api/academic-years/?school_id=${getSchoolId()}`)
+            .then(r => r.json()).then(data => {
+                const sel = document.getElementById('academic_year_id');
+                sel.innerHTML = '<option value="">-- Select Year --</option>';
+                (Array.isArray(data) ? data : []).forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y.name;
+                    opt.textContent = y.name + (y.is_current ? ' (Current)' : '');
+                    if (y.is_current) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            });
+    }
+
+    function loadClasses() {
+        fetch(`/api/classes/?school_id=${getSchoolId()}`)
+            .then(r => r.json()).then(data => {
+                document.getElementById('class_id').innerHTML = '<option value="">-- Select Class --</option>' +
+                    (data.classes || []).map(c => `<option value="${c.ClassID}">${c.ClassName}</option>`).join('');
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            });
+    }
+
+    function loadSections() {
+        const cid = document.getElementById('class_id').value;
+        if (!cid) return;
+        fetch(`/api/sections/?class_id=${cid}`)
+            .then(r => r.json()).then(data => {
+                document.getElementById('section_id').innerHTML = '<option value="">-- All Sections --</option>' +
+                    (data.sections || []).map(s => `<option value="${s.SectionID}">${s.SectionName}</option>`).join('');
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            });
+    }
+
+    document.getElementById('timetableForm').onsubmit = function (e) {
+        e.preventDefault();
+        const academic_year = document.getElementById('academic_year_id').value;
+        if (!academic_year) { alert('Please select an Academic Year.'); return; }
+        const data = {
+            class_id: document.getElementById('class_id').value,
+            section_id: document.getElementById('section_id').value || null,
+            academic_year: academic_year,
+            effective_from: document.getElementById('effective_from').value,
+            effective_to: document.getElementById('effective_to').value || null,
+            school_id: getSchoolId()
+        };
+        fetch('/timetable/create/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify(data)
+        }).then(r => r.json()).then(res => {
+            if (res.success) { closeTimetableModal(); loadTimetables(); } else alert(res.message);
+        });
+    }
+
+    function viewDetail(id) { window.location.href = `/timetable/view/${id}/`; }
+
+    function deleteRoster(id) {
+        if (!confirm('Delete this roster?')) return;
+        fetch('/timetable/delete/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ timetable_id: id, school_id: getSchoolId() })
+        }).then(r => r.json()).then(res => { if (res.success) loadTimetables(); else alert(res.message); });
+    }
+
+    function loadListClasses() {
+        const sid = getSchoolId();
+        if (!sid) return;
+        fetch(`/api/classes/?school_id=${sid}`)
+            .then(r => r.json()).then(data => {
+                const sel = document.getElementById('list-class-filter');
+                if (!sel) return;
+                const prev = sel.value;
+                sel.innerHTML = '<option value="">All Classes</option>' +
+                    (data.classes || []).map(c => `<option value="${c.ClassID}">${c.ClassName}</option>`).join('');
+                if (prev) sel.value = prev;
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+                const secSel = document.getElementById('list-section-filter');
+                if (secSel) secSel.innerHTML = '<option value="">All Sections</option>';
+            });
+    }
+
+    function onListClassChange() {
+        const classId = document.getElementById('list-class-filter')?.value;
+        loadListSections(classId);
+    }
+
+    function loadListSections(classId) {
+        const secSel = document.getElementById('list-section-filter');
+        if (!secSel) return;
+        secSel.innerHTML = '<option value="">All Sections</option>';
+        if (classId) {
+            fetch(`/api/sections/?class_id=${classId}`)
+                .then(r => r.json()).then(data => {
+                    secSel.innerHTML = '<option value="">All Sections</option>' +
+                        (data.sections || []).map(s => `<option value="${s.SectionID}">${s.SectionName}</option>`).join('');
+                    if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+                });
+        }
+        renderTimetables();
+    }
+
+    function loadListAcademicYears() {
+        const sid = getSchoolId();
+        fetch(`/api/academic-years/?school_id=${sid}`)
+            .then(r => r.json()).then(data => {
+                const sel = document.getElementById('list-year-filter');
+                if (!sel) return;
+                const prevVal = sel.value;
+                sel.innerHTML = '<option value="">All Years</option>';
+                (Array.isArray(data) ? data : []).forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y.name;
+                    opt.textContent = y.name + (y.is_current ? ' ✓' : '');
+                    sel.appendChild(opt);
+                });
+                if (prevVal) sel.value = prevVal;
+                if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+            });
+    }
+
+    // --- CUSTOM DROPDOWNS ---
+    function initCustomDropdowns() {
+        const dropdowns = document.querySelectorAll('.custom-dropdown');
+        dropdowns.forEach(dropdown => {
+            if (dropdown.dataset.initialized) return;
+            dropdown.dataset.initialized = 'true';
+            const toggle = dropdown.querySelector('.custom-dropdown-toggle');
+            const menu = dropdown.querySelector('.custom-dropdown-menu');
+            const targetId = dropdown.dataset.target;
+            const nativeSelect = document.getElementById(targetId);
+
+            if (!toggle || !menu || !nativeSelect) return;
+
+            dropdown.updateToggleText = () => {
+                const selectedOption = nativeSelect.options[nativeSelect.selectedIndex];
+                const textSpan = toggle.querySelector('.custom-dropdown-text');
+                if (textSpan && selectedOption) {
+                    textSpan.textContent = selectedOption.textContent.trim();
+                }
+                menu.querySelectorAll('.custom-dropdown-option').forEach(opt => {
+                    opt.classList.toggle('selected', opt.dataset.value === nativeSelect.value);
+                });
+            };
+            dropdown.updateToggleText();
+
+            dropdown.rebuildOptions = () => {
+                menu.innerHTML = '';
+                Array.from(nativeSelect.options).forEach(opt => {
+                    const item = document.createElement('div');
+                    item.className = 'custom-dropdown-option';
+                    item.dataset.value = opt.value;
+                    item.textContent = opt.textContent.trim();
+                    if (opt.value === nativeSelect.value) item.classList.add('selected');
+                    menu.appendChild(item);
+                });
+            };
+
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = dropdown.classList.contains('open');
+                document.querySelectorAll('.custom-dropdown.open').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('open');
+                });
+                if (!isOpen) {
+                    const rect = toggle.getBoundingClientRect();
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    if (rect.bottom > (window.innerHeight * 0.6) && spaceBelow < 250 && rect.top > spaceBelow) {
+                        dropdown.classList.add('open-up');
+                    } else {
+                        dropdown.classList.remove('open-up');
+                    }
+                    dropdown.classList.add('open');
+                } else {
+                    dropdown.classList.remove('open', 'open-up');
+                }
+            });
+
+            menu.addEventListener('click', (e) => {
+                const option = e.target.closest('.custom-dropdown-option');
+                if (!option) return;
+                e.stopPropagation();
+                nativeSelect.value = option.dataset.value;
+                nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                dropdown.updateToggleText();
+                dropdown.classList.remove('open');
+            });
+        });
+
+        window.addEventListener('click', () => {
+            document.querySelectorAll('.custom-dropdown.open').forEach(d => {
+                d.classList.remove('open', 'open-up');
+            });
+        });
+    }
+
+    window.refreshCustomDropdowns = () => {
+        document.querySelectorAll('.custom-dropdown').forEach(d => {
+            if (d.rebuildOptions) d.rebuildOptions();
+            if (d.updateToggleText) d.updateToggleText();
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        switchTab(currentTab);
+        initCustomDropdowns();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,491 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Network Engine | ShikshaWave Elite{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Unified Indigo Elite Architecture */
+    .referral-container { padding: 12px 16px; max-width: 1600px; margin: 0 auto; }
+    
+    /* Stats Landscape - Glassmorphism KPI Stack */
+    .sw-stats-landscape {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .glass-kpi-card {
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        padding: 24px; border-radius: 20px; box-shadow: var(--shadow-sm);
+        display: flex; align-items: center; gap: 20px; position: relative;
+        overflow: hidden; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-kpi-card:hover { transform: translateY(-4px); border-color: var(--primary-color); box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1); }
+    
+    .kpi-icon-orbit {
+        width: 54px; height: 54px; border-radius: 14px;
+        background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; flex-shrink: 0;
+    }
+    .kpi-data { display: flex; flex-direction: column; }
+    .kpi-label { font-size: 0.725rem; font-weight: 850; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .kpi-value { font-size: 1.6rem; font-weight: 900; color: var(--text-main); line-height: 1; letter-spacing: -0.04em; }
+
+    /* Control Row - Elite Standard */
+    .sw-controls-row {
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        padding: 10px 20px; border-radius: 14px; box-shadow: var(--shadow-sm);
+        margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; position: sticky; top: 0; z-index: 100;
+        backdrop-filter: blur(10px);
+    }
+
+    .sw-controls-left h3 { color: var(--text-main); font-weight: 850; font-size: 1.1rem; margin: 0; letter-spacing: -0.02em; }
+
+    .sw-controls-right { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+    
+    .sw-search-box { position: relative; width: 260px; }
+    .sw-search-box input {
+        height: 40px; width: 100%; padding-left: 38px; border-radius: 10px;
+        background: var(--bg-hover); border: 1.5px solid var(--border-color);
+        color: var(--text-main); font-size: 0.85rem; font-weight: 700;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sw-search-box i { position: absolute; left: 14px; top: 13px; font-size: 0.85rem; color: var(--text-muted); opacity: 0.6; }
+
+    .btn-elite {
+        height: 40px; padding: 0 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 850;
+        display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;
+        border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main);
+    }
+    .btn-elite:hover { background: var(--bg-hover); transform: translateY(-1px); }
+
+    /* Nuclear Stack Table Grid */
+    .sw-grid-panel {
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        border-radius: 18px; box-shadow: var(--shadow-sm); overflow: hidden;
+    }
+    .table-container { overflow-x: auto; width: 100%; }
+    .sw-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .sw-table th {
+        background: var(--primary-color); color: white !important;
+        padding: 14px 20px; text-align: left; font-size: 0.7rem; font-weight: 850;
+        text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 2px solid rgba(0,0,0,0.05);
+    }
+    .sw-table td { padding: 16px 20px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    .sw-table tr:hover td { background: var(--bg-hover); }
+
+    .data-stack { display: flex; flex-direction: column; gap: 2px; }
+    .data-main { font-weight: 800; color: var(--text-main); font-size: 0.85rem; letter-spacing: -0.01em; }
+    .data-sub { font-size: 0.725rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; opacity: 0.8; }
+
+    .incentive-orbit {
+        background: #dcfce7; color: #166534; border: 1.5px solid #bbf7d0;
+        padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 950;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    /* Paging Engine */
+    .paging-engine {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 16px 20px; background: var(--card-bg); border-top: 1.5px solid var(--border-color);
+    }
+    .paging-stats { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
+    .paging-controls { display: flex; gap: 6px; }
+    .p-btn {
+        width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+        border: 1.5px solid var(--border-color); background: var(--card-bg); border-radius: 8px;
+        font-size: 0.8rem; font-weight: 800; color: var(--text-main); cursor: pointer; transition: all 0.2s;
+    }
+    .p-btn:hover:not(:disabled) { border-color: var(--primary-color); color: var(--primary-color); background: var(--bg-hover); }
+    .p-btn.active { background: var(--primary-color); color: white !important; border-color: var(--primary-color); }
+    .p-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    @media (max-width: 992px) { .sw-stats-landscape { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="referral-container">
+    <!-- Network KPI Overview -->
+    <div class="sw-stats-landscape">
+        <div class="glass-kpi-card">
+            <div class="kpi-icon-orbit"><i class="fas fa-network-wired"></i></div>
+            <div class="kpi-data">
+                <span class="kpi-label">Node Referrals</span>
+                <span class="kpi-value" id="totalReferrals">--</span>
+            </div>
+        </div>
+        <div class="glass-kpi-card">
+            <div class="kpi-icon-orbit" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;"><i class="fas fa-hand-holding-heart"></i></div>
+            <div class="kpi-data">
+                <span class="kpi-label">Yield Generated</span>
+                <span class="kpi-value" id="totalIncentives">--</span>
+            </div>
+        </div>
+        <div class="glass-kpi-card">
+            <div class="kpi-icon-orbit" style="background: rgba(249, 115, 22, 0.1); color: #f97316;"><i class="fas fa-users-cog"></i></div>
+            <div class="kpi-data">
+                <span class="kpi-label">Active Referrers</span>
+                <span class="kpi-value" id="activeReferrers">--</span>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .sw-table-wrapper { 
+            overflow-x: auto; 
+            background: var(--card-bg); 
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            -webkit-overflow-scrolling: touch;
+        }
+        .sw-table { min-width: 1000px; border-collapse: collapse; width: 100%; }
+        .sw-table th { white-space: nowrap; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding: 12px 15px; }
+        .sw-table td { white-space: nowrap; font-size: 0.85rem; font-weight: 700; color: var(--text-main); padding: 12px 15px; }
+        
+        /* Mobile Core Overrides */
+        @media (max-width: 768px) {
+            .sw-controls-row {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 15px !important;
+                padding: 15px !important;
+            }
+            .sw-controls-right {
+                flex-direction: column;
+                align-items: stretch !important;
+                width: 100%;
+            }
+            .sw-search-container { width: 100% !important; }
+            .sw-controls-right .btn-icon { width: 100% !important; height: 45px !important; justify-content: center !important; }
+            
+            .dashboard-summaries {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+            
+            .stat-card { padding: 15px !important; }
+            
+            .sw-modal {
+                width: 95% !important;
+                margin: 10px !important;
+            }
+            .sw-form-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .sw-modal-footer {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                padding: 15px !important;
+            }
+            .sw-btn-group-mobile { width: 100% !important; }
+            .sw-btn-group-mobile .btn-icon { 
+                flex: 1 !important; 
+                width: auto !important;
+                height: 48px !important;
+                margin: 0 !important;
+            }
+        }
+
+        .sw-btn-group-mobile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sw-modal-footer {
+            padding: 18px 30px;
+            background: var(--bg-hover);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+        }
+    </style>
+    
+    <!-- Interface Controls - Global Elite Style -->
+    <div class="sw-controls-row">
+        <div class="sw-controls-left">
+            <h3>Subscription Referrals</h3>
+        </div>
+
+        <div class="sw-controls-right">
+            <div class="sw-search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="referralSearch" placeholder="Quick search..." onkeyup="handleTrace(event)">
+            </div>
+
+            <div class="sw-btn-group-mobile">
+                <button class="btn btn-secondary btn-icon" title="Audit Filters" onclick="openFilterModal()" style="height: 40px; width: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--primary-color);">
+                    <i class="fas fa-filter"></i>
+                </button>
+                
+                <button class="btn btn-secondary btn-icon" title="Sync Ledger" onclick="loadNetworkData()" style="height: 40px; width: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main);">
+                    <i class="fas fa-sync-alt" id="syncIcon" style="opacity: 0.6;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multi-Column Grid -->
+    <div class="sw-grid-container shadow-premium" style="margin-top: 20px;">
+        <div class="sw-table-wrapper">
+            <table class="sw-table">
+                <thead>
+                    <tr style="background: #f59e0b; color: white;">
+                        <th style="width: 60px; color: white;">SN</th>
+                        <th style="color: white;">SubscriptionNo</th>
+                        <th style="color: white;">InvoiceNumber</th>
+                        <th style="color: white;">SchoolCode</th>
+                        <th style="color: white;">SchoolName</th>
+                        <th style="color: white;">PartnerCode</th>
+                        <th style="color: white;">PartnerName</th>
+                        <th style="color: white;">Amount</th>
+                        <th style="color: white;">SubscriptionStartDate</th>
+                        <th style="color: white;">SubscriptionEndDate</th>
+                        <th style="color: white;">CreatedAt</th>
+                    </tr>
+                </thead>
+                <tbody id="referralGridBody">
+                    <tr><td colspan="11" style="text-align: center; padding: 60px;"><i class="fas fa-circle-notch fa-spin fa-2x" style="opacity: 0.2;"></i></td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paging Engine -->
+        <div class="paging-engine">
+            <div class="paging-stats" id="pagingStats">Tracing network records...</div>
+            <div class="paging-controls" id="pagingControls"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Filter Modal -->
+<div id="ledgerFilterModal" class="sw-modal-container">
+    <div class="sw-modal" style="max-width: 500px;">
+        <div class="sw-modal-header" style="background: var(--primary-color);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fas fa-filter"></i>
+                <h3 style="margin:0; font-size:1.1rem; font-weight:850;">Advanced Ledger Filter</h3>
+            </div>
+            <button onclick="closeFilterModal()" style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">&times;</button>
+        </div>
+        <div class="sw-modal-body" style="padding: 24px;">
+            <div class="sw-form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Start Date</label>
+                    <input type="date" id="filterStartDate" class="sw-form-control">
+                </div>
+                <div class="sw-form-group">
+                    <label class="sw-form-label">End Date</label>
+                    <input type="date" id="filterEndDate" class="sw-form-control">
+                </div>
+            </div>
+
+            <div class="sw-form-group" style="margin-top: 16px;">
+                <label class="sw-form-label">Institution / School</label>
+                <select id="filterSchool" class="sw-form-control">
+                    <option value="0">All Institutions</option>
+                    {% for s in schools %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if request.session.ProfileID == 1 %}
+            <div class="sw-form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Partner Code</label>
+                    <input type="text" id="filterPartnerCode" class="sw-form-control" placeholder="e.g. SUS...">
+                </div>
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Partner Name</label>
+                    <input type="text" id="filterPartnerName" class="sw-form-control" placeholder="Search name...">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="sw-modal-footer">
+            <button onclick="resetFilters()" style="background:none; border:none; font-weight:800; color:var(--text-muted); cursor:pointer;">Reset All</button>
+            <button onclick="applyAdvancedFilters()" class="btn btn-primary" style="background: var(--primary-color); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 850;">Apply Audit</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let pState = { 
+        page: 1, 
+        pageSize: 10, 
+        search: '', 
+        startDate: '', 
+        endDate: '', 
+        partnerCode: '',
+        partnerName: '',
+        schoolId: '0',
+        total: 0 
+    };
+    let traceTimer;
+
+    document.addEventListener('DOMContentLoaded', loadNetworkData);
+
+    async function loadNetworkData() {
+        const syncIcon = document.getElementById('syncIcon');
+        if(syncIcon) syncIcon.classList.add('fa-spin');
+        
+        try {
+            const params = new URLSearchParams({
+                page: pState.page,
+                page_size: pState.pageSize,
+                search: pState.search,
+                start_date: pState.startDate,
+                end_date: pState.endDate,
+                partner_code: pState.partnerCode,
+                partner_name: pState.partnerName,
+                school_id: pState.schoolId
+            });
+
+            const r = await fetch(`/subscription/referrals/list/?${params.toString()}`);
+            const d = await r.json();
+            
+            if (d.status === 'SUCCESS') {
+                renderGrid(d.referrals);
+                updatePaging(d.total_count);
+                if (d.summary) updateKPIs(d.summary);
+            }
+        } catch (e) {
+            console.error('Network sync failure:', e);
+        } finally {
+            if(syncIcon) syncIcon.classList.remove('fa-spin');
+        }
+    }
+
+    function renderGrid(rows) {
+        const body = document.getElementById('referralGridBody');
+        if (!rows || rows.length === 0) {
+            body.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 60px; color: var(--text-muted); font-weight: 700;">No network records found.</td></tr>';
+            return;
+        }
+
+        const startSN = ((pState.page - 1) * pState.pageSize) + 1;
+
+        body.innerHTML = rows.map((r, idx) => `
+            <tr>
+                <td>${startSN + idx}</td>
+                <td>${r.SubscriptionNo || '---'}</td>
+                <td>${r.InvoiceNumber || '---'}</td>
+                <td>${r.SchoolCode || '---'}</td>
+                <td>${r.SchoolName || '---'}</td>
+                <td>${r.PartnerCode || '---'}</td>
+                <td>${r.PartnerName || '---'}</td>
+                <td>${r.Amount ? Number(r.Amount).toFixed(2) : '0.00'}</td>
+                <td>${r.SubscriptionStartDate || '---'}</td>
+                <td>${r.SubscriptionEndDate || '---'}</td>
+                <td>${r.CreatedAt ? r.CreatedAt.split('.')[0] : '---'}</td>
+            </tr>
+        `).join('');
+    }
+
+    function updateKPIs(s) {
+        document.getElementById('totalReferrals').innerText = (s.total_referrals || 0).toLocaleString();
+        document.getElementById('totalIncentives').innerText = '₹' + (s.total_incentives || 0).toLocaleString();
+        document.getElementById('activeReferrers').innerText = (s.unique_referrers || 0).toLocaleString();
+    }
+
+    function openFilterModal() {
+        document.getElementById('filterStartDate').value = pState.startDate;
+        document.getElementById('filterEndDate').value = pState.endDate;
+        document.getElementById('filterSchool').value = pState.schoolId;
+        if(document.getElementById('filterPartnerCode')) document.getElementById('filterPartnerCode').value = pState.partnerCode;
+        if(document.getElementById('filterPartnerName')) document.getElementById('filterPartnerName').value = pState.partnerName;
+        document.getElementById('ledgerFilterModal').classList.add('show');
+    }
+
+    function closeFilterModal() {
+        document.getElementById('ledgerFilterModal').classList.remove('show');
+    }
+
+    function applyAdvancedFilters() {
+        pState.startDate = document.getElementById('filterStartDate').value;
+        pState.endDate = document.getElementById('filterEndDate').value;
+        pState.schoolId = document.getElementById('filterSchool').value;
+        
+        const pCode = document.getElementById('filterPartnerCode');
+        const pName = document.getElementById('filterPartnerName');
+        if(pCode) pState.partnerCode = pCode.value;
+        if(pName) pState.partnerName = pName.value;
+
+        pState.page = 1;
+        closeFilterModal();
+        loadNetworkData();
+    }
+
+    function resetFilters() {
+        pState.startDate = '';
+        pState.endDate = '';
+        pState.schoolId = '0';
+        pState.partnerCode = '';
+        pState.partnerName = '';
+        pState.page = 1;
+        
+        // Update modal UI
+        document.getElementById('filterStartDate').value = '';
+        document.getElementById('filterEndDate').value = '';
+        document.getElementById('filterSchool').value = '0';
+        
+        const pCode = document.getElementById('filterPartnerCode');
+        const pName = document.getElementById('filterPartnerName');
+        if(pCode) pCode.value = '';
+        if(pName) pName.value = '';
+        
+        closeFilterModal();
+        loadNetworkData();
+    }
+
+    function updatePaging(total) {
+        pState.total = total;
+        const stats = document.getElementById('pagingStats');
+        const controls = document.getElementById('pagingControls');
+        
+        const start = (pState.page - 1) * pState.pageSize + 1;
+        const end = Math.min(pState.page * pState.pageSize, total);
+        stats.innerText = `Displaying ${total > 0 ? start : 0} ─ ${end} of ${total} network entries`;
+
+        const totalPages = Math.ceil(total / pState.pageSize);
+        let html = ``;
+        
+        if (totalPages > 1) {
+            html += `<button class="p-btn" ${pState.page === 1 ? 'disabled' : ''} onclick="gotoPage(${pState.page - 1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= pState.page - 1 && i <= pState.page + 1)) {
+                    html += `<button class="p-btn ${i === pState.page ? 'active' : ''}" onclick="gotoPage(${i})">${i}</button>`;
+                } else if (i === 2 || i === totalPages - 1) {
+                    html += `<span style="padding: 0 4px; opacity: 0.5;">...</span>`;
+                }
+            }
+            html += `<button class="p-btn" ${pState.page === totalPages ? 'disabled' : ''} onclick="gotoPage(${pState.page + 1})"><i class="fas fa-chevron-right"></i></button>`;
+        }
+        controls.innerHTML = html;
+    }
+
+    function handleTrace(e) {
+        clearTimeout(traceTimer);
+        traceTimer = setTimeout(() => {
+            pState.search = e.target.value;
+            pState.page = 1;
+            loadNetworkData();
+        }, 400);
+    }
+
+    function gotoPage(p) {
+        pState.page = p;
+        loadNetworkData();
+    }
+</script>
+{% endblock %}

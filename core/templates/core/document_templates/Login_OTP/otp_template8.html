@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:linear-gradient(135deg,#ec4899,#f43f5e);font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px">
+<tr><td align="center">
+<table width="500" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:20px;box-shadow:0 10px 40px rgba(236,72,153,0.3)">
+<tr><td style="padding:45px 35px;text-align:center">
+<h1 style="margin:0 0 10px;color:#ec4899;font-size:30px">💌 Login OTP</h1>
+<p style="margin:0 0 25px;color:#999;font-size:14px">{% if school_name %}{{ school_name }}{% else %}ShikshaWave{% endif %}</p>
+<p style="margin:0 0 25px;color:#333">Hi {{ user_name }},</p>
+<div style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-radius:12px;padding:28px;margin:28px 0">
+<span style="font-size:46px;font-weight:bold;color:#ec4899;letter-spacing:10px;font-family:monospace">{{ otp }}</span>
+</div>
+<p style="margin:20px 0;color:#666;font-size:13px">Expires: {{ valid_minutes }} min</p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>

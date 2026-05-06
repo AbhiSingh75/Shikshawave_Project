@@ -1,0 +1,531 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Salary Management | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.2">
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --error-color: #ef4444;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --border-color: #4b5563;
+        --card-bg: #1f2937;
+    }
+
+    .controls-row {
+        border: 2px solid var(--border-color) !important;
+        box-shadow: none !important;
+        margin-bottom: 5px !important;
+        background: var(--card-bg) !important;
+    }
+
+    .content-area {
+        margin-top: 0 !important;
+        border-radius: 12px !important;
+        display: block !important;
+    }
+
+    .table-container { 
+        display: block;
+        overflow-x: auto; /* Ensure table can scroll horizontally on mobile */
+        -webkit-overflow-scrolling: touch;
+    }
+    .user-cards { display: none !important; }
+
+    .modal { display: none !important; }
+
+    input[type="month"] {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-color);
+        font-family: inherit;
+    }
+
+    body.dark-mode input[type="month"] {
+        background: var(--primary-light);
+        border-color: var(--border-color);
+    }
+
+    .pay-btn { color: var(--success-color); }
+    .pay-btn:hover { background: var(--primary-light); }
+    .download-btn { color: var(--primary-color); }
+    .download-btn:hover { background: var(--primary-light); }
+    .resend-btn { color: var(--warning-color); }
+    .resend-btn:hover { background: var(--primary-light); }
+
+    /* DEFINITIVE FIX: Dropdown Overlay Management */
+    #salary-filter-modal .sw-modal {
+        max-width: 650px !important;
+        border-radius: 16px !important;
+        overflow: visible !important;
+        background: var(--card-bg) !important;
+    }
+
+    #salary-filter-modal .sw-modal-body {
+        min-height: 120px !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 24px !important;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Extra Compact Dropdown Height and Scrolling */
+    #salary-filter-modal .custom-dropdown-menu {
+        max-height: 200px !important; /* Extra compact as requested */
+        z-index: 10000 !important;
+        overflow-y: auto !important;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2) !important;
+        margin-top: 5px !important;
+    }
+
+    .filter-row {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 20px !important;
+    }
+
+    .filter-row.full { grid-template-columns: 1fr !important; }
+
+    @media (max-width: 600px) {
+        .filter-row { grid-template-columns: 1fr !important; gap: 15px !important; }
+    }
+
+    .dropdown-search {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--secondary-color);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .dropdown-search i { color: var(--text-color); opacity: 0.6; }
+    .dropdown-search input {
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        width: 100%;
+        outline: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 8px 10px !important; }
+        .controls-row {
+            padding: 12px 15px !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+        .table-container { display: block !important; }
+        .content-area { display: block !important; }
+        
+        /* Ensure table cells don't wrap and cause height issues */
+        .table td, .table th { white-space: nowrap !important; }
+        
+        select#schoolFilter, select#employeeFilter, select#paymentMode {
+            display: block !important;
+            width: 100% !important;
+            height: 42px !important;
+        }
+    }
+
+    @media (min-width: 769px) { #employeeFilter, #paymentMode { display: none !important; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-money-bill-wave"></i> Salary Management</h3>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="salary-search-input" placeholder="Search employee..." oninput="loadSalaries()">
+            </div>
+            <div class="control-buttons">
+                <button class="btn btn-secondary" id="filter-btn">
+                    <i class="fas fa-filter"></i>
+                    <span class="btn-label">Filters</span>
+                </button>
+                <button class="btn btn-primary" onclick="openGenerateModal()">
+                    <i class="fas fa-plus-circle"></i>
+                    <span class="btn-label">Generate Salary</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="content-area">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>Actions</th>
+                        <th>Employee</th>
+                        <th>Designation</th>
+                        <th>Month</th>
+                        <th>Salary Ref ID</th>
+                        <th>Gross Salary</th>
+                        <th>Deductions</th>
+                        <th>Net Salary</th>
+                        <th>Status</th>
+                        <th>Payment Date</th>
+                        <th>Payment Mode</th>
+                        <th>Reference No</th>
+                    </tr>
+                </thead>
+                <tbody id="salaryBody"></tbody>
+            </table>
+        </div>
+        <div class="user-cards" id="salaryCards"></div>
+    </div>
+</div>
+
+<div class="sw-modal-container" id="salary-filter-modal">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title"><i class="fas fa-filter"></i><h2>Filter Salary Records</h2></div>
+            <button type="button" class="sw-modal-close" id="close-filter" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sw-modal-body">
+            <form id="filter-form">
+                {% if is_super_admin %}
+                <div class="filter-row full" style="margin-bottom: 5px;">
+                    <div class="filter-group">
+                        <label for="schoolFilter"><i class="fas fa-university"></i> Select School</label>
+                        <select id="schoolFilter" name="school_id">
+                            <option value="">All Schools</option>
+                            {% for school in schools %}
+                            <option value="{{ school.SchoolID }}" {% if school.SchoolID|stringformat:"s" == selected_school_id_raw|stringformat:"s" %}selected{% endif %}>
+                                {{ school.DisplayName }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="custom-dropdown" data-target="schoolFilter">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Schools</span><i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="dropdown-search"><i class="fas fa-search"></i><input type="text" placeholder="Search school..." onkeyup="filterDropdown(this)" onclick="event.stopPropagation()"></div>
+                                <div class="custom-dropdown-option selected" data-value="">All Schools</div>
+                                {% for school in schools %}
+                                <div class="custom-dropdown-option" data-value="{{ school.SchoolID }}">{{ school.DisplayName }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="filter-row">
+                    <div class="filter-group"><label for="salaryMonth"><i class="fas fa-calendar-alt"></i> Salary Month</label><input type="month" id="salaryMonth" name="month" value=""></div>
+                    <div class="filter-group">
+                        <label for="employeeFilter"><i class="fas fa-user-tie"></i> Select Employee</label>
+                        <div class="custom-dropdown" data-target="employeeFilter" id="employeeDropdown">
+                            <div class="custom-dropdown-toggle"><span class="custom-dropdown-text">All Employees</span><i class="fas fa-chevron-down custom-dropdown-arrow"></i></div>
+                            <div class="custom-dropdown-menu">
+                                <div class="dropdown-search"><i class="fas fa-search"></i><input type="text" placeholder="Search employee..." onkeyup="filterDropdown(this)" onclick="event.stopPropagation()"></div>
+                                <div class="custom-dropdown-option selected" data-value="">All Employees</div>
+                            </div>
+                        </div>
+                        <select id="employeeFilter" name="employee_id"><option value="">All Employees</option></select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="sw-modal-footer">
+            <div class="filter-footer-buttons">
+                <button type="button" class="btn btn-secondary" id="reset-ajax-filters"><i class="fas fa-undo"></i> Reset</button>
+                <button type="button" class="btn btn-primary" id="apply-ajax-filters"><i class="fas fa-check"></i> Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sw-modal-container" id="generateModal">
+    <div class="sw-modal sw-modal-compact">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title"><i class="fas fa-plus-circle"></i><h2>Generate Salary</h2></div>
+            <button type="button" class="sw-modal-close" onclick="closeGenerateModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sw-modal-body">
+            <div class="filter-group"><label for="generateMonth">Select Month *</label><input type="month" id="generateMonth" required></div>
+        </div>
+        <div class="sw-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeGenerateModal()">Cancel</button>
+            <button type="button" class="btn btn-success" onclick="confirmGenerateSalary()"><i class="fas fa-check"></i> Generate</button>
+        </div>
+    </div>
+</div>
+
+<div class="sw-modal-container" id="paymentModal">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title"><i class="fas fa-money-bill-wave"></i><h2>Pay Salary</h2></div>
+            <button type="button" class="sw-modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sw-modal-body">
+            <form id="paymentForm">
+                <input type="hidden" id="employeeId"><input type="hidden" id="encryptedPaymentId">
+                <div class="filter-row">
+                    <div class="filter-group"><label>Salary Month</label><input type="text" id="salaryMonth2" readonly></div>
+                    <div class="filter-group"><label>Employee Name</label><input type="text" id="employeeName" readonly></div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group"><label>Net Payable (₹)</label><input type="text" id="netSalary" readonly style="font-weight: 700; color: var(--primary-color);"></div>
+                    <div class="filter-group"><label><i class="fas fa-calendar-check"></i> Payment Date *</label><input type="date" id="paymentDate" required></div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label><i class="fas fa-wallet"></i> Payment Mode *</label>
+                        <div class="custom-dropdown" data-target="paymentMode">
+                            <div class="custom-dropdown-toggle"><span class="custom-dropdown-text">Select Mode</span><i class="fas fa-chevron-down custom-dropdown-arrow"></i></div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">Select Mode</div>
+                                <div class="custom-dropdown-option" data-value="Cash"><i class="fas fa-money-bill"></i> Cash</div>
+                                <div class="custom-dropdown-option" data-value="Bank Transfer"><i class="fas fa-university"></i> Bank Transfer</div>
+                                <div class="custom-dropdown-option" data-value="UPI"><i class="fas fa-mobile-alt"></i> UPI</div>
+                                <div class="custom-dropdown-option" data-value="Cheque"><i class="fas fa-money-check"></i> Cheque</div>
+                            </div>
+                        </div>
+                        <select id="paymentMode" required><option value="">Select Mode</option><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="UPI">UPI</option><option value="Cheque">Cheque</option></select>
+                    </div>
+                    <div class="filter-group"><label><i class="fas fa-barcode"></i> Transaction Reference</label><input type="text" id="transactionRef" placeholder="Transaction ID / Cheque No"></div>
+                </div>
+                <div class="filter-group"><label><i class="fas fa-comment-alt"></i> Remarks</label><textarea id="remarks" rows="3" placeholder="Optional remarks"></textarea></div>
+                <div class="sw-modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="previewSlip()" style="margin-right: auto;"><i class="fas fa-eye"></i> Preview Slip</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-money-check-alt"></i> Pay Salary</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    const currentDate = new Date();
+    const monthStr = currentDate.toISOString().slice(0, 7);
+    document.getElementById('generateMonth').value = monthStr;
+    document.getElementById('salaryMonth').value = monthStr;
+    document.getElementById('paymentDate').valueAsDate = currentDate;
+
+    document.getElementById('filter-btn').addEventListener('click', function() {
+        const modal = document.getElementById('salary-filter-modal');
+        if (modal) { modal.style.display = 'flex'; setTimeout(() => modal.classList.add('show'), 10); }
+    });
+
+    document.getElementById('close-filter').addEventListener('click', function() {
+        const modal = document.getElementById('salary-filter-modal');
+        if (modal) { modal.classList.remove('show'); setTimeout(() => modal.style.display = 'none', 300); }
+        loadSalaries();
+    });
+
+    const schoolFilter = document.getElementById('schoolFilter');
+    if (schoolFilter) { schoolFilter.addEventListener('change', function() { loadEmployees(this.value); }); }
+
+    loadEmployees(); loadSalaries();
+
+    document.getElementById('apply-ajax-filters').addEventListener('click', function() {
+        loadSalaries();
+        const modal = document.getElementById('salary-filter-modal');
+        if (modal) { modal.classList.remove('show'); setTimeout(() => modal.style.display = 'none', 300); }
+    });
+
+    document.getElementById('reset-ajax-filters').addEventListener('click', function() {
+        document.getElementById('filter-form').reset();
+        document.getElementById('salaryMonth').value = monthStr;
+        if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+        loadSalaries();
+    });
+
+    function loadSalaries() {
+        const month = document.getElementById('salaryMonth').value;
+        const searchText = document.getElementById('salary-search-input').value;
+        const employeeId = document.getElementById('employeeFilter').value;
+        let schoolId = ''; const sf = document.getElementById('schoolFilter'); if (sf) schoolId = sf.value;
+        fetch(`/salary/list/?month=${month}&search=${searchText}&school_id=${schoolId}&employee_id=${employeeId}`)
+        .then(r => r.json()).then(data => {
+            if (data.status === 'SUCCESS') displaySalaries(data.salaries);
+            else document.getElementById('salaryBody').innerHTML = `<tr><td colspan="13" style="text-align: center;">${data.message || 'Error'}</td></tr>`;
+        });
+    }
+
+    function loadEmployees(schoolId = '') {
+        if (!schoolId) { const sf = document.getElementById('schoolFilter'); if (sf) schoolId = sf.value; }
+        fetch(`/salary/employees/?school_id=${schoolId}`).then(r => r.json()).then(data => {
+            if (data.status === 'SUCCESS') {
+                const select = document.getElementById('employeeFilter');
+                const menu = document.querySelector('#employeeDropdown .custom-dropdown-menu');
+                const toggleText = document.querySelector('#employeeDropdown .custom-dropdown-text');
+                select.innerHTML = '<option value="">All Employees</option>';
+                menu.innerHTML = `<div class="dropdown-search"><i class="fas fa-search"></i><input type="text" placeholder="Search..." onkeyup="filterDropdown(this)" onclick="event.stopPropagation()"></div><div class="custom-dropdown-option selected" data-value="">All Employees</div>`;
+                toggleText.textContent = 'All Employees';
+                data.employees.forEach(emp => {
+                    const opt = document.createElement('option'); opt.value = emp.id; opt.textContent = `${emp.code} - ${emp.name}`; select.appendChild(opt);
+                    const div = document.createElement('div'); div.className = 'custom-dropdown-option'; div.dataset.value = emp.id; div.textContent = `${emp.code} - ${emp.name}`; menu.appendChild(div);
+                });
+            }
+        });
+    }
+
+    function displaySalaries(salaries) {
+        const tbody = document.getElementById('salaryBody');
+        const cardsContainer = document.getElementById('salaryCards');
+        if (salaries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 40px;">No salary records found</td></tr>';
+            cardsContainer.innerHTML = '<div class="user-card" style="text-align: center; padding: 30px;">No salary records found</div>';
+            return;
+        }
+        tbody.innerHTML = salaries.map((sal, idx) => `<tr><td>${idx + 1}</td><td><div class="action-buttons">${sal.payment_status !== 'Paid' ? `<button class="action-btn pay-btn" onclick='openPaymentModal(${JSON.stringify(sal)})'><i class="fas fa-money-bill-wave"></i></button>` : '<i class="fas fa-check-circle" style="color: var(--success-color);"></i>'}${sal.payment_status === 'Paid' ? `<button class="action-btn download-btn" onclick="downloadSalarySlip('${sal.encrypted_payment_id}', '${sal.salary_reference_id}')"><i class="fas fa-download"></i></button><button class="action-btn resend-btn" onclick="resendSalarySlip('${sal.encrypted_payment_id}')"><i class="fas fa-envelope"></i></button>` : ''}</div></td><td>${sal.employee_code} - ${sal.employee_name}</td><td>${sal.designation}</td><td style="text-align: center;">${sal.salary_month}</td><td><strong class="salary-ref-id">${sal.salary_reference_id || '-'}</strong></td><td style="text-align: right;">₹${parseFloat(sal.gross_salary).toFixed(2)}</td><td style="text-align: right;">₹${parseFloat(sal.deductions).toFixed(2)}</td><td style="text-align: right;"><strong>₹${parseFloat(sal.net_salary).toFixed(2)}</strong></td><td style="text-align: center; color: ${sal.payment_status === 'Paid' ? 'var(--success-color)' : 'var(--warning-color)'};">${sal.payment_status}</td><td>${sal.payment_date || '-'}</td><td style="text-align: center;">${sal.payment_mode || '-'}</td><td>${sal.transaction_ref || '-'}</td></tr>`).join('');
+        cardsContainer.innerHTML = salaries.map(sal => `<div class="user-card"><div class="user-card-header"><div><div style="font-weight: 700; color: var(--primary-color);">${sal.employee_name}</div><div style="font-size: 0.8rem; color: var(--text-muted);">${sal.employee_code} | ${sal.designation}</div></div></div><div class="user-card-details"><div class="user-card-detail"><span class="detail-label">Month</span><span class="detail-value">${sal.salary_month}</span></div><div class="user-card-detail"><span class="detail-label">Net</span><span class="detail-value">₹${parseFloat(sal.net_salary).toFixed(2)}</span></div></div><div class="user-card-actions">${sal.payment_status !== 'Paid' ? `<button class="btn btn-success" onclick='openPaymentModal(${JSON.stringify(sal)})'>Pay</button>` : `<button class="btn btn-primary" onclick="downloadSalarySlip('${sal.encrypted_payment_id}')">Slip</button>`}</div></div>`).join('');
+    }
+
+    function openPaymentModal(salary) {
+        document.getElementById('employeeId').value = salary.payment_id; document.getElementById('encryptedPaymentId').value = salary.encrypted_payment_id;
+        document.getElementById('salaryMonth2').value = salary.salary_month; document.getElementById('employeeName').value = salary.employee_name;
+        document.getElementById('netSalary').value = salary.net_salary; document.getElementById('paymentModal').classList.add('show');
+        if (window.refreshCustomDropdowns) window.refreshCustomDropdowns();
+    }
+
+    function closeModal() { 
+        document.getElementById('paymentModal').classList.remove('show'); 
+        document.getElementById('paymentForm').reset(); 
+        
+        // Reset the Pay Salary button to its original state
+        const btn = document.querySelector('#paymentForm button[type="submit"]');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-money-check-alt"></i> Pay Salary';
+        }
+        
+        if (window.refreshCustomDropdowns) window.refreshCustomDropdowns(); 
+    }
+
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('button[type="submit"]');
+        const originalHtml = btn.innerHTML;
+        
+        // Elite Loading State
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        const formData = { 
+            payment_id: document.getElementById('employeeId').value, 
+            payment_date: document.getElementById('paymentDate').value, 
+            payment_mode: document.getElementById('paymentMode').value, 
+            transaction_ref: document.getElementById('transactionRef').value, 
+            remarks: document.getElementById('remarks').value 
+        };
+
+        fetch('/salary/pay/', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, 
+            body: JSON.stringify(formData) 
+        })
+        .then(r => r.json())
+        .then(data => { 
+            if (data.status === 'SUCCESS') { 
+                closeModal(); 
+                loadSalaries();
+                // ShikshaWave Elite Dialog Interaction
+                ShikshaWave.Dialog.success('Payment Successful', 'Salary has been processed and slip is being sent to employee.');
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                ShikshaWave.Dialog.error('Payment Failed', data.message || 'Unable to process salary payment.');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            ShikshaWave.Dialog.error('Network Error', 'Connection lost while processing payment.');
+        });
+    });
+
+    function openGenerateModal() { document.getElementById('generateModal').classList.add('show'); }
+    function closeGenerateModal() { document.getElementById('generateModal').classList.remove('show'); }
+    function confirmGenerateSalary() {
+        const month = document.getElementById('generateMonth').value; let schoolId = ''; const sf = document.getElementById('schoolFilter'); if (sf) schoolId = sf.value;
+        fetch('/salary/generate/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify({ salary_month: month, school_id: schoolId }) }).then(r => r.json()).then(data => { if (data.status === 'SUCCESS') { closeGenerateModal(); loadSalaries(); } });
+    }
+
+    async function downloadSalarySlip(pid, refId = '') { 
+        // Use html2pdf for high-speed client-side generation
+        try {
+            // If refId is not provided, try to find it in the current row
+            if (!refId) refId = `SalarySlip-${pid}`;
+
+            // Fetch the HTML content
+            const response = await fetch(`/salary/slip/${pid}/preview/`);
+            let htmlContent = await response.text();
+
+            // Create a temporary container to sanitize the HTML (remove buttons)
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            
+            // Remove the 'no-print' administrative controls
+            const noPrint = tempDiv.querySelector('.no-print');
+            if (noPrint) noPrint.remove();
+
+            // PDF Configuration
+            const opt = {
+                margin: 0,
+                filename: `${refId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generate and Save
+            await html2pdf().set(opt).from(tempDiv).save();
+            
+        } catch (error) {
+            console.error('Speed Download Error:', error);
+            // Fallback to server-side if client-side fails
+            window.open(`/salary/slip/${pid}/download/`, '_blank');
+        }
+    }
+    function previewSlip() { 
+        const pid = document.getElementById('encryptedPaymentId').value;
+        window.open(`/salary/slip/${pid}/preview/`, '_blank'); 
+    }
+    function resendSalarySlip(pid) { fetch(`/salary/slip/${pid}/resend/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } }); }
+
+    function filterDropdown(input) {
+        const filter = input.value.toLowerCase(); const options = input.closest('.custom-dropdown-menu').querySelectorAll('.custom-dropdown-option');
+        options.forEach(opt => { opt.style.display = opt.textContent.toLowerCase().includes(filter) ? "" : "none"; });
+    }
+</script>
+<script src="{% static 'js/shikshawave-list.js' %}?v=2.2"></script>
+{% endblock %}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #004aad;
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -0.5px;
+        }
+
+        .content {
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .hero-img {
+            width: 100%;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Congratulations! 🚀</h1>
+            <p>A New Milestone Achieved</p>
+        </div>
+        <div class="content">
+            <p>Dear <strong>{{ student_name }}</strong>,</p>
+            <p>We are thrilled to inform you that you have been successfully promoted to the next academic level. Your
+                hard work and dedication have paid off!</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Previous Class</div>
+                    <div class="stat-value">{{ prev_class }} - {{ prev_section }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Promoted To</div>
+                    <div class="stat-value">{{ new_class }} - {{ new_section }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Roll Number</div>
+                    <div class="stat-value">{{ roll_no }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Academic Year</div>
+                    <div class="stat-value">{{ academic_year }}</div>
+                </div>
+            </div>
+
+            <p>We wish you all the best for your upcoming studies. Keep aiming high!</p>
+        </div>
+        <div class="footer">
+            <p>Best Regards,<br><strong>{{ school_name }}</strong></p>
+            <p>{{ current_date }}</p>
+        </div>
+    </div>
+</body>
+
+</html>

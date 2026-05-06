@@ -1,0 +1,50 @@
+def print_receipt(request):
+    data = request.session.get('admission_completion') or {}
+    student_code = data.get('payment_receipt', {}).get('student_code') or data.get('acknowledgment', {}).get('student_code')
+    rcpt = {}
+    
+    if student_code:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("EXEC Proc_Student_Acknowledgment_Get @StudentCode = %s", [student_code])
+                row = cursor.fetchone()
+                if row:
+                    columns = [col[0] for col in cursor.description]
+                    rcpt = dict(zip(columns, row))
+                    if rcpt.get('StudentCode'):
+                        rcpt['student_code'] = rcpt['StudentCode']
+                    if rcpt.get('StudentCode'):
+                        rcpt['student_code'] = rcpt['StudentCode']
+                    if rcpt.get('school_logo'):
+                        import base64
+                        rcpt['school_logo'] = f"data:image/png;base64,{base64.b64encode(rcpt['school_logo']).decode('utf-8')}"
+                if cursor.nextset():
+                    cursor.fetchall()
+                if cursor.nextset():
+                    cursor.fetchall()
+                fee_breakdown = []
+                if cursor.nextset():
+                    fee_breakdown = [{'FeeTypeName': r[0], 'FeeAmount': float(r[1] or 0), 'DiscountPercentage': float(r[2] or 0), 'FinalAmount': float(r[3] or 0)} for r in cursor.fetchall()]
+                rcpt['fee_breakdown'] = fee_breakdown
+                if cursor.nextset():
+                    total_row = cursor.fetchone()
+                    rcpt['total_amount'] = float(total_row[0] or 0) if total_row else 0
+        except Exception as e:
+            logger.error(f"Error fetching receipt data: {str(e)}")
+    
+    template_file = 'payment_success.html'
+    school_id = request.session.get('SchoolID')
+    
+    if school_id:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT TemplateFile FROM TemplateSettings WHERE SchoolID = %s AND TemplateType = 'PaymentReceipt' AND IsActive = 1 AND IsDeleted = 0", [school_id])
+                row = cursor.fetchone()
+                if row and row[0]:
+                    valid_templates = ['payment_success.html', 'payment_receipt_template2.html', 'payment_receipt_template3.html', 'payment_receipt_template4.html', 'payment_receipt_template5.html']
+                    if row[0] in valid_templates:
+                        template_file = row[0]
+        except:
+            pass
+    
+    return render(request, template_file, { 'payment_receipt': rcpt })

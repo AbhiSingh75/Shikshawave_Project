@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Inter', 'Roboto', 'Helvetica', Arial, sans-serif; background-color: #ffffff; color: #1e293b; margin: 0; padding: 0; }
+        .top-bar { height: 4px; background-color: #1976D2; }
+        .inner-wrap { max-width: 600px; margin: 0 auto; padding: 20px 25px; }
+        
+        .school-header { 
+            width: 100%;
+            border-bottom: 2px solid #f1f5f9; 
+            padding-bottom: 12px; 
+            margin-bottom: 18px; 
+            border-collapse: collapse;
+        }
+        .school-info { text-align: right; }
+        .school-name { font-size: 16px; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dispatch-tag { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .main-heading { font-size: 22px; font-weight: 800; color: #1e293b; margin: 0 0 15px 0; letter-spacing: -0.5px; }
+        .content-p { font-size: 15px; color: #475569; line-height: 1.5; margin-bottom: 20px; }
+        
+        .security-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-bottom: 25px; }
+        .otp-row { text-align: center; }
+        .otp-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; display: block; }
+        .otp-value { font-family: 'Monaco', 'Courier New', monospace; font-size: 40px; font-weight: 800; color: #1976D2; letter-spacing: 8px; }
+        
+        .status-callout { padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 5px solid #1976D2; }
+        .status-callout.blocked { border-left-color: #dc2626; background-color: #fff1f2; }
+        .status-callout.success { border-left-color: #4CAF50; background-color: #f0fdf4; }
+        .callout-title { font-size: 15px; font-weight: 800; margin-bottom: 6px; color: #1e293b; }
+        .callout-body { font-size: 13px; color: #475569; line-height: 1.4; }
+        
+        .meta-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .meta-table td { padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .meta-label { color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; width: 140px; }
+        .meta-val { color: #334155; font-weight: 600; text-align: right; word-break: break-all; overflow-wrap: break-word; }
+        
+        .legal-footer { margin-top: 35px; font-size: 11px; color: #94a3b8; line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 25px; }
+        .legal-footer b { color: #64748b; }
+        .brand-seal { margin-top: 15px; font-weight: 800; font-size: 11px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1.5px; }
+        
+        @media screen and (max-width: 480px) {
+            .inner-wrap { padding: 20px 15px; }
+            .school-header { flex-direction: column; text-align: center; }
+            .school-info { text-align: center; margin-top: 15px; }
+            .otp-value { font-size: 32px; letter-spacing: 6px; }
+            .meta-label { width: 100px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar"></div>
+    <div class="inner-wrap">
+        <table class="school-header">
+            <tr>
+                <td>
+                    <div style="font-weight: 900; color: #1976D2; font-size: 22px; letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid #e2e8f0; padding: 6px 12px; display: inline-block; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">{{ school_name }}</div>
+                </td>
+                <td class="school-info">
+                    <div class="school-name">ShikshaWave</div>
+                    <div class="dispatch-tag">Institutional Security Dispatch</div>
+                </td>
+            </tr>
+        </table>
+
+        {% if code == 'LOGIN_OTP' or code == 'PASSWORD_RESET_OTP' %}
+            <h1 class="main-heading">{{ header_title|default:"Identity Verification Request" }}</h1>
+            <p class="content-p">An authentication process was initiated for your account. To proceed securely, please apply the verification code provided below within the application interface.</p>
+            <div class="security-box">
+                <div class="otp-row">
+                    <span class="otp-label">Verification Code</span>
+                    <div class="otp-value">{{ otp }}</div>
+                </div>
+            </div>
+            <p class="content-p" style="font-size: 14px;">Technician Note: This code is restricted for use by <b>{{ user_name }}</b> and will expire in {{ valid_minutes | default:15 }} minutes.</p>
+
+        {% elif code == 'ACCOUNT_BLOCKED' %}
+            <h1 class="main-heading">{{ header_title|default:"Security Protocol: Access Restricted" }}</h1>
+            <div class="status-callout blocked">
+                <div class="callout-title">Account Lockout Active</div>
+                <div class="callout-body">Institutional security protocols have restricted access to your account for 24 hours due to serial authentication failures. No further login attempts will be permitted during this period.</div>
+            </div>
+            <p class="content-p"><b>Resolution Information:</b> If this lockout was triggered in error, please initiate a manual identity override by contacting your Supervisor or the IT Administration office.</p>
+
+        {% elif code == 'PASSWORD_CHANGED' or code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+            <h1 class="main-heading">{{ header_title|default:"Notification of Credential Sync" }}</h1>
+            <div class="status-callout success">
+                <div class="callout-title">Database Update Completed</div>
+                <div class="callout-body">The password associated with your account was successfully synchronized in our master database at {{ timestamp }}. No additional steps are required if you initiated this change.</div>
+            </div>
+            <p class="content-p" style="color: #be123c;"><b>Unauthorized Change:</b> If you did not perform this update, your credentials may be compromised. Please take immediate action to notify your IT Security officer.</p>
+
+        {% elif code == 'NEW_LOGIN_ALERT' %}
+            <h1 class="main-heading">{{ header_title|default:"Audit Activity: New Authentication" }}</h1>
+            <p class="content-p">A successful login event was recorded from a new device or software environment. This audit notification ensures you are aware of all active sessions under your identity.</p>
+            <div style="background-color: #1976D2; color: #ffffff !important; padding: 14px 28px; border-radius: 8px; display: inline-block; font-weight: 700; text-decoration: none; margin-bottom: 25px;">Review Access Details</div>
+        {% endif %}
+
+        <table class="meta-table">
+            <tr><td class="meta-label">Event Timestamp</td><td class="meta-val">{{ timestamp }}</td></tr>
+            <tr><td class="meta-label">Involved Identity</td><td class="meta-val">{{ login_id | default:user_name }}</td></tr>
+            <tr><td class="meta-label">Origin Network</td><td class="meta-val">{{ ip_address }}</td></tr>
+            <tr><td class="meta-label">Access Method</td><td class="meta-val">{{ browser }}</td></tr>
+            <tr><td class="meta-label">Assigned Profile</td><td class="meta-val">{{ profile | default:"System User" }}</td></tr>
+        </table>
+
+        <div class="legal-footer">
+            This message contains confidential information and is intended only for the authorized user of the ShikshaWave platform.
+            <div class="brand-seal">Verified by ShikshaWave</div>
+        </div>
+    </div>
+</body>
+</html>

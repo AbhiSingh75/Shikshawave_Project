@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .content h2 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        .highlight {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .details-box {
+            background-color: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .details-label {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .details-value {
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .footer {
+            background-color: #edf2f7;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #667eea;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Congratulations! 🎉</h1>
+        </div>
+        <div class="content">
+            <h2>Dear {{ student_name }},</h2>
+            <p>We are thrilled to announce that you have been successfully promoted to the next class!</p>
+            <p>Your hard work and dedication throughout the <strong>{{ academic_year }}</strong> academic session have
+                paid off.</p>
+
+            <div class="details-box">
+                <div class="details-row">
+                    <span class="details-label">Promoted To Class</span>
+                    <span class="details-value">{{ new_class }}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Section</span>
+                    <span class="details-value">{{ new_section }}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Session</span>
+                    <span class="details-value">{{ academic_year }}</span>
+                </div>
+            </div>
+
+            <p>We wish you continued success and all the best for your future studies. Keep shining!</p>
+
+            <center>
+                <a href="#" class="btn">View Result</a>
+            </center>
+        </div>
+        <div class="footer">
+            <p>Sent by <strong>{{ school_name }}</strong></p>
+            <p>&copy; {{ academic_year }} All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,185 @@
+================================================================================
+EMPLOYMENT TYPE FIELD - VISUAL PLACEMENT GUIDE
+================================================================================
+
+FORM LOCATION: http://127.0.0.1:8000/employees/add/
+
+SECTION: Employee Information (First section of the form)
+
+FIELD PLACEMENT:
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        EMPLOYEE INFORMATION                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  [Employee Name *]              [Profile/Role *]                        │
+│                                                                          │
+│  [Date of Joining *]            [Employment Type *]  ← NEW FIELD        │
+│                                                                          │
+│  [Password *]                   [Mobile Number]                         │
+│                                                                          │
+│  [Email]                        [Date of Birth]                         │
+│                                                                          │
+│  ... (rest of the form continues)                                       │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+FIELD DETAILS:
+================================================================================
+
+Label:          Employment Type *
+Field Type:     Dropdown (Select)
+Required:       Yes (marked with red asterisk *)
+Position:       Right column, after Date of Joining
+
+Dropdown Options:
+┌──────────────────────────────┐
+│ Select Employment Type       │ ← Default/Placeholder
+├──────────────────────────────┤
+│ Permanent                    │
+│ Contract                     │
+│ Guest                        │
+└──────────────────────────────┘
+
+FORM GRID LAYOUT:
+================================================================================
+
+The form uses a 2-column grid layout on desktop:
+
+Column 1 (Left)          │  Column 2 (Right)
+─────────────────────────┼──────────────────────────
+Employee Name *          │  Profile/Role *
+Date of Joining *        │  Employment Type * ← NEW
+Password *               │  Mobile Number
+Email                    │  Date of Birth
+Father/Husband Name      │  National ID
+Gender                   │  Religion
+Education                │  Blood Group
+Country                  │  State
+District                 │  Pincode
+
+MOBILE VIEW:
+================================================================================
+
+On mobile devices (width < 768px), the form stacks into a single column:
+
+┌─────────────────────────┐
+│ Employee Name *         │
+│ Profile/Role *          │
+│ Date of Joining *       │
+│ Employment Type * ← NEW │
+│ Password *              │
+│ Mobile Number           │
+│ Email                   │
+│ ... (continues)         │
+└─────────────────────────┘
+
+STYLING:
+================================================================================
+
+The Employment Type field uses the same styling as other form fields:
+
+- Border: 2px solid rgba(79, 70, 229, 0.1)
+- Border Radius: 8px
+- Padding: 0.75rem 1rem
+- Font Size: 0.95rem
+- Transition: all 0.3s ease
+- Focus: Border color changes to primary color with shadow
+
+VALIDATION:
+================================================================================
+
+Visual Indicators:
+
+1. Required Field:
+   - Red asterisk (*) next to label
+   - HTML5 required attribute
+
+2. On Submit (if empty):
+   - Browser shows: "Please select an item in the list"
+   - Form does not submit
+
+3. On Submit (if selected):
+   - Field value sent to backend
+   - Validated in Python view
+   - Stored in database
+
+ERROR STATES:
+================================================================================
+
+If Employment Type is not selected:
+
+Frontend:
+┌─────────────────────────────────────────┐
+│ ⚠ Please select an item in the list    │
+│                                         │
+│ [Select Employment Type ▼]             │
+└─────────────────────────────────────────┘
+
+Backend (if validation fails):
+{
+  "status": "FAILED",
+  "message": "Employment Type is required"
+}
+
+SUCCESS STATE:
+================================================================================
+
+When form is submitted successfully:
+
+1. Employee record created in EmployeeMaster table
+2. EmploymentType column populated with selected value
+3. Success message displayed
+4. Form resets or redirects
+
+Database Record:
+┌──────────────────────────────────────────────────────────────┐
+│ EmployeeID: 123                                              │
+│ EmployeeCode: EMP000123                                      │
+│ EmployeeName: John Doe                                       │
+│ EmploymentType: Permanent  ← NEW FIELD VALUE                │
+│ DateOfJoining: 2024-01-15                                    │
+│ ... (other fields)                                           │
+└──────────────────────────────────────────────────────────────┘
+
+ACCESSIBILITY:
+================================================================================
+
+The field is fully accessible:
+
+- ✓ Proper label association (for="employmentType")
+- ✓ Required attribute for screen readers
+- ✓ Keyboard navigable (Tab key)
+- ✓ Arrow keys to select options
+- ✓ Enter to confirm selection
+- ✓ Proper focus states
+
+BROWSER COMPATIBILITY:
+================================================================================
+
+Tested and working on:
+- ✓ Chrome/Edge (latest)
+- ✓ Firefox (latest)
+- ✓ Safari (latest)
+- ✓ Mobile browsers (iOS Safari, Chrome Mobile)
+
+FORM FLOW:
+================================================================================
+
+User Journey:
+
+1. User navigates to /employees/add/
+2. Fills in Employee Name
+3. Selects Profile/Role
+4. Enters Date of Joining
+5. Selects Employment Type ← NEW STEP
+6. Enters Password
+7. ... (continues with rest of form)
+8. Clicks "Save Employee"
+9. Form validates all fields including Employment Type
+10. Employee created with Employment Type stored
+
+================================================================================
+END OF VISUAL GUIDE
+================================================================================

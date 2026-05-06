@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>{% block title %}ShikshaWave{% endblock %}</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- SweetAlert2 for global dialogs -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- ShikshaWave Core Design System -->
+    <link rel="stylesheet" href="{% static 'css/shikshawave-core.css' %}?v=2.6">
+
+    {% if theme_styles %}
+    {{ theme_styles|safe }}
+    {% endif %}
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="{% if dark_mode %}dark-mode{% endif %}">
+    <div class="sw-layout">
+        <div class="sw-mobile-overlay" id="mobileOverlay"></div>
+        <!-- Mobile Sidebar floating toggle -->
+        <div class="sw-mobile-trigger" id="mobileTrigger" title="Open Menu">
+            <i class="fas fa-chevron-right"></i>
+        </div>
+        <!-- Global Header -->
+        {% include 'components/header.html' %}
+
+        <!-- Global Sidebar -->
+        {% include 'components/sidebar.html' %}
+
+        <!-- Main Content Area -->
+        <main class="sw-main-content">
+            <!-- Global Toast Container -->
+            <div class="toast-container" id="toastContainer"></div>
+
+            {% block content %}{% endblock %}
+
+            <!-- Global Django Messages -->
+            {% if messages %}
+            <script id="django-messages" type="application/x-django-data">
+                [
+                    {% for message in messages %}
+                    {"tags": "{{ message.tags|escapejs }}", "content": "{{ message|escapejs }}"}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            </script>
+            {% endif %}
+        </main>
+
+        <!-- Zen Mode Exit Button -->
+        <div id="exitFullscreenBtn" title="Exit Fullscreen Mode">
+            <i class="fas fa-compress-arrows-alt"></i>
+        </div>
+    </div>
+
+    <!-- Global Scripts -->
+    {% csrf_token %} <!-- Required for AJAX theme toggle -->
+    <script src="{% static 'js/notifications.js' %}?v=1.1"></script>
+    <script src="{% static 'js/shikshawave-core.js' %}?v=2.6"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

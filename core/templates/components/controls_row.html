@@ -1,0 +1,49 @@
+<div class="sw-controls-row">
+    <div class="sw-page-title">
+        {% if back_url %}
+        <a href="{{ back_url }}" class="sw-btn-icon"><i class="fas fa-arrow-left"></i></a>
+        {% endif %}
+        <div>
+            <h1>{{ title }}</h1>
+            {% if subtitle %}<p class = "sw-text-muted">{{ subtitle }}</p>{% endif %}
+        </div>
+    </div>
+
+    <div class="sw-actions-group">
+        {% block page_actions %}{% endblock %}
+    </div>
+</div>
+
+<style>
+    .sw-btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-color);
+        color: var(--primary-color);
+        border: 1px solid var(--border-color);
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .sw-btn-icon:hover {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .sw-actions-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .sw-text-muted {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+</style>

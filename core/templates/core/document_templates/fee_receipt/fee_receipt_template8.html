@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fee Receipt - Teal Modern</title>
+    <style>
+        @page { size: A4; margin: 10mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Verdana', sans-serif; padding: 10px; background: #f0fdfa; font-size: 11px; }
+        .action-buttons { position: fixed; top: 5px; left: 5px; z-index: 1000; }
+        .action-buttons button { padding: 6px 12px; margin-right: 5px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .btn-print { background: #0d9488; color: white; }
+        .btn-close { background: #dc2626; color: white; }
+        .receipt { max-width: 210mm; margin: 40px auto 0; background: white; box-shadow: 0 10px 40px rgba(13,148,136,0.15); border-radius: 15px; overflow: hidden; }
+        .header-wave { height: 100px; background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); position: relative; }
+        .header-wave::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 30px; background: white; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+        .header-content { position: absolute; top: 20px; left: 0; right: 0; text-align: center; color: white; }
+        .school-logo { width: 60px; height: 60px; border-radius: 50%; border: 3px solid white; background: white; }
+        .school-name { font-size: 20px; font-weight: bold; margin-top: 10px; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+        .content { padding: 30px 20px 20px; }
+        .receipt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .receipt-title { font-size: 18px; font-weight: bold; color: #0d9488; }
+        .receipt-meta { text-align: right; font-size: 10px; color: #115e59; }
+        .card { background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #0d9488; }
+        .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .card-item { font-size: 10px; }
+        .card-label { color: #115e59; font-weight: 600; margin-bottom: 3px; }
+        .card-value { color: #134e4a; font-size: 11px; }
+        .table-container { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(13,148,136,0.1); margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        th { background: linear-gradient(to right, #0d9488, #14b8a6); color: white; padding: 10px; text-align: left; font-weight: 600; }
+        td { padding: 8px 10px; border-bottom: 1px solid #f0fdfa; }
+        tr:hover { background: #f0fdfa; }
+        .total-row { background: linear-gradient(to right, #ccfbf1, #99f6e4) !important; font-weight: bold; color: #134e4a; }
+        .footer { background: linear-gradient(to right, #0d9488, #14b8a6); color: white; padding: 15px; text-align: center; font-size: 9px; }
+        @media print { body { padding: 0; background: white; } .receipt { box-shadow: none; border-radius: 0; margin-top: 0; } .action-buttons { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="action-buttons">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-close" onclick="window.close()">✖ Close</button>
+    </div>
+    
+    <div class="receipt">
+        <div class="header-wave">
+            <div class="header-content">
+                {% if school_logo %}
+                <img src="{{ school_logo }}" alt="Logo" class="school-logo">
+                {% endif %}
+                <div class="school-name">{{ school_name|default:"School Name" }}</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="receipt-header">
+                <div class="receipt-title">💳 FEE RECEIPT</div>
+                <div class="receipt-meta">
+                    <strong>{{ receipt_no }}</strong><br>
+                    {{ date_of_submission }}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-grid">
+                    <div class="card-item">
+                        <div class="card-label">Student Name</div>
+                        <div class="card-value">{{ full_name }}</div>
+                    </div>
+                    <div class="card-item">
+                        <div class="card-label">Student Code</div>
+                        <div class="card-value">{{ student_code }}</div>
+                    </div>
+                    <div class="card-item">
+                        <div class="card-label">Class & Section</div>
+                        <div class="card-value">{{ class_name }} - {{ section_name }}</div>
+                    </div>
+                    <div class="card-item">
+                        <div class="card-label">Payment Mode</div>
+                        <div class="card-value">{{ payment_mode }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">SN</th>
+                            <th style="width: 62%;">Fee Particulars</th>
+                            <th style="width: 30%; text-align: right;">Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if fee_breakdown %}
+                            {% for item in fee_breakdown %}
+                            {% if not item.isSummary %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ item.feeTypeName }}</td>
+                                <td style="text-align: right;">{{ item.userEnterAmount|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <tr class="total-row">
+                            <td colspan="2" style="text-align: right;">TOTAL PAID:</td>
+                            <td style="text-align: right;">₹ {{ paid_amount|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if previous_payments %}
+            <div class="table-container">
+                <table style="font-size: 9px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 4%;">SN</th>
+                            <th style="width: 20%;">Receipt</th>
+                            <th style="width: 13%;">Date</th>
+                            <th style="width: 13%;">Month</th>
+                            <th style="width: 9%;">Mode</th>
+                            <th style="width: 14%; text-align: right;">Total</th>
+                            <th style="width: 13%; text-align: right;">Discount</th>
+                            <th style="width: 14%; text-align: right;">Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in previous_payments %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ payment.receipt_number }}</td>
+                            <td>{{ payment.payment_date }}</td>
+                            <td>{{ payment.payment_month }}</td>
+                            <td>{{ payment.payment_mode }}</td>
+                            <td style="text-align: right;">{{ payment.total_amount|floatformat:2 }}</td>
+                            <td style="text-align: right;">{{ payment.discount_value|floatformat:2 }}</td>
+                            <td style="text-align: right;">{{ payment.paid_amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            {{ school_name }} | {{ school_address }} | {{ school_phone }}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Salary Slip - {{ employee_name }}</title>
+    <style>
+        @media print { .no-print { display: none; } @page { size: A4; margin: 8mm; } * { -webkit-print-color-adjust: exact !important; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Calibri', sans-serif; background: #f5f5f5; padding: 10px; font-size: 11px; }
+        .btn-print { background: #dc2626; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .container { max-width: 210mm; margin: 0 auto; background: white; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid #dc2626; padding-bottom: 15px; margin-bottom: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .school-name { font-size: 22px; font-weight: bold; color: #dc2626; }
+        .title { background: #dc2626; color: white; padding: 10px; text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; }
+        .info-table { width: 100%; margin: 15px 0; }
+        .info-table td { padding: 8px; border: 1px solid #fee2e2; }
+        .info-table td:first-child { background: #fef2f2; font-weight: bold; color: #991b1b; width: 40%; }
+        .salary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+        .salary-box { border: 2px solid #dc2626; border-radius: 8px; padding: 15px; }
+        .box-title { background: #dc2626; color: white; padding: 8px; margin: -15px -15px 10px -15px; font-weight: bold; text-align: center; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 6px; border-bottom: 1px solid #fee2e2; }
+        .total { background: #fef2f2; font-weight: bold; color: #991b1b; }
+        .net-box { background: #dc2626; color: white; padding: 15px; text-align: center; font-size: 16px; font-weight: bold; margin-top: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">Print</button>
+        <button class="btn-print" onclick="window.close()">Close</button>
+    </div>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <div>
+                    <div class="school-name">{{ school_name }}</div>
+                    <div style="color: #64748b; margin-top: 5px;">{{ school_address }}</div>
+                </div>
+                {% if school_logo %}<img src = "{{ school_logo }}" style = "width: 60px; height: 60px; border-radius: 8px;">{% endif %}
+            </div>
+        </div>
+        <div class="title">SALARY SLIP</div>
+        <table class="info-table">
+            <tr><td>Employee Code</td><td>{{ employee_code }}</td><td>Salary Month</td><td>{{ salary_month }}</td></tr>
+            <tr><td>Employee Name</td><td>{{ employee_name }}</td><td>Payment Date</td><td>{{ payment_date }}</td></tr>
+            <tr><td>Designation</td><td>{{ designation }}</td><td>Reference ID</td><td>{{ salary_reference_id }}</td></tr>
+        </table>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 15px 0; padding: 10px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 6px; border: 2px solid #dc2626;">
+            <div style="text-align: center;"><div style="font-size: 18px; margin-bottom: 4px;">🏦</div><div style="font-size: 9px; color: #991b1b; font-weight: 600;">BANK ACCOUNT</div><div style="font-size: 11px; color: #7f1d1d; font-weight: bold;">{{ bank_account }}</div></div>
+            <div style="text-align: center;"><div style="font-size: 18px; margin-bottom: 4px;">📱</div><div style="font-size: 9px; color: #991b1b; font-weight: 600;">UPI ID</div><div style="font-size: 11px; color: #7f1d1d; font-weight: bold;">{{ upi_id }}</div></div>
+            <div style="text-align: center;"><div style="font-size: 18px; margin-bottom: 4px;">🔢</div><div style="font-size: 9px; color: #991b1b; font-weight: 600;">UAN NUMBER</div><div style="font-size: 11px; color: #7f1d1d; font-weight: bold;">{{ uan_number }}</div></div>
+        </div>
+        <div class="salary-grid">
+            <div class="salary-box">
+                <div class="box-title">EARNINGS</div>
+                <table>
+                    {% for earning in earnings %}<tr><td>{{ earning.name }}</td><td style = "text-align: right;">₹{{ earning.amount }}</td></tr>{% endfor %}
+                    <tr class="total"><td>Gross Salary</td><td style="text-align: right;">₹{{ gross_salary }}</td></tr>
+                </table>
+            </div>
+            <div class="salary-box">
+                <div class="box-title">DEDUCTIONS</div>
+                <table>
+                    {% if deductions %}{% for deduction in deductions %}<tr><td>{{ deduction.name }}</td><td style = "text-align: right;">₹{{ deduction.amount }}</td></tr>{% endfor %}{% else %}<tr><td colspan = "2" style = "text-align: center;">No deductions</td></tr>{% endif %}
+                    <tr class="total"><td>Total Deductions</td><td style="text-align: right;">₹{{ total_deductions }}</td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="net-box">NET SALARY PAYABLE: ₹{{ net_salary }}</div>
+        <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+            <div style="text-align: center;"><div style="border-top: 2px solid #dc2626; padding-top: 5px; min-width: 120px; font-size: 10px; font-weight: 600; margin-top: 30px;">Employee Signature</div></div>
+            <div style="text-align: center;"><div style="border-top: 2px solid #dc2626; padding-top: 5px; min-width: 120px; font-size: 10px; font-weight: 600; margin-top: 30px;">Authorized Signatory</div></div>
+        </div>
+    </div>
+</body>
+</html>

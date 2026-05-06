@@ -1,0 +1,334 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Salary Component Management | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #6b7280;
+        --light-gray: #f3f4f6;
+        --border-color: #e5e7eb;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --text-light: #d1d5db;
+        --light-gray: #374151;
+        --border-color: #4b5563;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    .salary-component-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0 10px;
+    }
+
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        position: sticky;
+        top: var(--header-height);
+        z-index: 100;
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .controls-left h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--primary-color);
+    }
+
+    .summary-box {
+        background: var(--light-gray);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        border: 2px solid var(--primary-color);
+        border-radius: 6px;
+        background: var(--secondary-color);
+        color: var(--text-color);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .table-container {
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        margin: 20px 0;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th {
+        background: var(--primary-color);
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        padding: 12px;
+        text-align: left;
+    }
+
+    .table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+    .table tbody tr:hover {
+        background: var(--light-gray);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 6px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+    }
+
+    .edit-btn {
+        color: var(--warning-color);
+    }
+
+    .edit-btn:hover {
+        background: var(--warning-light);
+    }
+
+    .delete-btn {
+        color: var(--error-color);
+    }
+
+    .delete-btn:hover {
+        background: var(--error-light);
+    }
+
+    .restore-btn {
+        color: var(--success-color);
+    }
+
+    .restore-btn:hover {
+        background: var(--success-light);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-earning {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .badge-deduction {
+        background: var(--error-light);
+        color: var(--error-color);
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .status-inactive {
+        background: var(--error-light);
+        color: var(--error-color);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-light);
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        .controls-row {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table {
+            min-width: 600px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="salary-component-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-money-check-alt"></i> Salary Component Management</h3>
+            <div class="summary-box">
+                <span>Total: {{ total_records|default:0 }}</span>
+            </div>
+        </div>
+        
+        <div class="controls-right">
+            <a href="{% url 'salary_component_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Component
+            </a>
+        </div>
+    </div>
+
+    <div class="table-container">
+        {% if components %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>Component Name</th>
+                        <th>Type</th>
+                        {% if is_super_admin %}
+                        <th>School</th>
+                        {% endif %}
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for component in components %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ component.ComponentName }}</strong></td>
+                        <td>
+                            <span class="badge {% if component.ComponentType == 'Earning' %}badge-earning{% else %}badge-deduction{% endif %}">
+                                {{ component.ComponentType }}
+                            </span>
+                        </td>
+                        {% if is_super_admin %}
+                        <td>{{ component.SchoolName }}</td>
+                        {% endif %}
+                        <td>
+                            <span class="status-badge {% if not component.IsDeleted %}status-active{% else %}status-inactive{% endif %}">
+                                {% if not component.IsDeleted %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                {% if component.IsDeleted %}
+                                    <a href="{% url 'salary_component_restore' component.ComponentID %}" 
+                                       class="action-btn restore-btn" title="Restore Component"
+                                       onclick="return confirm('Are you sure you want to restore this component?')">
+                                        <i class="fas fa-undo"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'salary_component_edit' component.ComponentID %}" 
+                                       class="action-btn edit-btn" title="Edit Component">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'salary_component_delete' component.ComponentID %}" 
+                                       class="action-btn delete-btn" title="Delete Component"
+                                       onclick="return confirm('Are you sure you want to delete this component?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-money-check-alt"></i>
+                <h3>No salary components found</h3>
+                <p>Click the button above to add your first salary component.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

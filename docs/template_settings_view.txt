@@ -1,0 +1,70 @@
+@custom_login_required
+def template_settings(request):
+    school_id = request.session.get('SchoolID')
+    context = get_context(request)
+    
+    if request.method == 'POST':
+        ack_template = request.POST.get('acknowledgment_template')
+        receipt_template = request.POST.get('receipt_template')
+        card_template = request.POST.get('student_card_template')
+        user_id = request.session.get('UserId')
+        
+        try:
+            with connection.cursor() as cursor:
+                # Update or insert AdmissionAcknowledgment
+                cursor.execute("""
+                    IF EXISTS (SELECT 1 FROM TemplateSettings WHERE SchoolID = %s AND TemplateType = 'AdmissionAcknowledgment')
+                        UPDATE TemplateSettings SET TemplateFile = %s, ModifiedBy = %s, ModifiedAt = GETDATE() 
+                        WHERE SchoolID = %s AND TemplateType = 'AdmissionAcknowledgment'
+                    ELSE
+                        INSERT INTO TemplateSettings (SchoolID, TemplateType, TemplateFile, IsActive, CreatedBy, CreatedAt, IsDeleted)
+                        VALUES (%s, 'AdmissionAcknowledgment', %s, 1, %s, GETDATE(), 0)
+                """, [school_id, ack_template, user_id, school_id, school_id, ack_template, user_id])
+                
+                # Update or insert PaymentReceipt
+                cursor.execute("""
+                    IF EXISTS (SELECT 1 FROM TemplateSettings WHERE SchoolID = %s AND TemplateType = 'PaymentReceipt')
+                        UPDATE TemplateSettings SET TemplateFile = %s, ModifiedBy = %s, ModifiedAt = GETDATE() 
+                        WHERE SchoolID = %s AND TemplateType = 'PaymentReceipt'
+                    ELSE
+                        INSERT INTO TemplateSettings (SchoolID, TemplateType, TemplateFile, IsActive, CreatedBy, CreatedAt, IsDeleted)
+                        VALUES (%s, 'PaymentReceipt', %s, 1, %s, GETDATE(), 0)
+                """, [school_id, receipt_template, user_id, school_id, school_id, receipt_template, user_id])
+                
+                # Update or insert StudentCard
+                cursor.execute("""
+                    IF EXISTS (SELECT 1 FROM TemplateSettings WHERE SchoolID = %s AND TemplateType = 'StudentCard')
+                        UPDATE TemplateSettings SET TemplateFile = %s, ModifiedBy = %s, ModifiedAt = GETDATE() 
+                        WHERE SchoolID = %s AND TemplateType = 'StudentCard'
+                    ELSE
+                        INSERT INTO TemplateSettings (SchoolID, TemplateType, TemplateFile, IsActive, CreatedBy, CreatedAt, IsDeleted)
+                        VALUES (%s, 'StudentCard', %s, 1, %s, GETDATE(), 0)
+                """, [school_id, card_template, user_id, school_id, school_id, card_template, user_id])
+            
+            messages.success(request, 'Template settings saved successfully!')
+            return redirect('template_settings')
+        except Exception as e:
+            logger.error(f"Error saving template settings: {e}")
+            messages.error(request, 'Error saving settings')
+    
+    # Load current settings
+    current_settings = {}
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT TemplateType, TemplateFile 
+                FROM TemplateSettings 
+                WHERE SchoolID = %s AND IsActive = 1 AND IsDeleted = 0
+            """, [school_id])
+            for row in cursor.fetchall():
+                current_settings[row[0]] = row[1]
+    except Exception as e:
+        logger.error(f"Error loading template settings: {e}")
+    
+    context.update({
+        'ack_template': current_settings.get('AdmissionAcknowledgment', 'admission_acknowledgment.html'),
+        'receipt_template': current_settings.get('PaymentReceipt', 'payment_success.html'),
+        'card_template': current_settings.get('StudentCard', 'student_card_template1.html')
+    })
+    
+    return render(request, 'template_settings.html', context)

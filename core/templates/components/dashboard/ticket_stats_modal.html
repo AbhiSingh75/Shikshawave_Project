@@ -1,0 +1,211 @@
+<!-- Support Ticket Insights Modal -->
+<div id="ticketModal" class="stats-modal">
+    <div class="stats-modal-container sw-elite-modal-container">
+        <!-- Modal Header -->
+        <div class="stats-modal-header">
+            <div class="header-content">
+                <div class="header-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <div class="header-text">
+                    <h2>Support Ticket Insights</h2>
+                    <p>Resolution tracking and efficiency metrics</p>
+                </div>
+            </div>
+            <button onclick="Dashboard.closeModal('ticketModal')" class="modal-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="stats-modal-content">
+            <!-- Filters Card -->
+            <div class="stats-card">
+                <div class="sw-elite-filter-row">
+                    <div class="sw-elite-filter-group">
+                        <label>From Date</label>
+                        <input type="date" id="ticketModalFromDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>To Date</label>
+                        <input type="date" id="ticketModalToDate" class="filter-input">
+                    </div>
+                    {% if user.profile_id == 1 %}
+                    <div class="sw-elite-filter-group">
+                        <label>School</label>
+                        <select id="ticketModalSchool" class="filter-input">
+                            <option value="">All Schools</option>
+                            <!-- Populated via school dropdown API -->
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="sw-elite-action-group">
+                        <button onclick="Dashboard.applyTicketFilters()" class="btn-apply" style="flex: 1; height: 100%;">
+                            <i class="fas fa-search"></i> Apply
+                        </button>
+                        <button onclick="Dashboard.resetTicketFilters()" class="btn-reset" style="flex: 1; height: 100%;">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Pulse (Actionable Insights) -->
+            <div class="sw-elite-pulse-row">
+                <div class="sw-pulse-spotlight pulse-admission-velocity">
+                    <span class="pulse-label">Efficiency Pulse</span>
+                    <div class="pulse-value" id="pulseTicketSLA">0%</div>
+                    <div class="pulse-trend" id="pulseTicketSLATrend">Resolution Rate</div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-attendance-compliance">
+                    <span class="pulse-label">Resolution Speed</span>
+                    <div class="pulse-value" id="pulseTicketSpeed">0h</div>
+                    <div class="pulse-trend">Avg. Hours</div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-risk-alert">
+                    <span class="pulse-label">Critical Alerts</span>
+                    <div class="pulse-value" id="pulseTicketCritical">0</div>
+                    <div class="pulse-trend trend-danger">High Priority</div>
+                </div>
+            </div>
+
+            <!-- Statistics Grid (Flagship 8-Tile Design) -->
+            <div class="stats-card">
+                <div class="sw-elite-stats-grid">
+                    <div class="sw-elite-stat-card compact stat-primary">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Total Tickets</p>
+                                <h2 class="stat-value" id="modalTicketTotal">0</h2>
+                            </div>
+                            <i class="fas fa-ticket-alt stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-orange">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Open / New</p>
+                                <h2 class="stat-value" id="modalTicketOpen">0</h2>
+                            </div>
+                            <i class="fas fa-plus-circle stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-blue">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">In Progress</p>
+                                <h2 class="stat-value" id="modalTicketProgress">0</h2>
+                            </div>
+                            <i class="fas fa-spinner stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-green">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Resolved / Closed</p>
+                                <h2 class="stat-value" id="modalTicketResolved">0</h2>
+                            </div>
+                            <i class="fas fa-check-double stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-red">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Critical</p>
+                                <h2 class="stat-value" id="modalTicketCritical">0</h2>
+                            </div>
+                            <i class="fas fa-exclamation-triangle stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-orange">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">High Priority</p>
+                                <h2 class="stat-value" id="modalTicketHigh">0</h2>
+                            </div>
+                            <i class="fas fa-arrow-up stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-blue">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Medium Priority</p>
+                                <h2 class="stat-value" id="modalTicketMedium">0</h2>
+                            </div>
+                            <i class="fas fa-minus stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-green">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Low Priority</p>
+                                <h2 class="stat-value" id="modalTicketLow">0</h2>
+                            </div>
+                            <i class="fas fa-arrow-down stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Trend Row -->
+            <div class="stats-card">
+                <div class="chart-header">
+                    <h3>Ticket Volume vs Resolution Trend</h3>
+                </div>
+                <div class="chart-container" style="min-height: 250px;">
+                    <canvas id="ticketTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="sw-elite-modal-grid-2-col">
+                <!-- Priority Distribution Card (Redesigned as Doughnut) -->
+                <div class="stats-card">
+                    <div class="chart-header">
+                        <h3>Priority Distribution</h3>
+                    </div>
+                    <div class="chart-container" style="min-height: 220px; position: relative;">
+                        <canvas id="ticketPriorityChart"></canvas>
+                        <div class="chart-total-overlay">
+                            <span class="total-value" id="prioTotalCount">0</span>
+                            <span class="total-label">Total</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown Card -->
+                <div class="stats-card">
+                    <div class="chart-header">
+                        <h3>Top Categories</h3>
+                    </div>
+                    <div class="sw-elite-list-container" id="ticketCategoryList">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+            </div>
+
+            {% if user.profile_id == 1 or user.profile_id == 3 %}
+            <!-- Support Executive Leaderboard -->
+            <div class="stats-card">
+                <div class="chart-header">
+                    <h3>Expert Performance Leaderboard</h3>
+                </div>
+                <div class="sw-elite-table-responsive">
+                    <table class="sw-elite-table">
+                        <thead>
+                            <tr>
+                                <th>Expert Name</th>
+                                <th class="text-center">Assigned</th>
+                                <th class="text-center">Resolved</th>
+                                <th class="text-center">Avg Speed</th>
+                                <th>Efficiency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketLeaderboardTable">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

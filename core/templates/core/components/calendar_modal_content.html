@@ -1,0 +1,110 @@
+{% load core_extras %}
+<div class="calendar-modal-inner">
+    <div class="calendar-header" style="margin-bottom: 12px; padding: 0 4px;">
+        <div class="calendar-nav">
+            <button onclick="loadCalendarModal('{{ prev_month }}', '{{ prev_year }}')" class="nav-btn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="month-display" style="min-width: 130px; font-weight: 700; font-size: 1.1rem; color: var(--text-main);">{{ month_name }} {{ year }}</div>
+            <button onclick="loadCalendarModal('{{ next_month }}', '{{ next_year }}')" class="nav-btn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="calendar-grid">
+        <div class="day-name">Sun</div>
+        <div class="day-name">Mon</div>
+        <div class="day-name">Tue</div>
+        <div class="day-name">Wed</div>
+        <div class="day-name">Thu</div>
+        <div class="day-name">Fri</div>
+        <div class="day-name">Sat</div>
+
+        {% for week in processed_days %}
+            {% for day_data in week %}
+                {% if day_data.day == 0 %}
+                <div class="calendar-day other-month"></div>
+                {% else %}
+                {% with h=day_data.holidays.0 %}
+                <div class="calendar-day {% if day_data.is_today %}today{% endif %} {% if h %}has-holiday {{ h.HolidayType|lower|cut:' ' }}{% endif %}"
+                     {% if h %}title="{{ h.HolidayType }}: {{ h.HolidayName }}"{% endif %}>
+                    <div class="day-number">{{ day_data.day }}</div>
+                    <div class="holiday-icons">
+                        {% if h %}
+                            {% if h.HolidayType == 'Weekly Off' %}
+                                <i class="fas fa-bed holiday-icon-item"></i>
+                            {% elif h.HolidayType == 'Public' %}
+                                <i class="fas fa-bullhorn holiday-icon-item"></i>
+                            {% else %}
+                                <i class="fas fa-star holiday-icon-item"></i>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endwith %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .calendar-modal-inner { overflow: hidden; padding-bottom: 5px; }
+    .calendar-modal-inner .calendar-header { display: flex; justify-content: space-between; align-items: center; }
+    .calendar-modal-inner .calendar-nav { display: flex; align-items: center; gap: 10px; }
+    .calendar-modal-inner .nav-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-hover); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-color); transition: all 0.2s; }
+    .calendar-modal-inner .nav-btn:hover { background: var(--primary-color); color: #fff; }
+    
+    .calendar-modal-inner .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .calendar-modal-inner .day-name { text-align: center; font-weight: 800; font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); padding: 5px 0; }
+    
+    .calendar-modal-inner .calendar-day { 
+        min-height: 44px; 
+        background: var(--bg-hover); 
+        border-radius: 8px; 
+        padding: 5px; 
+        border: 1px solid transparent; 
+        position: relative; 
+        transition: all 0.2s ease;
+    }
+    
+    /* Today Highlight */
+    .calendar-modal-inner .calendar-day.today { 
+        border: 2px solid var(--primary-color); 
+        background: var(--primary-light); 
+    }
+    
+    /* Elite Holiday Colors */
+    .calendar-modal-inner .calendar-day.weeklyoff { 
+        background: #fff1f2 !important; 
+        border-color: rgba(235, 34, 39, 0.1) !important;
+    }
+    .calendar-modal-inner .calendar-day.weeklyoff .day-number,
+    .calendar-modal-inner .calendar-day.weeklyoff i { color: #eb2227 !important; }
+
+    .calendar-modal-inner .calendar-day.public { 
+        background: #f59e0b !important; 
+        box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2) !important;
+    }
+    .calendar-modal-inner .calendar-day.public .day-number,
+    .calendar-modal-inner .calendar-day.public i { color: #fff !important; }
+
+    .calendar-modal-inner .calendar-day.schoolevent { 
+        background: #d1fae5 !important; 
+        border-color: rgba(5, 150, 105, 0.1) !important;
+    }
+    .calendar-modal-inner .calendar-day.schoolevent .day-number,
+    .calendar-modal-inner .calendar-day.schoolevent i { color: #059669 !important; }
+
+    .calendar-modal-inner .calendar-day.other-month { opacity: 0.1; cursor: default; }
+    .calendar-modal-inner .day-number { font-weight: 800; font-size: 0.85rem; color: var(--text-main); line-height: 1; }
+    
+    .calendar-modal-inner .holiday-icons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .calendar-modal-inner .holiday-icon-item { font-size: 0.7rem; }
+
+    body.dark-mode .calendar-modal-inner .calendar-day { background: rgba(255,255,255,0.03); }
+    body.dark-mode .calendar-modal-inner .calendar-day.today { background: rgba(var(--primary-rgb), 0.15); }
+    body.dark-mode .calendar-modal-inner .calendar-day.weeklyoff { background: rgba(239, 68, 68, 0.15) !important; }
+    body.dark-mode .calendar-modal-inner .calendar-day.schoolevent { background: rgba(16, 185, 129, 0.15) !important; }
+</style>

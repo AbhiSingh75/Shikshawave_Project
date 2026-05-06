@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#fef3c7;font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px">
+<tr><td align="center">
+<table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;border:3px solid #f59e0b">
+<tr><td style="padding:40px 30px;text-align:center">
+<h1 style="margin:0 0 10px;color:#f59e0b;font-size:28px">🔑 Access Code</h1>
+<p style="margin:0 0 25px;color:#92400e;font-size:14px">{% if school_name %}{{ school_name }}{% else %}ShikshaWave{% endif %}</p>
+<p style="margin:0 0 25px;color:#333">Hello {{ user_name }},</p>
+<div style="background:#fef3c7;border:2px dashed #f59e0b;border-radius:8px;padding:25px;margin:25px 0">
+<span style="font-size:40px;font-weight:bold;color:#d97706;letter-spacing:8px;font-family:monospace">{{ otp }}</span>
+</div>
+<p style="margin:20px 0;color:#92400e;font-size:13px">⏱️ {{ valid_minutes }} minutes</p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>

@@ -1,0 +1,950 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Face ID Registration - ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<!-- Include list styles for standardized controls-row -->
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+<style>
+    /* =========================================================
+       Face Registration — Optimized Compact Layout
+       ========================================================= */
+    :root {
+        --primary-rgb: 0, 74, 173;
+    }
+
+    .face-reg-container {
+        padding: 10px 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 1400px;
+        margin: 0 auto;
+        height: calc(100vh - var(--header-height) - 20px);
+        overflow: hidden;
+    }
+
+    /* Standardized Control Row Overrides for Compactness */
+    .controls-row {
+        padding: 8px 15px;
+        position: relative;
+        top: 0;
+        z-index: 10;
+        margin-bottom: 0;
+    }
+
+    .controls-left h3 {
+        font-size: 1.1rem;
+    }
+
+    .compact-summary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.8rem;
+    }
+
+    /* Steps within summary-box for compactness */
+    .steps-mini {
+        display: flex;
+        gap: 8px;
+        margin-left: 10px;
+        padding-left: 10px;
+        border-left: 1px solid var(--border-color);
+    }
+
+    .s-step {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--bg-hover);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
+        position: relative;
+    }
+
+    .s-step.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 8px var(--primary-light);
+    }
+
+    .s-step.completed {
+        background: var(--success);
+        color: white;
+        border-color: var(--success);
+    }
+    
+    .s-step[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        white-space: nowrap;
+        margin-bottom: 5px;
+        z-index: 100;
+    }
+
+    /* Main Grid - Fit to view */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 15px;
+        flex: 1;
+        min-height: 0;
+    }
+
+    @media (max-width: 992px) {
+        .main-grid { grid-template-columns: 1fr; overflow-y: auto; }
+        .face-reg-container { height: auto; overflow: visible; }
+    }
+
+    /* Camera Card Optimization */
+    .camera-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .camera-wrapper {
+        position: relative;
+        width: 100%;
+        flex: 1;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        min-height: 250px;
+    }
+
+    .camera-video, .camera-canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .camera-canvas { position: absolute; inset: 0; pointer-events: none; }
+
+    .scan-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 140px;
+        height: 140px;
+        margin: -70px 0 0 -70px;
+        border: 3px solid transparent;
+        border-top-color: var(--success);
+        border-right-color: var(--success);
+        border-radius: 50%;
+        animation: spin 1.5s linear infinite;
+        z-index: 2;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Floating elements to save space */
+    .status-bar {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background: rgba(var(--primary-rgb, 0, 74, 173), 0.85);
+        backdrop-filter: blur(8px);
+        padding: 8px 15px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        z-index: 5;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .status-bar.warning { background: rgba(245, 158, 11, 0.85); }
+    .status-bar.success { background: rgba(16, 185, 129, 0.85); }
+    
+    .status-icon-box { display: flex; align-items: center; justify-content: center; width: 24px;}
+    .status-content h4 { margin: 0; font-size: 0.8rem; font-weight: 700; }
+    .status-content p { margin: 0; font-size: 0.7rem; opacity: 0.9; }
+
+    /* Compact Quality Bar */
+    .quality-overlay {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        padding: 5px 12px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        z-index: 5;
+    }
+    .q-mini-bar {
+        width: 80px;
+        height: 6px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .q-mini-fill {
+        height: 100%;
+        background: var(--success);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    /* Camera Toggle Mini */
+    .camera-toggle-mini {
+        display: flex;
+        gap: 8px;
+        margin-right: 5px;
+        padding-right: 8px;
+        border-right: 1px solid rgba(255,255,255,0.2);
+    }
+    .toggle-btn {
+        background: transparent;
+        border: none;
+        color: rgba(255,255,255,0.4);
+        cursor: pointer;
+        padding: 2px 4px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .toggle-btn.active {
+        color: var(--success);
+        filter: drop-shadow(0 0 3px var(--success));
+    }
+    .toggle-btn:hover:not(.active) {
+        color: white;
+    }
+
+    /* Mirroring only for user camera */
+    .mirrored { transform: scaleX(-1); }
+
+    /* Action Row Compact */
+    .action-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .btn-reg {
+        flex: 1;
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+
+    /* Side Panel Dense */
+    .side-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow-y: auto;
+        padding-right: 2px;
+    }
+
+    .panel-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+    }
+
+    .panel-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-main);
+    }
+
+    /* List Item Compact */
+    .list-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 0;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    .list-item i { width: 14px; text-align: center; }
+    .list-item.passed { color: var(--success); font-weight: 600; }
+
+    /* Template List Layout - No scrollbar for fixed 3 slots */
+    .templates-scroll {
+        margin-top: 5px;
+    }
+
+    .template-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 10px;
+        background: var(--bg-hover);
+        border-radius: 8px;
+        margin-bottom: 5px;
+        border: 1px solid var(--border-color);
+    }
+    .t-info { display: flex; align-items: center; gap: 8px; }
+    .t-icon { color: var(--primary-color); font-size: 0.9rem; }
+    .t-name { font-weight: 500; font-size: 0.75rem; color: var(--text-main); }
+    
+    .btn-del-mini {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 5px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        outline: none;
+    }
+    .btn-del-mini:hover { 
+        background: rgba(220, 38, 38, 0.15);
+        color: #ef4444; 
+    }
+
+    /* New Template List Structure */
+    .no-templates-hint {
+        text-align: center;
+        padding: 20px;
+        color: var(--text-muted);
+    }
+    .no-templates-hint i {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 10px;
+        opacity: 0.3;
+    }
+    .no-templates-hint p { font-size: 0.8rem; }
+
+    .t-icon-box {
+        width: 34px;
+        height: 34px;
+        background: rgba(var(--primary-rgb, 0, 74, 173), 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+    .t-icon-box.corrupted {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--danger);
+    }
+
+    .t-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .t-name {
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--text-main);
+    }
+    .t-date {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+    }
+    
+    .template-item.corrupted {
+        border-color: var(--danger);
+        background: rgba(var(--danger-rgb, 220, 38, 38), 0.05);
+    }
+    .status-corrupted {
+        font-size: 0.6rem;
+        color: var(--danger);
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    /* Security Alert Compact */
+    .security-info {
+        font-size: 0.65rem;
+        line-height: 1.3;
+        color: var(--text-muted);
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+        background: var(--bg-hover);
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="csrf_token_container" style="display: none;">{% csrf_token %}</div>
+<div class="face-reg-container">
+    
+    <!-- Standardized Control Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-fingerprint"></i> Face ID</h3>
+            <div class="summary-box">
+                <div class="compact-summary">
+                    <div class="summary-item">
+                        <i class="fas fa-user-circle"></i> {{ registration_username|default:"User" }}
+                    </div>
+                    <div class="summary-item">
+                        <i class="fas fa-user-tag"></i> {{ registration_user_code|default:registration_user_id }}
+                    </div>
+                    <div id="stepsIndicator" class="steps-mini">
+                        <div class="s-step active" id="s-step1" title="Position Face">1</div>
+                        <div class="s-step" id="s-step2" title="Check Quality">2</div>
+                        <div class="s-step" id="s-step3" title="Register">3</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <a href="/users/list/" class="btn sw-btn-outline" style="padding: 6px 15px; font-size: 0.85rem; border: 2px solid var(--primary-color) !important; color: var(--primary-color); font-weight: 700; background: var(--card-bg); display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-grid">
+        
+        <!-- Left: Camera Section -->
+        <div class="camera-card">
+            <div class="camera-wrapper" id="cameraWrapper">
+                <video id="cameraVideo" class="camera-video mirrored" autoplay muted playsinline></video>
+                <canvas id="cameraCanvas" class="camera-canvas mirrored"></canvas>
+                <div id="scanRing" class="scan-ring" style="display: none;"></div>
+                
+                <!-- Floating Info Overlay -->
+                <div class="quality-overlay">
+                    <div class="camera-toggle-mini" id="cameraToggleMini" style="display: none;">
+                        <button onclick="setCameraMode('user')" id="btnFront" class="toggle-btn active" title="Front Camera">
+                            <i class="fas fa-portrait"></i>
+                        </button>
+                        <button onclick="setCameraMode('environment')" id="btnRear" class="toggle-btn" title="Rear Camera">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    <span style="font-size: 0.7rem; font-weight: 700;">STABILITY</span>
+                    <div class="q-mini-bar">
+                        <div id="qualityFill" class="q-mini-fill"></div>
+                    </div>
+                    <span id="qualityValue" style="font-size: 0.75rem; font-weight: 800; min-width: 30px;">0%</span>
+                </div>
+
+                <!-- Floating Status Bar -->
+                <div id="cameraStatus" class="status-bar">
+                    <div class="status-icon-box"><i class="fas fa-spinner fa-spin"></i></div>
+                    <div class="status-content">
+                        <h4>Initializing...</h4>
+                        <p>Syncing neural models for biometric capture</p>
+                    </div>
+                </div>
+                
+                <!-- Loading Overlay -->
+                <div id="loadingOverlay" class="reg-loading" style="display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 10; flex-direction: column; align-items: center; justify-content: center; color: white;">
+                    <div class="spinner-box" style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p style="margin-top: 10px; font-size: 0.9rem;">Processing Biometrics...</p>
+                </div>
+
+                <!-- Auto-Capture Indicator -->
+                <div id="autoCaptureNotice" style="display: none; position: absolute; top: 10px; right: 10px; background: var(--primary-color); color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: 600; z-index: 5; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    <i class="fas fa-magic-wand-sparkles"></i> Capturing in <span id="countdown">3</span>s
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button id="startCameraBtn" class="btn sw-btn-primary btn-reg" onclick="startCamera()">
+                    <i class="fas fa-video"></i> Start Active Scan
+                </button>
+                <button id="nextRegBtn" class="btn sw-btn-success btn-reg" onclick="prepareNext()" style="display: none;">
+                    <i class="fas fa-plus-circle"></i> Activate for Next Slot
+                </button>
+                <button id="registerBtn" class="btn sw-btn-primary btn-reg" onclick="registerFace()" disabled style="display: none;">
+                    <i class="fas fa-check-circle"></i> Register Identity
+                </button>
+                <button id="stopCameraBtn" class="btn sw-btn-danger btn-reg" onclick="stopCamera()" style="display: none;">
+                    <i class="fas fa-power-off"></i> Stop System
+                </button>
+            </div>
+        </div>
+
+        <!-- Right: Requirements and Templates -->
+        <div class="side-panel">
+            
+            <!-- Combined Requirements -->
+            <div class="panel-card">
+                <div class="panel-title"><i class="fas fa-shield-check"></i> System Checks</div>
+                <div class="list-item" id="check-face">
+                    <i class="fas fa-circle-dot"></i> <span>Subject Presence</span>
+                </div>
+                <div class="list-item" id="check-center">
+                    <i class="fas fa-circle-dot"></i> <span>Alignment & Focus</span>
+                </div>
+                <div class="list-item" id="check-lighting">
+                    <i class="fas fa-circle-dot"></i> <span>Luminance & Clarity</span>
+                </div>
+                <div class="list-item" id="check-quality-95">
+                    <i class="fas fa-circle-dot"></i> <span>Biometric Match Score</span>
+                </div>
+            </div>
+
+            <!-- Saved Templates Compact -->
+            <div class="panel-card" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+                <div class="panel-title" style="justify-content: space-between; margin-bottom: 5px;">
+                    <span><i class="fas fa-id-card"></i> Templates</span>
+                    <span id="templateCountBadge" class="sw-badge-primary" style="font-size: 0.65rem;">0/3</span>
+                </div>
+                <div id="templatesList" class="templates-scroll">
+                    <!-- Templates dynamic load -->
+                </div>
+            </div>
+
+            <!-- Security Footer -->
+            <div class="security-info">
+                <i class="fas fa-lock" style="color: var(--success);"></i>
+                <span>Templates are stored as non-reversible mathematical hashes with AES-256 encryption.</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Face API JS -->
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
+<script>
+    // Pure logic preserved and adjusted for new compact IDs
+    let video, canvas, ctx, stream, faceDescriptor, modelsLoaded = false, detectionInterval, currentStep = 1;
+    let autoCaptureTimer = null, autoCaptureSeconds = 3, isAutoCapturing = false, templateCount = 0;
+    let currentFacingMode = 'user'; // 'user' or 'environment'
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        video = document.getElementById('cameraVideo');
+        canvas = document.getElementById('cameraCanvas');
+        ctx = canvas.getContext('2d');
+        await loadModels();
+        loadTemplates();
+    });
+
+    async function loadModels() {
+        if (modelsLoaded) return true;
+        try {
+            updateStatus('Syncing...', 'Loading neural engine', 'info');
+            const path = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(path);
+            await faceapi.nets.ssdMobilenetv1.loadFromUri(path);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(path);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(path);
+            modelsLoaded = true;
+            updateStatus('Ready', 'System waiting for activation', 'success');
+            return true;
+        } catch (e) {
+            updateStatus('Sync Error', 'Model fetch failed. Click Start to retry.', 'warning');
+            return false;
+        }
+    }
+
+    async function startCamera() {
+        // Retry loading models if they failed initially
+        if (!modelsLoaded) {
+            const success = await loadModels();
+            if (!success) {
+                alert("Cannot start: Face recognition models failed to load. Please check your internet connection.");
+                return;
+            }
+        }
+        
+        try {
+            updateStatus('Warming...', 'Initializing sensor', 'info');
+            let constraints = { video: { facingMode: currentFacingMode, frameRate: { ideal: 30 } } };
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+            } catch (innerErr) {
+                console.warn("Retrying with basic constraints due to:", innerErr);
+                // Fallback for browsers/environments that reject advanced constraints
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            }
+            
+            video.srcObject = stream;
+            
+            // Handle mirroring based on camera mode
+            if (currentFacingMode === 'user') {
+                video.classList.add('mirrored');
+                canvas.classList.add('mirrored');
+            } else {
+                video.classList.remove('mirrored');
+                canvas.classList.remove('mirrored');
+            }
+
+            video.onloadedmetadata = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                document.getElementById('startCameraBtn').style.display = 'none';
+                document.getElementById('stopCameraBtn').style.display = 'block';
+                document.getElementById('scanRing').style.display = 'block';
+                document.getElementById('cameraToggleMini').style.display = 'flex';
+                updateToggleButtonState();
+                startDetection();
+            };
+        } catch (e) { 
+            console.error("Camera Access Error:", e);
+            let msg = 'Permission required';
+            if (e.name === 'NotReadableError' || e.name === 'TrackStartError') msg = 'Camera already in use';
+            else if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') msg = 'No camera found';
+            else if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') msg = 'Access denied by browser';
+            
+            updateStatus('Denied', msg, 'warning'); 
+        }
+    }
+
+    async function setCameraMode(mode) {
+        if (currentFacingMode === mode) return;
+        currentFacingMode = mode;
+        
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            if (detectionInterval) { clearInterval(detectionInterval); detectionInterval = null; }
+            await startCamera();
+        }
+    }
+
+    function updateToggleButtonState() {
+        document.getElementById('btnFront').classList.toggle('active', currentFacingMode === 'user');
+        document.getElementById('btnRear').classList.toggle('active', currentFacingMode === 'environment');
+    }
+
+    async function switchCamera() {
+        await setCameraMode(currentFacingMode === 'user' ? 'environment' : 'user');
+    }
+
+    function stopCamera() {
+        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        if (detectionInterval) { clearInterval(detectionInterval); detectionInterval = null; }
+        resetAutoCapture();
+        video.srcObject = null;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('startCameraBtn').style.display = 'block';
+        document.getElementById('stopCameraBtn').style.display = 'none';
+        document.getElementById('scanRing').style.display = 'none';
+        document.getElementById('cameraToggleMini').style.display = 'none';
+        updateQuality(0);
+        resetChecklist();
+        updateStatus('Idle', 'System hardware inactive', 'info');
+        setStep(1);
+    }
+
+    async function startDetection() {
+        if (detectionInterval) return;
+        const ssdOpts = new faceapi.SsdMobilenetv1Options({ minConfidence: 0.40 }); // Slightly more forgiving
+        
+        async function loop() {
+            if (!video || !video.srcObject) return;
+            try {
+                // One primary detection call is more efficient than cascading tiny + ssd in a tight loop
+                const det = await faceapi.detectSingleFace(video, ssdOpts).withFaceLandmarks().withFaceDescriptor();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (det) {
+                    const env = analyzeEnvironment(det.detection.box);
+                    const checks = calcChecks(det, env);
+                    const q = calcQuality(det, env, checks);
+                    
+                    updateChecklist(checks, q);
+                    updateQuality(q);
+                    
+                    // Smart Feedback Logic
+                    if (q < 95) {
+                        let tip = "Hold still...";
+                        if (!checks.lighting) tip = env.luminance < 45 ? "Environment too dark" : "Lighting too harsh";
+                        else if (!checks.center) tip = "Center your face in frame";
+                        else if (!checks.focus) tip = "Image blurry - stabilize camera";
+                        else if (det.detection.score < 0.8) tip = "Position face clearly";
+                        
+                        updateStatus(q >= 60 ? 'Stabilizing' : 'Low Q', tip, 'warning');
+                        setStep(q >= 60 ? 2 : 1);
+                        if (isAutoCapturing && q < 85) resetAutoCapture();
+                    } else {
+                        faceDescriptor = Array.from(det.descriptor);
+                        setStep(3);
+                        updateStatus('Locking...', 'Optimal match found', 'success');
+                        if (templateCount < 3 && !isAutoCapturing) startAutoCapture();
+                    }
+                } else {
+                    setStep(1);
+                    updateStatus('Searching...', 'Bring face into view', 'warning');
+                    updateQuality(0);
+                    resetChecklist();
+                    if (isAutoCapturing) resetAutoCapture();
+                }
+            } catch (e) { console.error("Biometric Error:", e); }
+            if (video && video.srcObject) detectionInterval = setTimeout(loop, 150); // Slightly slower loop for better CPU performance
+        }
+        loop();
+    }
+
+    function analyzeEnvironment(box) {
+        const tempCanvas = document.createElement('canvas');
+        const width = Math.floor(box.width);
+        const height = Math.floor(box.height);
+        tempCanvas.width = width; tempCanvas.height = height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(video, box.x, box.y, box.width, box.height, 0, 0, width, height);
+        
+        const imgData = tCtx.getImageData(0, 0, width, height);
+        const data = imgData.data;
+        let lum = 0;
+        
+        // Luminance and Simple Blur (Variance) calculation
+        let totalVal = 0;
+        for (let i = 0; i < data.length; i += 4) {
+            const v = (0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
+            lum += v;
+            totalVal += v;
+        }
+        const mean = totalVal / (data.length / 4);
+        
+        let variance = 0;
+        for (let i = 0; i < data.length; i += 4) {
+            const v = (0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
+            variance += Math.pow(v - mean, 2);
+        }
+        const stdDev = Math.sqrt(variance / (data.length / 4));
+        
+        return { 
+            luminance: mean,
+            sharpness: stdDev 
+        };
+    }
+
+    function startAutoCapture() {
+        if (isAutoCapturing) return;
+        isAutoCapturing = true; autoCaptureSeconds = 3;
+        document.getElementById('autoCaptureNotice').style.display = 'block';
+        document.getElementById('countdown').textContent = autoCaptureSeconds;
+        autoCaptureTimer = setInterval(() => {
+            autoCaptureSeconds--;
+            if (autoCaptureSeconds > 0) document.getElementById('countdown').textContent = autoCaptureSeconds;
+            else { clearInterval(autoCaptureTimer); registerFace(); }
+        }, 1000);
+    }
+
+    function resetAutoCapture() {
+        if (autoCaptureTimer) clearInterval(autoCaptureTimer);
+        isAutoCapturing = false;
+        document.getElementById('autoCaptureNotice').style.display = 'none';
+    }
+
+    function calcChecks(d, env) {
+        const b = d.detection.box, cx = b.x + b.width/2, cy = b.y + b.height/2;
+        return {
+            face: d.detection.score > 0.5,
+            center: Math.abs(cx - canvas.width/2) / (canvas.width/2) < 0.3 && 
+                    Math.abs(cy - canvas.height/2) / (canvas.height/2) < 0.3,
+            lighting: env.luminance > 40 && env.luminance < 230,
+            focus: env.sharpness > 15
+        };
+    }
+
+    function calcQuality(d, env, c) {
+        if (!c.face) return 0;
+        let score = (d.detection.score * 40) + 
+                    (c.center ? 20 : 0) + 
+                    (c.lighting ? 20 : 0) + 
+                    (Math.min(20, env.sharpness / 1.5));
+        
+        return Math.min(100, Math.round(score));
+    }
+
+    function updateChecklist(c, q) {
+        document.getElementById('check-face').className = 'list-item' + (c.face ? ' passed' : '');
+        document.getElementById('check-center').className = 'list-item' + (c.center && c.focus ? ' passed' : '');
+        document.getElementById('check-lighting').className = 'list-item' + (c.lighting ? ' passed' : '');
+        document.getElementById('check-quality-95').className = 'list-item' + (q >= 95 ? ' passed' : '');
+    }
+
+    function resetChecklist() { ['check-face','check-center','check-lighting','check-quality-95'].forEach(id => document.getElementById(id).className = 'list-item'); }
+    function updateQuality(v) { document.getElementById('qualityValue').textContent = v + '%'; document.getElementById('qualityFill').style.width = v + '%'; }
+    function updateStatus(title, hint, type) {
+        const el = document.getElementById('cameraStatus');
+        el.className = 'status-bar ' + type;
+        el.querySelector('h4').textContent = title; el.querySelector('p').textContent = hint;
+        const icons = { info: 'fa-info-circle', success: 'fa-check-circle', warning: 'fa-triangle-exclamation' };
+        el.querySelector('.status-icon-box i').className = 'fas ' + icons[type];
+    }
+
+    function setStep(s) {
+        currentStep = s;
+        for (let i = 1; i <= 3; i++) {
+            const el = document.getElementById('s-step' + i);
+            el.className = 's-step' + (i < s ? ' completed' : (i === s ? ' active' : ''));
+        }
+    }
+
+    async function registerFace() {
+        if (!faceDescriptor || templateCount >= 3) return;
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        try {
+            const r = await fetch('/api/face-template/register/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+                body: JSON.stringify({ face_descriptor: faceDescriptor, target_user_id: '{{ registration_user_id }}' })
+            });
+            const d = await r.json();
+            if (d.success) { 
+                loadTemplates(); 
+                stopCamera(); 
+                updateStatus('Captured', 'Template saved successfully', 'success'); 
+                document.getElementById('startCameraBtn').style.display = 'none';
+                document.getElementById('nextRegBtn').style.display = 'block';
+                ShikshaWave.Dialog.success('Registered!', 'Your face id is added. Please activate to add another if needed.', 3000);
+            } else {
+                updateStatus('Error', d.error || 'Registration failed', 'warning');
+                ShikshaWave.Dialog.error('Failed', d.error || 'Could not save face data.');
+            }
+        } catch (e) {
+            console.error("Registration Error:", e);
+            updateStatus('Network Error', 'Check connection', 'warning');
+            ShikshaWave.Dialog.error('Network Error', 'Communication with security service failed.');
+        } finally { document.getElementById('loadingOverlay').style.display = 'none'; }
+    }
+
+    function prepareNext() {
+        document.getElementById('nextRegBtn').style.display = 'none';
+        document.getElementById('startCameraBtn').style.display = 'block';
+        updateStatus('Ready', 'System waiting for activation', 'info');
+        setStep(1);
+    }
+
+    async function loadTemplates() {
+        try {
+            const r = await fetch('/api/face-template/list/?user_id={{ registration_user_id }}', { headers: { 'X-CSRFToken': getCSRF() } });
+            const d = await r.json();
+            renderTemplates(d.success ? d.templates : []);
+        } catch (e) { renderTemplates([]); }
+    }
+
+    function renderTemplates(t) {
+        const c = document.getElementById('templatesList'); 
+        templateCount = t.length;
+        document.getElementById('templateCountBadge').textContent = `${templateCount}/3`;
+        
+        if (!t.length) { 
+            c.innerHTML = '<div class="no-templates-hint"><i class="fas fa-id-badge"></i><p>No biometric profiles registered yet.</p></div>'; 
+            document.getElementById('startCameraBtn').disabled = false;
+            document.getElementById('startCameraBtn').title = "Start Biometric Scan";
+            return; 
+        }
+
+        // Disable registration if limit reached
+        const startBtn = document.getElementById('startCameraBtn');
+        if (templateCount >= 3) {
+            startBtn.disabled = true;
+            startBtn.title = "Limit reached (Max 3)";
+            startBtn.style.opacity = '0.5';
+            startBtn.style.cursor = 'not-allowed';
+        } else {
+            startBtn.disabled = false;
+            startBtn.title = "Start Biometric Scan";
+            startBtn.style.opacity = '1';
+            startBtn.style.cursor = 'pointer';
+        }
+        
+        c.innerHTML = t.map((x, i) => `
+            <div class="template-item ${x.is_corrupted ? 'corrupted' : ''}">
+                <div class="t-info">
+                    <div class="t-icon-box ${x.is_corrupted ? 'corrupted' : ''}">
+                        <i class="fas fa-fingerprint"></i>
+                    </div>
+                    <div class="t-meta">
+                        <span class="t-name">Biometric Profile #${i+1}</span>
+                        <span class="t-date">${new Date(x.created_at).toLocaleDateString()}</span>
+                        ${x.is_corrupted ? '<span class="status-corrupted">Error: Verification Failed</span>' : ''}
+                    </div>
+                </div>
+                <div class="t-actions">
+                    <button class="btn-del-mini" title="Delete Template" onclick="deleteTemplate(${x.id})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function deleteTemplate(id) {
+        const confirmed = await ShikshaWave.Dialog.confirm({
+            title: 'Delete Template?',
+            text: "This biometric record will be permanently removed.",
+            confirmText: 'Yes, delete it!'
+        });
+
+        if (confirmed.isConfirmed) {
+            try {
+                const response = await fetch(`/api/face-template/delete/${id}/`, { 
+                    method: 'DELETE', 
+                    headers: { 
+                        'X-CSRFToken': getCSRF(), 
+                        'Content-Type': 'application/json' 
+                    }, 
+                    body: JSON.stringify({ target_user_id: '{{ registration_user_id }}' }) 
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    ShikshaWave.Dialog.success('Deleted!', 'Template has been removed.');
+                    loadTemplates(); 
+                } else {
+                    ShikshaWave.Dialog.error('Error', data.error || 'Failed to delete template.');
+                }
+            } catch (e) {
+                console.error("Deletion Error:", e);
+                ShikshaWave.Dialog.error('Network Error', 'Communication with security service failed.');
+            }
+        }
+    }
+
+    function getCSRF() { 
+        // Try hidden input first (most reliable)
+        const token = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        if (token) return token;
+        // Fallback to cookie
+        return document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1] || ''; 
+    }
+</script>
+{% endblock %}

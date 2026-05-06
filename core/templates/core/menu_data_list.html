@@ -1,0 +1,549 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Menu Data Management | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+    <style>
+        :root {
+            --primary-color: {{ primary_color|default:"#004aad" }};
+            --primary-hover: {{ primary_hover|default:"#003a8c" }};
+            --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+            
+            --sw-primary: var(--primary-color);
+            --sw-primary-hover: var(--primary-hover);
+            --sw-primary-light: var(--primary-light);
+            
+            --primary-gradient: linear-gradient(135deg, var(--sw-primary) 0%, var(--primary-hover) 100%);
+            
+            --secondary-bg: #f9fafb;
+            --border-color: #e5e7eb;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --error-color: #ef4444;
+            --error-light: rgba(239, 68, 68, 0.1);
+            --success-color: #10b981;
+            --success-light: rgba(16, 185, 129, 0.1);
+        }
+
+        body.dark-mode {
+            --primary-color: {{ primary_color|default:"#6366f1" }};
+            --primary-hover: {{ primary_hover|default:"#818cf8" }};
+            --secondary-bg: #1f2937;
+            --card-bg: #1f2937;
+            --text-main: #f9fafb;
+            --text-light: #d1d5db;
+            --border-color: #4b5563;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            --input-bg: #2d3748;
+        }
+
+        /* body.dark-mode overrides handled by shikshawave-core.css or via local mapping if needed */
+
+
+        .sw-container { padding: 20px; max-width: 1600px; margin: 0 auto; }
+        
+        /* High-Density Global Control Row */
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .controls-left h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .count-badge {
+            background: var(--sw-primary);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            box-shadow: 0 2px 4px var(--primary-light);
+        }
+
+        /* Buttons */
+        .btn-standard {
+            height: 38px;
+            padding: 0 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-light);
+        }
+
+        .btn-standard:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); filter: brightness(1.1); }
+
+        /* Premium Table */
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .sw-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .sw-table th {
+            padding: 8px 16px;
+            text-align: left;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .dark-mode .sw-table th { background: #1e293b; color: #94a3b8; }
+
+        .sw-table td {
+            padding: 8px 16px;
+            font-size: 0.88rem;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .sw-table tr:hover { background: var(--sw-primary-light); }
+        .dark-mode .sw-table tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+        /* Parent/Child Indicator */
+        .child-indicator { padding-left: 28px; position: relative; font-weight: 500; }
+        .child-indicator:before {
+            content: ''; position: absolute; left: 8px; top: -10px; width: 1px; height: 26px;
+            border-left: 2px solid var(--border-color);
+        }
+        .child-indicator:after {
+            content: ''; position: absolute; left: 8px; top: 18px; width: 14px; height: 1px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        /* Badges */
+        .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+        .badge-active { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-inactive { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-deleted { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); text-decoration: line-through; }
+        .badge-parent { background: rgba(99, 102, 241, 0.08); color: var(--text-main); border: 1px solid rgba(99, 102, 241, 0.2); }
+
+        /* Action Buttons */
+        .action-group { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-icon {
+            width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            border: none; cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+        }
+        .edit-btn { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .edit-btn:hover { background: #f59e0b; color: white; transform: translateY(-2px); }
+        .delete-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .delete-btn:hover { background: #ef4444; color: white; transform: translateY(-2px); }
+        .restore-btn { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .restore-btn:hover { background: #10b981; color: white; transform: translateY(-2px); }
+
+        /* Mobile View (Card Design) */
+        .mobile-view { display: none; }
+        @media (max-width: 768px) {
+            .sw-container { padding: 10px; padding-top: 60px; }
+            .controls-row { 
+                flex-direction: column; 
+                padding: 15px; 
+                gap: 12px; 
+                align-items: stretch;
+                position: static;
+                border-radius: 12px;
+            }
+            .controls-left { justify-content: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+            .controls-left h3 { font-size: 1.1rem; }
+            .controls-right { width: 100%; }
+            .btn-standard { width: 100%; height: 44px; font-size: 0.95rem; justify-content: center; }
+        }
+
+        .table-card { overflow-x: auto; }
+        .table-card::-webkit-scrollbar { height: 5px; }
+        .table-card::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        /* Modals */
+        .custom-modal {
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center; opacity: 0; transition: all 0.3s;
+        }
+        .custom-modal.show { display: flex; opacity: 1; }
+        .custom-modal-content {
+            background: var(--card-bg); width: 95%; max-width: 480px;
+            border-radius: 24px; overflow: hidden; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .custom-modal.show .custom-modal-content { transform: translateY(0); }
+        .modal-header { background: var(--primary-gradient); padding: 14px 24px; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 16px 24px; }
+        .modal-footer { padding: 12px 24px; background: var(--secondary-bg); display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color); }
+        .sw-form-control {
+            width: 100%; height: 42px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--border-color);
+            background: var(--card-bg); color: var(--text-main); font-size: 0.9rem; transition: all 0.2s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .sw-form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px var(--primary-light); }
+        .form-label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.82rem; color: var(--text-light); }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-container">
+    
+    <!-- Controls Section -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-bars" style="color: var(--primary-color);"></i> 
+                Menu Management
+                <span class="count-badge" id="menuCountBadge">{{ total_count|default:"0" }}</span>
+            </h3>
+        </div>
+        <div class="controls-right">
+            <button type="button" class="btn-standard" onclick="openAddMenuModal()">
+                <i class="fas fa-plus"></i> Add New Menu
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div style="margin-bottom: 20px;">
+            {% for message in messages %}
+                <div class="badge badge-{{ message.tags }}" style="width: 100%; justify-content: space-between; padding: 12px 20px; border-radius: 12px;">
+                    <span>{{ message }}</span>
+                    <i class="fas fa-times" onclick="this.parentElement.style.display='none'" style="cursor: pointer;"></i>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Content Area -->
+    <div class="table-card">
+        {% if menu_data %}
+            <!-- Desktop Table -->
+            <div style="overflow-x: auto;">
+                <table class="sw-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">S.N.</th>
+                            <th style="width: 100px; text-align: center;">Actions</th>
+                            <th style="width: 80px; text-align: center;">Order</th>
+                            <th style="width: 60px; text-align: center;">Icon</th>
+                            <th>Menu Name</th>
+                            <th>Parent Link</th>
+                            <th>URL Route</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for menu in menu_data %}
+                        <tr {% if menu.IsDeleted %}style="opacity: 0.6;"{% endif %}>
+                            <td style="text-align: center;">{{ forloop.counter }}</td>
+                            <td>
+                                <div class="action-group" style="justify-content: center;">
+                                    <button class="btn-icon edit-btn" title="Edit" 
+                                            onclick="openEditMenuModal(this)"
+                                            data-id="{{ menu.MenuID }}"
+                                            data-name="{{ menu.MenuName }}"
+                                            data-url="{{ menu.MenuURL|default:'' }}"
+                                            data-icon="{{ menu.Icon|default:'' }}"
+                                            data-order="{{ menu.DisplayOrder }}"
+                                            data-parent="{{ menu.ParentMenuID|default:'' }}"
+                                            data-status="{% if menu.IsActive %}1{% else %}0{% endif %}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    
+                                    {% if menu.IsDeleted %}
+                                        <a href="{% url 'menu_data_restore' menu.MenuID %}" class="btn-icon restore-btn" title="Restore" onclick="return confirm('Restore this menu?')">
+                                            <i class="fas fa-undo"></i>
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'menu_data_delete' menu.MenuID %}" class="btn-icon delete-btn" title="Delete" onclick="return confirm('Delete this menu?')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="badge badge-parent" style="min-width: 30px; justify-content: center;">
+                                    {{ menu.DisplayOrder }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                 <div style="width: 28px; height: 28px; background: var(--secondary-bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto; color: var(--primary-color);">
+                                    {% if menu.Icon %}
+                                        <i class="{{ menu.Icon }}"></i>
+                                    {% else %}
+                                        <span style="color:var(--text-light); font-size: 0.7rem;">-</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if menu.ParentMenuName %}
+                                    <div class="child-indicator">
+                                        <span style="font-weight: 600;">{{ menu.MenuName }}</span>
+                                    </div>
+                                {% else %}
+                                     <span style="font-weight: 700; color: var(--text-main);">{{ menu.MenuName }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if menu.ParentMenuName %}
+                                    <span class="badge badge-parent">
+                                        <i class="fas fa-level-up-alt fa-rotate-90" style="font-size: 0.7rem; opacity: 0.6;"></i>
+                                        {{ menu.ParentMenuName }}
+                                    </span>
+                                {% else %}
+                                    <span style="font-style:italic; color:var(--text-light); font-size:0.8rem;">Root</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                 <code style="color:var(--text-light); background:var(--secondary-bg); padding:4px 8px; border-radius:6px; font-size:0.8rem; border: 1px solid var(--border-color);">
+                                    {{ menu.MenuURL|default:"-" }}
+                                </code>
+                            </td>
+                            <td>
+                                {% if menu.IsDeleted %}
+                                    <span class="badge badge-deleted">Deleted</span>
+                                {% elif menu.IsActive == 1 or menu.IsActive == True %}
+                                    <span class="badge badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge badge-inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+        {% else %}
+            <div style="text-align: center; padding: 60px;">
+                <div style="width: 80px; height: 80px; background: var(--secondary-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: var(--text-light);">
+                    <i class="fas fa-folder-open fa-2xl"></i>
+                </div>
+                <h4 style="color: var(--text-main); margin-bottom: 8px;">No Menu Items Found</h4>
+                <p style="color: var(--text-light); margin-bottom: 24px;">Start by adding your first menu entry to the system.</p>
+                <button type="button" class="btn-standard" onclick="openAddMenuModal()">
+                    <i class="fas fa-plus"></i> Add Menu
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Custom Add Menu Modal -->
+<div id="addMenuModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <div class="modal-header">
+            <h5 class="custom-modal-title" style="margin:0; font-weight:700;"><i class="fas fa-plus-circle"></i> Add New Menu</h5>
+            <i class="fas fa-times" style="cursor:pointer; font-size:1.2rem;" onclick="closeAddMenuModal()"></i>
+        </div>
+        <form action="{% url 'menu_data_add' %}" method="POST" id="addMenuForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label class="form-label">Menu Name <span style="color:red;">*</span></label>
+                        <input type="text" class="sw-form-control" name="menu_name" placeholder="Dashboard" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Order <span style="color:red;">*</span></label>
+                        <input type="number" class="sw-form-control" name="display_order" placeholder="10" required>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 14px;">
+                    <label class="form-label">Menu URL (Route Path)</label>
+                    <input type="text" class="sw-form-control" name="menu_url" placeholder="/dashboard/analytics/">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
+                    <div class="form-group">
+                        <label class="form-label">Icon Class (FontAwesome)</label>
+                        <div style="position: relative;">
+                            <input type="text" class="sw-form-control" name="icon" placeholder="fas fa-home" oninput="previewIcon(this, 'addIconPrev')">
+                            <i id="addIconPrev" style="position: absolute; right: 12px; top: 12px; color: var(--sw-primary);"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Parent Menu</label>
+                        <select class="sw-form-control" name="parent_menu_id">
+                            <option value="">None (Root Menu)</option>
+                            {% for parent in parent_menus %}
+                                <option value="{{ parent.id }}">{{ parent.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 14px;">
+                    <label class="form-label">Active Status</label>
+                    <select class="sw-form-control" name="is_active">
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-standard btn-secondary" onclick="closeAddMenuModal()" style="height: 38px;">Cancel</button>
+                <button type="submit" class="btn-standard" style="height: 38px; background: var(--primary-gradient);">Create Menu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Custom Edit Menu Modal -->
+<div id="editMenuModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <div class="modal-header">
+            <h5 class="custom-modal-title" style="margin:0; font-weight:700;"><i class="fas fa-edit"></i> Update Menu</h5>
+            <i class="fas fa-times" style="cursor:pointer; font-size:1.2rem;" onclick="closeEditMenuModal()"></i>
+        </div>
+        <form method="POST" id="editMenuForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label class="form-label">Menu Name <span style="color:red;">*</span></label>
+                        <input type="text" class="sw-form-control" id="edit_menu_name" name="menu_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Order <span style="color:red;">*</span></label>
+                        <input type="number" class="sw-form-control" id="edit_display_order" name="display_order" required>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 14px;">
+                    <label class="form-label">Menu URL (Route Path)</label>
+                    <input type="text" class="sw-form-control" id="edit_menu_url" name="menu_url">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
+                    <div class="form-group">
+                        <label class="form-label">Icon Class (FontAwesome)</label>
+                        <div style="position: relative;">
+                            <input type="text" class="sw-form-control" id="edit_icon" name="icon" oninput="previewIcon(this, 'editIconPrev')">
+                            <i id="editIconPrev" style="position: absolute; right: 12px; top: 12px; color: var(--warning-color, #f59e0b);"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Parent Menu</label>
+                        <select class="sw-form-control" id="edit_parent_menu_id" name="parent_menu_id">
+                            <option value="">None (Root Menu)</option>
+                            {% for parent in parent_menus %}
+                                <option value="{{ parent.id }}">{{ parent.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 14px;">
+                    <label class="form-label">Active Status</label>
+                    <select class="sw-form-control" id="edit_is_active" name="is_active">
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-standard btn-secondary" onclick="closeEditMenuModal()" style="height: 38px;">Cancel</button>
+                <button type="submit" class="btn-standard" style="height: 38px; background: var(--primary-gradient);">Update Change</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewIcon(input, previewId) {
+        const preview = document.getElementById(previewId);
+        preview.className = input.value || '';
+    }
+
+    // Modal Handlers
+    function openAddMenuModal() {
+        const modal = document.getElementById('addMenuModal');
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddMenuModal() {
+        const modal = document.getElementById('addMenuModal');
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    function openEditMenuModal(btn) {
+        const modal = document.getElementById('editMenuModal');
+        const form = document.getElementById('editMenuForm');
+        
+        // Extract data
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        const url = btn.getAttribute('data-url');
+        const icon = btn.getAttribute('data-icon');
+        const order = btn.getAttribute('data-order');
+        const parent = btn.getAttribute('data-parent');
+        const status = btn.getAttribute('data-status');
+
+        // Populate form
+        form.action = `/master-data/menu-data/edit/${id}/`;
+        document.getElementById('edit_menu_name').value = name;
+        document.getElementById('edit_menu_url').value = url;
+        document.getElementById('edit_display_order').value = order;
+        document.getElementById('edit_icon').value = icon;
+        document.getElementById('edit_parent_menu_id').value = parent;
+        document.getElementById('edit_is_active').value = status;
+        
+        // Icon preview
+        document.getElementById('editIconPrev').className = icon;
+
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditMenuModal() {
+        const modal = document.getElementById('editMenuModal');
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    // Close on overlay click
+    window.onclick = function(event) {
+        if (event.target.classList.contains('custom-modal')) {
+            closeAddMenuModal();
+            closeEditMenuModal();
+        }
+    };
+</script>
+{% endblock %}

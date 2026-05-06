@@ -1,0 +1,102 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Error | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 160px);
+        padding: 40px 20px;
+        text-align: center;
+    }
+    .error-icon {
+        font-size: 80px;
+        color: #ef4444;
+        margin-bottom: 20px;
+    }
+    .error-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 15px;
+    }
+    .error-message {
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 30px;
+        max-width: 500px;
+    }
+    .error-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-primary {
+        background: #004aad;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #4338ca;
+    }
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #1f2937;
+        border: 1px solid #e5e7eb;
+    }
+    .btn-secondary:hover {
+        background: #e5e7eb;
+    }
+    body.dark-mode .error-title {
+        color: #f9fafb;
+    }
+    body.dark-mode .error-message {
+        color: #d1d5db;
+    }
+    body.dark-mode .btn-secondary {
+        background: #374151;
+        color: #f9fafb;
+        border-color: #4b5563;
+    }
+    body.dark-mode .btn-secondary:hover {
+        background: #4b5563;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h1 class="error-title">{{ error|default:"Something went wrong" }}</h1>
+    <p class="error-message">
+        {% if error_detail %}
+            {{ error_detail }}
+        {% else %}
+            We encountered an error while processing your request. Please try again or contact support if the problem persists.
+        {% endif %}
+    </p>
+    <div class="error-actions">
+        <a href="javascript:history.back()" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Go Back
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">
+            <i class="fas fa-home"></i> Go to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

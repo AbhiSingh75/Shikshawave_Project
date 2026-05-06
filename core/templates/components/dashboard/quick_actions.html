@@ -1,0 +1,46 @@
+{% if user.profile_id == 2 or user.profile_id == 3 %}
+<section class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="action-cards">
+        <a href="{% url 'student_admission' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="action-content">
+                <h3>New Student Admission</h3>
+                <p>Add a new student to the school</p>
+            </div>
+        </a>
+
+        <a href="{% url 'add_employee' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="action-content">
+                <h3>Add Teacher/Staff</h3>
+                <p>Add a new teacher or staff member</p>
+            </div>
+        </a>
+
+        <a href="{% url 'view_students' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="action-content">
+                <h3>View Students</h3>
+                <p>View and manage student records</p>
+            </div>
+        </a>
+
+        <a href="{% url 'view_applications' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="action-content">
+                <h3>View Applications</h3>
+                <p>Review student applications</p>
+            </div>
+        </a>
+    </div>
+</section>
+{% endif %}

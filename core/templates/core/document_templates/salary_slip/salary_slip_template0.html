@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Salary Slip - {{ employee_name }}</title>
+    <style>
+        @media print { .no-print { display: none; } @page { size: A4; margin: 8mm; } * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; padding: 10px; font-size: 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .btn-print { background: linear-gradient(135deg, #004aad, #6366f1); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin: 5px; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(79,70,229,0.3); }
+        .btn-print:hover { background: linear-gradient(135deg, #4338ca, #004aad); }
+        .btn-close { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+        .wrapper { width: 100%; max-width: 210mm; }
+        .container { width: 100%; margin: 0 auto; padding: 8mm; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .header { text-align: center; background: linear-gradient(135deg, #004aad, #6366f1); color: white; padding: 12px; border-radius: 8px 8px 0 0; margin: -8mm -8mm 12px -8mm; }
+        .school-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .school-info { font-size: 10px; opacity: 0.9; }
+        .title { text-align: center; font-size: 16px; font-weight: bold; color: #004aad; margin: 10px 0; padding: 8px; background: linear-gradient(135deg, #f0f4ff, #e0e7ff); border-radius: 6px; border-left: 4px solid #004aad; }
+        .section-title { font-size: 11px; font-weight: bold; color: #004aad; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 2px solid #e0e7ff; display: flex; align-items: center; gap: 6px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 8px 0; }
+        .info-card { padding: 6px 8px; background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-left: 3px solid #004aad; border-radius: 4px; font-size: 9px; }
+        .info-label { font-weight: 600; color: #64748b; font-size: 8px; display: block; margin-bottom: 2px; }
+        .info-value { color: #1e293b; font-weight: 600; }
+        .salary-section { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+        .salary-box { background: #f8fafc; border-radius: 6px; padding: 8px; border: 1px solid #e0e7ff; }
+        .salary-table { width: 100%; border-collapse: collapse; }
+        .salary-table th { background: linear-gradient(135deg, #004aad, #6366f1); color: white; padding: 5px 6px; text-align: left; font-size: 9px; font-weight: 600; }
+        .salary-table td { padding: 4px 6px; border-bottom: 1px solid #e0e7ff; font-size: 9px; }
+        .salary-table tbody tr:hover { background: #f0f4ff; }
+        .total-row { background: linear-gradient(135deg, #e0e7ff, #dbeafe) !important; font-weight: bold; }
+        .net-salary { background: linear-gradient(135deg, #004aad, #6366f1) !important; color: white !important; font-weight: bold; font-size: 11px; }
+        .bank-details { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 10px 0; padding: 8px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 6px; border: 2px solid #fbbf24; }
+        .bank-item { text-align: center; }
+        .bank-icon { font-size: 20px; margin-bottom: 4px; }
+        .bank-label { font-size: 9px; color: #92400e; font-weight: 600; }
+        .bank-value { font-size: 11px; color: #78350f; font-weight: bold; }
+        .payment-info { margin: 8px 0; padding: 8px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 6px; border: 1px solid #86efac; display: flex; gap: 15px; font-size: 9px; }
+        .payment-item { display: flex; align-items: center; gap: 6px; }
+        .payment-icon { color: #16a34a; }
+        .signature-section { display: flex; justify-content: space-between; margin-top: 15px; }
+        .signature-box { text-align: center; }
+        .signature-line { border-top: 2px solid #1e293b; padding-top: 4px; min-width: 120px; font-size: 9px; font-weight: 600; margin-top: 20px; }
+        .footer { margin-top: 12px; padding: 8px; background: #f8fafc; border-radius: 6px; text-align: center; font-size: 8px; color: #64748b; border: 1px dashed #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="no-print" style="text-align: center; margin-bottom: 10px;">
+            <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+            <button class="btn-print btn-close" onclick="window.close()">Close</button>
+        </div>
+        
+        <div class="container">
+            <div class="header">
+                {% if school_logo %}<img src = "{{ school_logo }}" alt = "Logo" style = "width: 50px; height: 50px; margin: 0 auto 8px; display: block; border-radius: 50%; border: 3px solid white; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">{% endif %}
+                <div class="school-name">{{ school_name }}</div>
+                <div class="school-info">📍 {{ school_address }} | 📞 {{ school_phone }} | ✉️ {{ school_email }}</div>
+            </div>
+            <div class="title">💰 SALARY SLIP</div>
+            <div class="section-title">👤 Employee Information</div>
+            <div class="info-grid">
+                <div class="info-card"><span class="info-label">🆔 Employee Code</span><span class="info-value">{{ employee_code }}</span></div>
+                <div class="info-card"><span class="info-label">👨💼 Employee Name</span><span class="info-value">{{ employee_name }}</span></div>
+                <div class="info-card"><span class="info-label">💼 Designation</span><span class="info-value">{{ designation }}</span></div>
+                <div class="info-card"><span class="info-label">📅 Salary Month</span><span class="info-value">{{ salary_month }}</span></div>
+                <div class="info-card"><span class="info-label">🔖 Reference ID</span><span class="info-value">{{ salary_reference_id }}</span></div>
+                <div class="info-card"><span class="info-label">✅ Payment Date</span><span class="info-value">{{ payment_date }}</span></div>
+            </div>
+            <div class="section-title">🏦 Bank & Account Details</div>
+            <div class="bank-details">
+                <div class="bank-item"><div class="bank-icon">🏦</div><div class="bank-label">BANK ACCOUNT</div><div class="bank-value">{{ bank_account }}</div></div>
+                <div class="bank-item"><div class="bank-icon">📱</div><div class="bank-label">UPI ID</div><div class="bank-value">{{ upi_id }}</div></div>
+                <div class="bank-item"><div class="bank-icon">🔢</div><div class="bank-label">UAN NUMBER</div><div class="bank-value">{{ uan_number }}</div></div>
+            </div>
+            <div class="section-title">💵 Salary Breakdown</div>
+            <div class="salary-section">
+                <div class="salary-box">
+                    <table class="salary-table">
+                        <thead><tr><th>📈 Earnings</th><th style="text-align: right; width: 90px;">Amount (₹)</th></tr></thead>
+                        <tbody>
+                            {% if earnings %}{% for earning in earnings %}<tr><td>{{ earning.name }}</td><td style = "text-align: right;">{{ earning.amount }}</td></tr>{% endfor %}{% endif %}
+                            <tr class="total-row"><td><strong>Gross Salary</strong></td><td style="text-align: right;"><strong>{{ gross_salary }}</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="salary-box">
+                    <table class="salary-table">
+                        <thead><tr><th>📉 Deductions</th><th style="text-align: right; width: 90px;">Amount (₹)</th></tr></thead>
+                        <tbody>
+                            {% if deductions %}{% for deduction in deductions %}<tr><td>{{ deduction.name }}</td><td style = "text-align: right;">{{ deduction.amount }}</td></tr>{% endfor %}{% else %}<tr><td colspan = "2" style = "text-align: center; color: #64748b;">No deductions</td></tr>{% endif %}
+                            <tr class="total-row"><td><strong>Total Deductions</strong></td><td style="text-align: right;"><strong>{{ total_deductions }}</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <table class="salary-table" style="margin-top: 10px;">
+                <tr class="net-salary"><td><strong>💰 NET SALARY PAYABLE</strong></td><td style="text-align: right;"><strong>₹ {{ net_salary }}</strong></td></tr>
+            </table>
+            <div class="section-title">💳 Payment Information</div>
+            <div class="payment-info">
+                <div class="payment-item"><span class="payment-icon">💳</span><strong>Mode:</strong> {{ payment_mode }}</div>
+                <div class="payment-item"><span class="payment-icon">🔖</span><strong>Reference:</strong> {{ transaction_ref }}</div>
+            </div>
+            <div class="signature-section">
+                <div class="signature-box"><div class="signature-line">👨💼 Employee Signature</div></div>
+                <div class="signature-box"><div class="signature-line">✍️ Authorized Signatory</div></div>
+            </div>
+            <div class="footer">🔒 This is a computer-generated salary slip and does not require a physical signature. For any queries, please contact the accounts department.</div>
+        </div>
+    </div>
+</body>
+</html>

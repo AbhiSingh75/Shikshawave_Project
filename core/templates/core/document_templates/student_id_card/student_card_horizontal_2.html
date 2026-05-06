@@ -1,0 +1,230 @@
+<!-- Horizontal ID Card Template 2 - Modern Green Professional -->
+<div class="id-card horizontal-card template-h2" data-student-id="{{ student.StudentID }}">
+    <!-- Header Bar -->
+    <div class="card-header-bar">
+        {% if student.SchoolLogoBase64 %}
+        <img src="data:image/jpeg;base64,{{ student.SchoolLogoBase64 }}" alt="School Logo" class="header-logo">
+        {% endif %}
+        <span class="header-title"><i class="fas fa-school"></i> {{ student.SchoolName|default:"School Name" }}</span>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="card-body">
+        <!-- Photo Section -->
+        <div class="photo-container">
+            {% if student.PhotoBase64 %}
+            <img src="data:image/jpeg;base64,{{ student.PhotoBase64 }}" alt="{{ student.FullName }}" class="student-photo">
+            {% else %}
+            <div class="photo-placeholder">{{ student.FullName|first|upper }}</div>
+            {% endif %}
+        </div>
+        
+        <!-- Info Section -->
+        <div class="info-container">
+            <!-- Student Name -->
+            <div class="name-section">
+                <i class="fas fa-user"></i>
+                <span>{{ student.FullName }}</span>
+            </div>
+            
+            <!-- Info Grid -->
+            <div class="details-grid">
+                <div class="detail-box">
+                    <div class="detail-label"><i class="fas fa-hashtag"></i> ID:</div>
+                    <div class="detail-value">{{ student.StudentCode }}</div>
+                </div>
+                
+                <div class="detail-box">
+                    <div class="detail-label"><i class="fas fa-graduation-cap"></i> CLASS:</div>
+                    <div class="detail-value">{{ student.ClassName }}-{{ student.SectionName }}</div>
+                </div>
+                
+                <div class="detail-box">
+                    <div class="detail-label"><i class="fas fa-list-ol"></i> ROLL:</div>
+                    <div class="detail-value">{{ student.RollNumber|default:"N/A" }}</div>
+                </div>
+                
+                <div class="detail-box">
+                    <div class="detail-label"><i class="fas fa-birthday-cake"></i> DOB:</div>
+                    <div class="detail-value">{{ student.DateOfBirth|date:"d/m/Y"|default:"N/A" }}</div>
+                </div>
+                
+                <div class="detail-box">
+                    <div class="detail-label"><i class="fas fa-phone"></i> CONTACT:</div>
+                    <div class="detail-value">{{ student.ParentMobile|default:"N/A" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Main Card Container */
+.horizontal-card.template-h2 {
+    width: 450px;
+    height: 180px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    margin: 0 auto;
+    border: 2px solid #10b981;
+    font-family: Arial, sans-serif;
+}
+
+/* Header Bar */
+.template-h2 .card-header-bar {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+}
+
+.template-h2 .header-logo {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: white;
+    padding: 2px;
+}
+
+.template-h2 .header-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: white !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.template-h2 .header-title i {
+    font-size: 11px;
+    color: white !important;
+}
+
+/* Main Body */
+.template-h2 .card-body {
+    display: flex;
+    padding: 12px;
+    gap: 12px;
+    height: calc(100% - 40px);
+}
+
+/* Photo Container */
+.template-h2 .photo-container {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.template-h2 .student-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 3px solid #10b981;
+}
+
+.template-h2 .photo-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white !important;
+    font-weight: bold;
+    border: 3px solid #10b981;
+}
+
+/* Info Container */
+.template-h2 .info-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Name Section */
+.template-h2 .name-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #1f2937 !important;
+    padding: 4px 8px;
+    background: #f0fdf4;
+    border-radius: 6px;
+    border-left: 3px solid #10b981;
+}
+
+.template-h2 .name-section i {
+    font-size: 11px;
+    color: #10b981 !important;
+}
+
+/* Details Grid */
+.template-h2 .details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex: 1;
+}
+
+/* Detail Boxes */
+.template-h2 .detail-box {
+    background: #f9fafb;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border-left: 3px solid #10b981;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.template-h2 .detail-label {
+    font-size: 8px;
+    font-weight: 600;
+    color: #10b981 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.template-h2 .detail-label i {
+    font-size: 7px;
+    color: #10b981 !important;
+}
+
+.template-h2 .detail-value {
+    font-size: 10px;
+    font-weight: 700;
+    color: #1f2937 !important;
+    line-height: 1.2;
+}
+
+/* FontAwesome Icons */
+.template-h2 i {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+/* Responsive Design */
+@media (max-width: 500px) {
+    .horizontal-card.template-h2 {
+        width: 100%;
+        max-width: 450px;
+    }
+}
+</style>

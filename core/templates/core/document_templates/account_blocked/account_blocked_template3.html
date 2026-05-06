@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin: 0; padding: 0; background: #0f172a; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .glass-container { max-width: 600px; margin: 40px auto; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 32px; overflow: hidden; color: #f8fafc; }
+        .hero { background: linear-gradient(135deg, #003B73, #4f46e5); padding: 50px 40px; text-align: center; position: relative; }
+        .hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 100px; background: linear-gradient(to top, rgba(15, 23, 42, 0), rgba(15, 23, 42, 1)); opacity: 0.1; }
+        .school-info { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+        .school-logo { width: 44px; height: 44px; border-radius: 12px; background: white; padding: 4px; }
+        .content-body { padding: 40px; }
+        h1 { font-size: 28px; font-weight: 700; color: #ffffff; margin: 0 0 16px 0; }
+        p { color: #94a3b8; font-size: 16px; line-height: 1.6; }
+        .otp-display { margin: 35px 0; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; text-align: center; }
+        .otp-text { font-size: 48px; font-weight: 800; color: #f59e0b; letter-spacing: 12px; text-shadow: 0 0 30px rgba(245, 158, 11, 0.3); }
+        .security-card { background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 25px; margin-top: 30px; }
+        .sec-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .sec-row:last-child { margin-bottom: 0; }
+        .label { color: #64748b; }
+        .value { color: #cbd5e1; font-weight: 600; }
+        .footer { padding: 30px; text-align: center; font-size: 12px; color: #475569; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body>
+    <div class="glass-container">
+        <div class="hero">
+            <div class="school-info">
+                {% if school_logo %}<img src="{{ school_logo }}" class="school-logo">{% endif %}
+                <span style="font-weight: 700; font-size: 20px;">{{ school_name }}</span>
+            </div>
+            <h1>Security Alert</h1>
+        </div>
+        <div class="content-body">
+            {% if code == 'LOGIN_OTP' or code == 'PASSWORD_RESET_OTP' %}
+                <p>Verify your identity by entering the code below. Valid for {{ valid_minutes }} minutes.</p>
+                <div class="otp-display"><div class="otp-text">{{ otp }}</div></div>
+            {% elif code == 'ACCOUNT_BLOCKED' %}
+                <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                    <h3 style="color: #ef4444; margin: 0 0 8px 0;">Access Restricted</h3>
+                    <p style="color: #fca5a5; margin: 0;">Your account has been blocked for 24 hours due to excessive failed login attempts.</p>
+                </div>
+            {% elif code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+                <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                    <h3 style="color: #10b981; margin: 0 0 8px 0;">Success</h3>
+                    <p style="color: #6ee7b7; margin: 0;">Your account password was updated successfully.</p>
+                </div>
+            {% endif %}
+
+            <div class="security-card">
+                <div class="sec-row"><span class="label">IP Address</span><span class="value">{{ ip_address }}</span></div>
+                <div class="sec-row"><span class="label">Device Info</span><span class="value">{{ browser }}</span></div>
+                <div class="sec-row"><span class="label">Identity</span><span class="value">{{ user_name }} ({{ profile }})</span></div>
+            </div>
+        </div>
+        <div class="footer">
+            ShikshaWave Elite Protection &bull; Secure Infrastructure
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% load core_extras %}
+<div class="sw-card sw-staff-header-profile compact">
+    <div class="sw-staff-profile-main">
+        <div class="sw-staff-avatar-wrapper small">
+            {% if photo_base64 %}
+            <img src="data:image/jpeg;base64,{{ photo_base64 }}" alt="Staff Photo" class="sw-staff-profile-avatar">
+            {% else %}
+            <div class="sw-staff-profile-avatar-default">
+                <i class="fas fa-user"></i>
+            </div>
+            {% endif %}
+            <div class="sw-staff-status-dot active"></div>
+        </div>
+        
+        <div class="sw-staff-profile-details">
+            <h1 class="sw-staff-profile-name small">{{ staff.EmployeeName|default:"N/A" }}</h1>
+            <div class="sw-staff-profile-meta compact">
+                <span class="sw-meta-badge code"><i class="fas fa-id-badge"></i> {{ staff.EmployeeCode|default:"N/A" }}</span>
+                <span class="sw-meta-badge designation"><i class="fas fa-briefcase"></i> {{ staff.ProfileName|default:"N/A" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="sw-staff-header-actions compact">
+        <button class="sw-btn btn-view-salary sw-btn-sm" onclick="openSalaryModal('{{ staff.EmployeeCode }}')">
+            <i class="fas fa-money-bill-wave"></i> <span>Salary</span>
+        </button>
+        <button class="sw-btn btn-assign-timetable sw-btn-sm" onclick="openTimetableModal('{{ staff.EmployeeCode }}', '{{ staff.EmployeeName }}')">
+            <i class="fas fa-calendar-alt"></i> <span>Timetable</span>
+        </button>
+        <a href="{% url 'print_job_letter' %}?employee_code={{ staff.EmployeeCode|encrypt_id }}" class="sw-btn btn-job-letter sw-btn-sm" target="_blank">
+            <i class="fas fa-file-contract"></i> <span>Job Letter</span>
+        </a>
+        <a href="{% url 'view_staff' %}" class="sw-btn btn-back sw-btn-sm">
+            <i class="fas fa-arrow-left"></i> <span>Back</span>
+        </a>
+    </div>
+</div>

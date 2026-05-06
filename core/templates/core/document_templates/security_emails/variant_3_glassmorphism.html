@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; color: #f1f5f9; margin: 0; padding: 0; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #0f172a; padding: 40px 0; }
+        
+        .glass-card { 
+            max-width: 580px; 
+            margin: 0 auto; 
+            background-color: #1e293b; /* Fallback for Glass */
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 24px; 
+        }
+
+        .card-inner { padding: 25px; }
+        
+        .status-badge { display: inline-block; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .status-badge.info { color: #38bdf8; background-color: rgba(56, 189, 248, 0.1); }
+        .status-badge.danger { color: #fb7185; background-color: rgba(251, 113, 133, 0.1); }
+        .status-badge.success { color: #4ade80; background-color: rgba(74, 222, 128, 0.1); }
+        
+        .otp-display { background-color: #0f172a; border-radius: 16px; padding: 30px; text-align: center; margin: 25px 0; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .otp-code { font-family: 'Courier New', monospace; font-size: 40px; font-weight: 900; color: #ffffff; letter-spacing: 12px; }
+        
+        .audit-grid { 
+            width: 100%; 
+            border-top: 1px solid rgba(255, 255, 255, 0.05); 
+            margin-top: 30px; 
+            border-collapse: collapse;
+        }
+        .audit-grid td { padding: 12px 0; }
+        .audit-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+        .audit-val { font-size: 13px; font-weight: 500; color: #cbd5e1; word-break: break-all; overflow-wrap: break-word; }
+        
+        .action-link { display: inline-block; background-color: #1976D2; color: #ffffff !important; padding: 14px 32px; border-radius: 14px; font-weight: 700; text-decoration: none; margin-top: 20px; }
+        .footer { margin-top: 35px; text-align: center; font-size: 11px; color: #475569; }
+    </style>
+</head>
+<body>
+    <table class="wrapper" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td align="center">
+                <table class="glass-card" cellpadding="0" cellspacing="0" border="0" style="background-color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <tr>
+                        <td class="card-inner">
+                            <div class="logo">
+                                <div style="font-size: 26px; font-weight: 900; color: #ffffff; letter-spacing: 1.5px; text-transform: uppercase;">{{ school_name }}</div>
+                            </div>
+                            
+                            {% if code == 'LOGIN_OTP' or code == 'PASSWORD_RESET_OTP' %}
+                                <div class="status-badge info">Security Protocol</div>
+                                <h2 style="color: #ffffff; font-size: 28px; margin-bottom: 20px; letter-spacing: -1px;">{{ header_title|default:"Secure Gateway" }}</h2>
+                                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">Verification protocol initiated for <b>{{ user_name }}</b>. Use the following cryptographic token to authorize your session.</p>
+                                <div class="otp-display"><div class="otp-code">{{ otp }}</div></div>
+                                <div class="process-note" style="color: #64748b; font-size: 13px;">Expires in {{ valid_minutes | default:15 }} minutes. Security level: High.</div>
+                                
+                            {% elif code == 'ACCOUNT_BLOCKED' %}
+                                <div class="status-badge danger">Identity Lockdown</div>
+                                <h2 style="color: #ffffff; font-size: 28px; margin-bottom: 20px; letter-spacing: -1px;">System Protection Active</h2>
+                                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">Access for <b>{{ user_name }}</b> has been programmatically restricted for 24 hours. Multiple authentication failures triggered an automated safety freeze.</p>
+                                <p style="color: #cbd5e1; font-size: 16px; line-height: 1.7;">To bypass this lock, manual verification by school IT administration is required.</p>
+                                
+                            {% elif code == 'PASSWORD_CHANGED' or code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+                                <div class="status-badge success">Credentials Synced</div>
+                                <h2 style="color: #ffffff; font-size: 28px; margin-bottom: 20px; letter-spacing: -1px;">Password Refreshed</h2>
+                                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">Authentication parameters for your account were updated successfully on {{ timestamp }}. Your account is now operating with new credentials.</p>
+                                <p class="process-note" style="color: #fb7185; font-size: 13px;">If this update was not authorized by you, initiate emergency lockdown immediately.</p>
+                                
+                            {% elif code == 'NEW_LOGIN_ALERT' %}
+                                <div class="status-badge info">Access Detection</div>
+                                <h2 style="color: #ffffff; font-size: 28px; margin-bottom: 20px; letter-spacing: -1px;">New Device Link</h2>
+                                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">A successful authentication occurred from a new hardware fingerprint. We are flagging this to ensure institutional security parameters are met.</p>
+                                <a href="#" class="action-link" style="background-color: #1976D2; color: #ffffff !important;">Authorize Device</a>
+                            {% endif %}
+                    
+                            <table class="audit-grid">
+                                <tr>
+                                    <td width="50%">
+                                        <span class="audit-label">Identity ID</span>
+                                        <span class="audit-val">{{ login_id | default:user_name }}</span>
+                                    </td>
+                                    <td width="50%">
+                                        <span class="audit-label">Network IP</span>
+                                        <span class="audit-val">{{ ip_address }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="50%">
+                                        <span class="audit-label">Access Role</span>
+                                        <span class="audit-val">{{ profile | default:"Authenticated User" }}</span>
+                                    </td>
+                                    <td width="50%">
+                                        <span class="audit-label">Client</span>
+                                        <span class="audit-val">{{ browser }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div class="footer">
+                                <p style="color: #475569;">&copy; 2026 <b style="color: #64748b;">ShikshaWave</b>. Future of Education.</p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

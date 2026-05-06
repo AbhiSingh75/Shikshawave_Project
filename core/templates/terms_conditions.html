@@ -1,0 +1,620 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Terms & Conditions | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium High-Density Layout (Sync with Academic Year) */
+    .sw-container {
+        background: var(--bg-color);
+        min-height: 100vh;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+
+    /* Standardized Control Row */
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--card-bg, #fff);
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color, #e5e7eb);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .controls-row {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .controls-left h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    body.dark-mode .controls-left h3 {
+        background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .count-badge {
+        font-size: 0.75rem;
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+        -webkit-text-fill-color: white;
+    }
+
+    .controls-right, .control-buttons {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    /* Premium Table Styling */
+    .table-card {
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color, #e5e7eb);
+        border-radius: 16px;
+        overflow-x: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .table-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .sw-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .sw-table th {
+        background: var(--primary-color);
+        padding: 14px 20px;
+        text-align: left;
+        font-size: 0.725rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #fff;
+    }
+
+    body.dark-mode .sw-table th {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sw-table td {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        vertical-align: middle;
+    }
+
+    body.dark-mode .sw-table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .term-desc {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text-muted);
+    }
+
+    /* Badges */
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+    .category-badge { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .order-badge { background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color); border: 1px solid rgba(var(--primary-rgb), 0.2); }
+    
+    .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-inactive { background: #fef2f2; color: #991b1b; }
+    body.dark-mode .status-active { background: #064e3b; color: #34d399; }
+    body.dark-mode .status-inactive { background: #450a0a; color: #f87171; }
+
+    /* Action Buttons */
+    .table-actions { display: flex; gap: 8px; }
+    .btn-icon {
+        width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+        border: 1px solid var(--border-color); background: var(--card-bg); cursor: pointer; transition: all 0.2s;
+    }
+    .edit-btn { color: #f59e0b; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15); }
+    .edit-btn:hover { background: #f59e0b; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); }
+    .delete-btn { color: #ef4444; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); }
+    .delete-btn:hover { background: #ef4444; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+
+    /* Standardized Buttons */
+    .btn-standard {
+        padding: 0 20px; height: 40px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+        display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;
+        border: none; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%); color: white !important;
+    }
+    .btn-standard:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(var(--primary-rgb), 0.3); filter: brightness(1.1); }
+
+    /* Modal Styling */
+    .sw-modal-container {
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); z-index: 10000;
+        align-items: center; justify-content: center; padding: 20px;
+    }
+    .sw-modal-container.show { display: flex !important; }
+
+    .sw-modal {
+        background: var(--card-bg); width: 100%; max-width: 650px; border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden;
+        border: 1px solid var(--border-color); animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex; flex-direction: column;
+    }
+    @keyframes modalPop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    .sw-modal-header { padding: 16px 24px; background: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
+    .sw-modal-title { display: flex; align-items: center; gap: 12px; color: white; }
+    .sw-modal-title h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: white !important; }
+    .sw-modal-close {
+        width: 30px; height: 30px; border-radius: 8px; background: rgba(255, 255, 255, 0.15);
+        color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+    }
+    .sw-modal-close:hover { background: rgba(255, 255, 255, 0.25); transform: rotate(90deg); }
+
+    .sw-modal-body { padding: 16px 20px; }
+    .sw-modal-footer {
+        padding: 12px 24px; background: var(--bg-hover, #f1f5f9); display: flex; justify-content: flex-end; align-items: center;
+        gap: 12px; border-top: 1px solid var(--border-color);
+    }
+    body.dark-mode .sw-modal-footer { background: rgba(0, 0, 0, 0.2); }
+
+    .sw-form-group { margin-bottom: 12px; }
+    .sw-form-label { display: block; margin-bottom: 6px; font-weight: 800; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-color); }
+    .sw-form-control {
+        width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 10px;
+        background: var(--card-bg); color: var(--text-main); font-size: 0.9rem; font-weight: 600; transition: all 0.2s; box-sizing: border-box;
+    }
+    .sw-form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1); }
+
+    .sw-checkbox-row {
+        display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; cursor: pointer;
+        border: 1.5px solid var(--border-color); transition: all 0.2s; height: 42px; box-sizing: border-box;
+    }
+    .sw-checkbox-row input { width: 18px; height: 18px; accent-color: var(--primary-color); }
+    .sw-checkbox-row label { margin: 0; cursor: pointer; font-weight: 700; color: var(--text-main); font-size: 0.9rem; }
+
+    .btn-cancel { background: var(--border-color); color: var(--text-muted); border: none; font-weight: 600; cursor: pointer; padding: 10px 24px; border-radius: 12px; transition: all 0.2s; }
+    .btn-save { background: var(--primary-color); color: #fff !important; padding: 10px 24px; border-radius: 12px; border: none; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; }
+
+    .mobile-cards { display: none; }
+
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+        .controls-row { flex-direction: column; gap: 12px; align-items: stretch; padding: 15px; }
+        .controls-right, .control-buttons { flex-direction: column; width: 100%; gap: 10px; }
+        .sw-form-control { width: 100% !important; min-width: unset !important; }
+        .btn-standard { width: 100%; justify-content: center; }
+
+        .terms-table { display: none; }
+        .mobile-cards { display: flex; flex-direction: column; gap: 15px; }
+        .mobile-card {
+            background: var(--card-bg); border-radius: 16px; padding: 20px;
+            border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .mobile-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .mobile-card-title { font-weight: 700; font-size: 1rem; color: var(--text-main); flex: 1; }
+        .mobile-card-body { margin-bottom: 15px; }
+        .mobile-card-text { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+        .mobile-card-details { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .mobile-card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 15px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-container">
+    <!-- Premium Control Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-file-contract" style="color: var(--primary-color);"></i>
+                Terms & Conditions
+                <span class="count-badge" id="termsCount">{{ terms|length }}</span>
+            </h3>
+        </div>
+
+        <div class="controls-right">
+            <div class="control-buttons">
+                {% if is_super_admin %}
+                <select id="school_selector" class="sw-form-control" style="width: auto; min-width: 240px; margin: 0; cursor: pointer;" onchange="loadTerms()">
+                    <option value="">-- Select School --</option>
+                    {% for school in schools %}
+                    <option value="{{ school.SchoolID }}" {% if selected_school_id == school.SchoolID %}selected{% endif %}>{{ school.DisplayName }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+
+                <button class="btn-standard" onclick="openModal()">
+                    <i class="fas fa-plus"></i> <span class="btn-label">Add Terms</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Section -->
+    <div id="termsList">
+        {% if terms %}
+        <!-- Desktop View -->
+        <div class="table-card terms-table">
+            <table class="sw-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">SN</th>
+                        <th style="width: 120px; text-align: center;">Actions</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th style="width: 100px;">Order</th>
+                        <th style="width: 120px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for term in terms %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="table-actions" style="justify-content: center;">
+                                <button class="btn-icon edit-btn" onclick="editTerm({{ term.Id }}, '{{ term.Title|escapejs }}', '{{ term.Description|escapejs }}', '{{ term.Category|escapejs }}', {{ term.DisplayOrder }}, {{ term.IsActive|yesno:'true,false' }})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon delete-btn" onclick="deleteTerm({{ term.Id }})" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td><div style="font-weight: 700; color: var(--text-main);">{{ term.Title }}</div></td>
+                        <td><div class="term-desc" title="{{ term.Description }}">{{ term.Description }}</div></td>
+                        <td>{% if term.Category %}<span class="badge category-badge">{{ term.Category }}</span>{% else %}-{% endif %}</td>
+                        <td><span class="badge order-badge">#{{ term.DisplayOrder }}</span></td>
+                        <td>
+                            <span class="status-pill {% if term.IsActive %}status-active{% else %}status-inactive{% endif %}">
+                                {% if term.IsActive %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile View -->
+        <div class="mobile-cards">
+            {% for term in terms %}
+            <div class="mobile-card">
+                <div class="mobile-card-header">
+                    <div class="mobile-card-title">{{ term.Title }}</div>
+                    <span class="badge order-badge">#{{ term.DisplayOrder }}</span>
+                </div>
+                <div class="mobile-card-body">
+                    <div class="mobile-card-text">{{ term.Description }}</div>
+                    <div class="mobile-card-details">
+                        {% if term.Category %}<span class="badge category-badge">{{ term.Category }}</span>{% endif %}
+                        <span class="status-pill {% if term.IsActive %}status-active{% else %}status-inactive{% endif %}">
+                            {% if term.IsActive %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="mobile-card-footer">
+                    <div class="table-actions" style="width: 100%; justify-content: flex-end;">
+                        <button class="btn-icon edit-btn" onclick="editTerm({{ term.Id }}, '{{ term.Title|escapejs }}', '{{ term.Description|escapejs }}', '{{ term.Category|escapejs }}', {{ term.DisplayOrder }}, {{ term.IsActive|yesno:'true,false' }})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon delete-btn" onclick="deleteTerm({{ term.Id }})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="table-card" style="text-align: center; padding: 80px 20px;">
+            <i class="fas fa-file-contract" style="font-size: 4rem; opacity: 0.1; margin-bottom: 20px; display: block;"></i>
+            <p style="color: var(--text-muted); font-weight: 500;">
+                {% if is_super_admin and not selected_school_id %}Please select a school to view terms.{% else %}No terms & conditions found. Click "Add Terms" to create one.{% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Standardized Pop-up Modal -->
+<div id="termModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-edit"></i>
+                <h2 id="modalTitle">Add Terms & Conditions</h2>
+            </div>
+            <button type="button" class="sw-modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body" style="max-height: 85vh; overflow-y: auto;">
+            <form id="termForm" method="POST" action="{% url 'terms_conditions_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="term_id" id="term_id">
+                {% if is_super_admin %}
+                <input type="hidden" name="school_id" id="modal_school_id">
+                {% endif %}
+                
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 12px;">
+                    <div class="sw-form-group" style="margin-bottom: 0;">
+                        <label class="sw-form-label">Title *</label>
+                        <input type="text" name="title" id="title" class="sw-form-control" required placeholder="Enter title">
+                    </div>
+                    
+                    <div class="sw-form-group" style="margin-bottom: 0;">
+                        <label class="sw-form-label">Category</label>
+                        <select name="category" id="category" class="sw-form-control">
+                            <option value="">-- Select --</option>
+                            <option value="General">General</option>
+                            <option value="Admission">Admission</option>
+                            <option value="Payment">Payment</option>
+                            <option value="Refund">Refund</option>
+                            <option value="Privacy">Privacy</option>
+                            <option value="Usage">Usage</option>
+                            <option value="Liability">Liability</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="sw-form-group">
+                    <label class="sw-form-label">Description *</label>
+                    <textarea name="description" id="description" class="sw-form-control" style="min-height: 80px;" required placeholder="Enter full description"></textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Display Order</label>
+                        <input type="number" name="display_order" id="display_order" class="sw-form-control" value="0" min="0">
+                    </div>
+                    
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">Status</label>
+                        <div class="sw-checkbox-row" onclick="document.getElementById('is_active').click()" style="margin-top: 0;">
+                            <input type="checkbox" name="is_active" id="is_active" checked onclick="event.stopPropagation()">
+                            <label for="is_active">ACTIVE STATUS</label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="sw-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button type="submit" form="termForm" class="btn-save">
+                <i class="fas fa-check"></i> Save Details
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal() {
+    {% if is_super_admin %}
+    const schoolId = document.getElementById('school_selector').value;
+    if (!schoolId) {
+        Swal.fire({ icon: 'warning', title: 'Action Required', text: 'Please select a school first' });
+        return;
+    }
+    document.getElementById('modal_school_id').value = schoolId;
+    {% endif %}
+    
+    document.getElementById('modalTitle').textContent = 'Add Terms & Conditions';
+    document.getElementById('term_id').value = '';
+    document.getElementById('title').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('category').value = '';
+    document.getElementById('display_order').value = '0';
+    document.getElementById('is_active').checked = true;
+    document.getElementById('termModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('termModal').classList.remove('show');
+}
+
+function editTerm(id, title, description, category, order, active) {
+    {% if is_super_admin %}
+    const schoolId = document.getElementById('school_selector').value;
+    document.getElementById('modal_school_id').value = schoolId;
+    {% endif %}
+    
+    document.getElementById('modalTitle').textContent = 'Edit Terms & Conditions';
+    document.getElementById('term_id').value = id;
+    document.getElementById('title').value = title;
+    document.getElementById('description').value = description;
+    document.getElementById('category').value = category || '';
+    document.getElementById('display_order').value = order;
+    document.getElementById('is_active').checked = active;
+    document.getElementById('termModal').classList.add('show');
+}
+
+function deleteTerm(id) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: 'rgba(255,255,255,0.1)',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            {% if is_super_admin %}
+            const schoolId = document.getElementById('school_selector').value;
+            {% endif %}
+            
+            fetch('{% url "terms_conditions_delete" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: 'term_id=' + id{% if is_super_admin %} + '&school_id=' + schoolId{% endif %}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'SUCCESS') {
+                    location.reload();
+                } else {
+                    Swal.fire('Error!', data.message, 'error');
+                }
+            });
+        }
+    });
+}
+
+{% if is_super_admin %}
+function loadTerms() {
+    const schoolId = document.getElementById('school_selector').value;
+    if (!schoolId) {
+        document.getElementById('termsList').innerHTML = '<div class="table-card" style="text-align: center; padding: 80px 20px;"><i class="fas fa-file-contract" style="font-size: 4rem; opacity: 0.1; margin-bottom: 20px; display: block;"></i><p style="color: var(--text-muted); font-weight: 500;">Please select a school to view terms.</p></div>';
+        document.getElementById('termsCount').textContent = '0';
+        return;
+    }
+    
+    fetch('{% url "terms_conditions_load" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'school_id=' + schoolId
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'SUCCESS') {
+            const terms = data.data;
+            document.getElementById('termsCount').textContent = terms.length;
+            
+            if (terms.length === 0) {
+                document.getElementById('termsList').innerHTML = '<div class="table-card" style="text-align: center; padding: 80px 20px;"><i class="fas fa-file-contract" style="font-size: 4rem; opacity: 0.1; margin-bottom: 20px; display: block;"></i><p style="color: var(--text-muted); font-weight: 500;">No terms & conditions found. Click "Add Terms" to create one.</p></div>';
+            } else {
+                let tableHtml = `
+                    <div class="table-card terms-table">
+                        <table class="sw-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">SN</th>
+                                    <th style="width: 120px; text-align: center;">Actions</th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th style="width: 100px;">Order</th>
+                                    <th style="width: 120px;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                let mobileHtml = '<div class="mobile-cards">';
+                
+                terms.forEach((term, index) => {
+                    const catBadge = term.Category ? `<span class="badge category-badge">${escapeHtml(term.Category)}</span>` : '-';
+                    const activePill = term.IsActive ? 'status-active' : 'status-inactive';
+                    const activeText = term.IsActive ? 'Active' : 'Inactive';
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <div class="table-actions" style="justify-content: center;">
+                                    <button class="btn-icon edit-btn" onclick="editTerm(${term.Id}, '${escapeJs(term.Title)}', '${escapeJs(term.Description)}', '${escapeJs(term.Category || '')}', ${term.DisplayOrder}, ${term.IsActive ? 'true' : 'false'})" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon delete-btn" onclick="deleteTerm(${term.Id})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td><div style="font-weight: 700; color: var(--text-main);">${escapeHtml(term.Title)}</div></td>
+                            <td><div class="term-desc" title="${escapeHtml(term.Description)}">${escapeHtml(term.Description)}</div></td>
+                            <td>${catBadge}</td>
+                            <td><span class="badge order-badge">#${term.DisplayOrder}</span></td>
+                            <td><span class="status-pill ${activePill}">${activeText}</span></td>
+                        </tr>
+                    `;
+                    
+                    mobileHtml += `
+                        <div class="mobile-card">
+                            <div class="mobile-card-header">
+                                <div class="mobile-card-title">${escapeHtml(term.Title)}</div>
+                                <span class="badge order-badge">#${term.DisplayOrder}</span>
+                            </div>
+                            <div class="mobile-card-body">
+                                <div class="mobile-card-text">${escapeHtml(term.Description)}</div>
+                                <div class="mobile-card-details">
+                                    ${term.Category ? `<span class="badge category-badge">${escapeHtml(term.Category)}</span>` : ''}
+                                    <span class="status-pill ${activePill}">${activeText}</span>
+                                </div>
+                            </div>
+                            <div class="mobile-card-footer">
+                                <div class="table-actions" style="width: 100%; justify-content: flex-end;">
+                                    <button class="btn-icon edit-btn" onclick="editTerm(${term.Id}, '${escapeJs(term.Title)}', '${escapeJs(term.Description)}', '${escapeJs(term.Category || '')}', ${term.DisplayOrder}, ${term.IsActive ? 'true' : 'false'})" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon delete-btn" onclick="deleteTerm(${term.Id})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                tableHtml += '</tbody></table></div>';
+                mobileHtml += '</div>';
+                document.getElementById('termsList').innerHTML = tableHtml + mobileHtml;
+            }
+        }
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function escapeJs(text) {
+    if (!text) return '';
+    return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
+{% endif %}
+
+// Close modal on escape or background click
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+document.getElementById('termModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+</script>
+{% endblock %}

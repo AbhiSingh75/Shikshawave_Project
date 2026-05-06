@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Salary Slip - {{ employee_name }}</title>
+    <style>
+        @media print { .no-print { display: none; } @page { size: A4; margin: 8mm; } * { -webkit-print-color-adjust: exact !important; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #0f172a; padding: 15px; font-size: 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .btn-print { background: #06b6d4; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .wrapper { width: 100%; max-width: 210mm; }
+        .container { background: #1e293b; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        .header { background: linear-gradient(135deg, #06b6d4, #0891b2); padding: 25px; text-align: center; }
+        .school-name { font-size: 24px; font-weight: bold; color: white; margin-bottom: 8px; }
+        .content { padding: 30px; }
+        .title { text-align: center; font-size: 18px; font-weight: bold; color: #06b6d4; margin-bottom: 25px; padding: 12px; background: rgba(6,182,212,0.1); border-radius: 10px; border: 1px solid #06b6d4; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+        .card { background: #334155; padding: 12px; border-radius: 10px; border-left: 3px solid #06b6d4; }
+        .label { font-size: 9px; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
+        .value { font-size: 11px; color: #f1f5f9; font-weight: 600; }
+        .bank-box { background: linear-gradient(135deg, #fbbf24, #f59e0b); padding: 15px; border-radius: 12px; margin: 20px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .bank-item { text-align: center; color: #78350f; }
+        .bank-icon { font-size: 22px; margin-bottom: 5px; }
+        .bank-label { font-size: 9px; font-weight: bold; }
+        .bank-value { font-size: 11px; font-weight: bold; }
+        .salary-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
+        .salary-panel { background: #334155; border-radius: 12px; padding: 15px; border: 1px solid #475569; }
+        .panel-title { background: #06b6d4; color: white; padding: 10px; margin: -15px -15px 12px -15px; border-radius: 12px 12px 0 0; text-align: center; font-weight: bold; font-size: 11px; }
+        .line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #475569; color: #e2e8f0; font-size: 10px; }
+        .total-line { background: #475569; padding: 10px; margin-top: 10px; border-radius: 8px; font-weight: bold; color: #f1f5f9; }
+        .net-box { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; padding: 20px; text-align: center; font-size: 18px; font-weight: bold; border-radius: 12px; margin-top: 25px; box-shadow: 0 8px 25px rgba(6,182,212,0.4); }
+        .sigs { display: flex; justify-content: space-between; margin-top: 40px; }
+        .sig { text-align: center; }
+        .sig-line { border-top: 2px solid #06b6d4; padding-top: 5px; min-width: 130px; font-size: 10px; font-weight: 600; margin-top: 30px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="no-print" style="text-align: center; margin-bottom: 15px;">
+            <button class="btn-print" onclick="window.print()">Print</button>
+            <button class="btn-print" onclick="window.close()">Close</button>
+        </div>
+        <div class="container">
+            <div class="header">
+                {% if school_logo %}<img src = "{{ school_logo }}" style = "width: 60px; height: 60px; border-radius: 50%; border: 3px solid white; margin-bottom: 10px;">{% endif %}
+                <div class="school-name">{{ school_name }}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.9);">{{ school_address }}</div>
+            </div>
+            <div class="content">
+                <div class="title">SALARY SLIP</div>
+                <div class="grid-3">
+                    <div class="card"><div class="label">EMPLOYEE CODE</div><div class="value">{{ employee_code }}</div></div>
+                    <div class="card"><div class="label">EMPLOYEE NAME</div><div class="value">{{ employee_name }}</div></div>
+                    <div class="card"><div class="label">DESIGNATION</div><div class="value">{{ designation }}</div></div>
+                    <div class="card"><div class="label">SALARY MONTH</div><div class="value">{{ salary_month }}</div></div>
+                    <div class="card"><div class="label">PAYMENT DATE</div><div class="value">{{ payment_date }}</div></div>
+                    <div class="card"><div class="label">REFERENCE ID</div><div class="value">{{ salary_reference_id }}</div></div>
+                </div>
+                <div class="bank-box">
+                    <div class="bank-item"><div class="bank-icon">🏦</div><div class="bank-label">BANK ACCOUNT</div><div class="bank-value">{{ bank_account }}</div></div>
+                    <div class="bank-item"><div class="bank-icon">📱</div><div class="bank-label">UPI ID</div><div class="bank-value">{{ upi_id }}</div></div>
+                    <div class="bank-item"><div class="bank-icon">🔢</div><div class="bank-label">UAN NUMBER</div><div class="bank-value">{{ uan_number }}</div></div>
+                </div>
+                <div class="salary-section">
+                    <div class="salary-panel">
+                        <div class="panel-title">EARNINGS</div>
+                        {% for earning in earnings %}<div class = "line"><span>{{ earning.name }}</span><span>₹{{ earning.amount }}</span></div>{% endfor %}
+                        <div class="total-line"><span>Gross Salary</span><span style="float: right;">₹{{ gross_salary }}</span></div>
+                    </div>
+                    <div class="salary-panel">
+                        <div class="panel-title">DEDUCTIONS</div>
+                        {% if deductions %}{% for deduction in deductions %}<div class = "line"><span>{{ deduction.name }}</span><span>₹{{ deduction.amount }}</span></div>{% endfor %}{% else %}<div style = "text-align: center; padding: 30px; color: #64748b;">No deductions</div>{% endif %}
+                        <div class="total-line"><span>Total Deductions</span><span style="float: right;">₹{{ total_deductions }}</span></div>
+                    </div>
+                </div>
+                <div class="net-box">NET SALARY: ₹{{ net_salary }}</div>
+                <div class="sigs">
+                    <div class="sig"><div class="sig-line">Employee Signature</div></div>
+                    <div class="sig"><div class="sig-line">Authorized Signatory</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #004aad, #6366f1); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { padding: 30px 20px; }
+        .greeting { font-size: 16px; color: #1f2937; margin-bottom: 20px; }
+        .info-box { background: #f0f4ff; border-left: 4px solid #004aad; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e7ff; }
+        .info-label { font-weight: 600; color: #64748b; }
+        .info-value { color: #1e293b; font-weight: 600; }
+        .amount-box { background: linear-gradient(135deg, #004aad, #6366f1); color: white; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0; }
+        .amount-label { font-size: 14px; opacity: 0.9; margin-bottom: 5px; }
+        .amount-value { font-size: 32px; font-weight: bold; }
+        .message { color: #64748b; line-height: 1.6; margin: 20px 0; }
+        .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e5e7eb; }
+        .note { background: #fef3c7; border: 1px solid #fbbf24; padding: 15px; border-radius: 6px; margin: 20px 0; font-size: 13px; color: #92400e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Salary Payment Confirmation</h1>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">Dear <strong>{{ employee_name }}</strong>,</div>
+            
+            <p class="message">
+                We are pleased to inform you that your salary for <strong>{{ salary_month }}</strong> has been successfully processed and credited.
+            </p>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Payment Date:</span>
+                    <span class="info-value">{{ payment_date }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Reference ID:</span>
+                    <span class="info-value">{{ salary_reference_id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Payment Mode:</span>
+                    <span class="info-value">{{ payment_mode }}</span>
+                </div>
+            </div>
+            
+            <div class="amount-box">
+                <div class="amount-label">Net Salary Paid</div>
+                <div class="amount-value">Rs. {{ net_salary }}</div>
+            </div>
+            
+            <div class="note">
+                <strong>Note:</strong> Your detailed salary slip is attached as PDF with this email. Please download and keep it for your records.
+            </div>
+            
+            <p class="message">
+                If you have any questions or concerns regarding your salary, please feel free to contact the accounts department.
+            </p>
+            
+            <p class="message">
+                Thank you for your continued dedication and hard work.
+            </p>
+            
+            <p class="message" style="margin-top: 30px;">
+                Best Regards,<br>
+                <strong>{{ school_name }}</strong><br>
+                Accounts Department
+            </p>
+        </div>
+        
+        <div class="footer">
+            This is an automated email. Please do not reply to this message.<br>
+            &copy; {{ school_name }}. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

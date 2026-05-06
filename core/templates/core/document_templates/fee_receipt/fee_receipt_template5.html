@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fee Receipt - Green Professional</title>
+    <style>
+        @page { size: A4; margin: 10mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Calibri', Arial, sans-serif; padding: 10px; background: #f0fdf4; font-size: 11px; }
+        .action-buttons { position: fixed; top: 5px; left: 5px; z-index: 1000; }
+        .action-buttons button { padding: 6px 12px; margin-right: 5px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .btn-print { background: #16a34a; color: white; }
+        .btn-close { background: #dc2626; color: white; }
+        .receipt { max-width: 210mm; margin: 40px auto 0; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; }
+        .header { background: linear-gradient(to right, #16a34a, #15803d); color: white; padding: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .school-logo { width: 60px; height: 60px; border-radius: 50%; border: 3px solid white; }
+        .receipt-badge { background: white; color: #16a34a; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 11px; }
+        .school-name { font-size: 22px; font-weight: bold; margin-bottom: 3px; }
+        .school-details { font-size: 9px; opacity: 0.95; }
+        .content { padding: 20px; }
+        .info-card { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #16a34a; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .info-item { font-size: 10px; }
+        .info-label { color: #15803d; font-weight: 600; margin-bottom: 2px; }
+        .info-value { color: #166534; }
+        .section-header { background: #16a34a; color: white; padding: 8px 15px; margin: 15px 0 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10px; }
+        th { background: #dcfce7; color: #166534; padding: 8px; text-align: left; font-weight: 600; border-bottom: 2px solid #16a34a; }
+        td { padding: 6px 8px; border-bottom: 1px solid #f0fdf4; }
+        tr:hover { background: #f0fdf4; }
+        .total-row { background: #dcfce7 !important; font-weight: bold; color: #166534; }
+        .footer { background: #f0fdf4; padding: 15px; text-align: center; color: #15803d; font-size: 9px; border-top: 3px solid #16a34a; }
+        @media print { body { padding: 0; background: white; } .receipt { box-shadow: none; border-radius: 0; } .action-buttons { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="action-buttons">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-close" onclick="window.close()">✖ Close</button>
+    </div>
+    
+    <div class="receipt">
+        <div class="header">
+            <div class="header-top">
+                {% if school_logo %}
+                <img src="{{ school_logo }}" alt="Logo" class="school-logo">
+                {% endif %}
+                <div class="receipt-badge">FEE RECEIPT</div>
+            </div>
+            <div class="school-name">{{ school_name|default:"School Name" }}</div>
+            <div class="school-details">{{ school_address|default:"Address" }} | Phone: {{ school_phone|default:"Contact" }} | Email: {{ school_email|default:"Email" }}</div>
+        </div>
+        
+        <div class="content">
+            <div class="info-card">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Receipt No</div>
+                        <div class="info-value">{{ receipt_no }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Date</div>
+                        <div class="info-value">{{ date_of_submission }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Payment Mode</div>
+                        <div class="info-value">{{ payment_mode }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Student Name</div>
+                        <div class="info-value">{{ full_name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Student Code</div>
+                        <div class="info-value">{{ student_code }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Class & Section</div>
+                        <div class="info-value">{{ class_name }} - {{ section_name }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-header">Fee Breakdown</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">SN</th>
+                        <th style="width: 62%;">Particulars</th>
+                        <th style="width: 30%; text-align: right;">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if fee_breakdown %}
+                        {% for item in fee_breakdown %}
+                        {% if not item.isSummary %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.feeTypeName }}</td>
+                            <td style="text-align: right;">{{ item.userEnterAmount|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    <tr class="total-row">
+                        <td colspan="2" style="text-align: right;">TOTAL PAID AMOUNT:</td>
+                        <td style="text-align: right;">₹ {{ paid_amount|floatformat:2 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            {% if previous_payments %}
+            <div class="section-header">Payment History (Last 10 Transactions)</div>
+            <table style="font-size: 9px;">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">SN</th>
+                        <th style="width: 20%;">Receipt No</th>
+                        <th style="width: 13%;">Date</th>
+                        <th style="width: 13%;">Month</th>
+                        <th style="width: 9%;">Mode</th>
+                        <th style="width: 14%; text-align: right;">Total (₹)</th>
+                        <th style="width: 13%; text-align: right;">Discount (₹)</th>
+                        <th style="width: 14%; text-align: right;">Paid (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in previous_payments %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ payment.receipt_number }}</td>
+                        <td>{{ payment.payment_date }}</td>
+                        <td>{{ payment.payment_month }}</td>
+                        <td>{{ payment.payment_mode }}</td>
+                        <td style="text-align: right;">{{ payment.total_amount|floatformat:2 }}</td>
+                        <td style="text-align: right;">{{ payment.discount_value|floatformat:2 }}</td>
+                        <td style="text-align: right;">{{ payment.paid_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <strong>{{ school_name }}</strong><br>
+            This is a computer-generated receipt. For queries, contact school office.
+        </div>
+    </div>
+</body>
+</html>

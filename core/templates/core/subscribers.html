@@ -1,0 +1,1090 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Subscriber Architect | ShikshaWave Elite{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Subscriber Module Elite Refinement */
+    .subscribers-container { padding: 12px 16px; max-width: 1600px; margin: 0 auto; }
+    
+    /* Standardized Control Row - ELITE STYLE */
+    .sw-controls-row {
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        padding: 10px 20px; border-radius: 14px; box-shadow: var(--shadow-sm);
+        margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; position: sticky; top: 0; z-index: 100;
+        backdrop-filter: blur(10px);
+    }
+
+    .sw-controls-left { display: flex; align-items: center; gap: 15px; }
+    .sw-controls-left h3 {
+        color: var(--text-main); font-weight: 850; font-size: 1.1rem; margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    .sw-summary-box {
+        background: rgba(var(--primary-rgb), 0.05); padding: 5px 12px; border-radius: 8px;
+        border: 1px solid rgba(var(--primary-rgb), 0.1); display: flex; gap: 15px;
+    }
+
+    .stat-item {
+        display: flex; align-items: center; gap: 6px; font-size: 0.75rem; 
+        font-weight: 800; color: var(--primary-color);
+    }
+
+    .sw-controls-right { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+    
+    /* Standard Search UI */
+    .sw-search-container { position: relative; width: 220px; }
+    /* Modernized Search Unit */
+    .sw-search-unit {
+        display: flex;
+        align-items: center;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 4px;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        width: 100%;
+        max-width: 320px;
+    }
+    .sw-search-unit:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+    .sw-search-unit i.fa-search {
+        margin: 0 12px;
+        font-size: 0.9rem;
+        color: var(--text-main);
+        opacity: 0.5;
+    }
+    .sw-search-unit input {
+        border: none;
+        outline: none;
+        background: transparent;
+        height: 38px;
+        flex: 1;
+        font-size: 0.85rem;
+        font-weight: 650;
+        color: var(--text-main);
+    }
+    .search-divider {
+        width: 1px;
+        height: 20px;
+        background: var(--border-color);
+        margin: 0 8px;
+    }
+    .refresh-btn {
+        height: 34px;
+        width: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: none;
+        background: transparent;
+        color: var(--primary-color);
+    }
+    .refresh-btn:hover {
+        background: var(--bg-hover);
+        transform: rotate(30deg);
+    }
+    
+    .btn-add-subscriber {
+        height: 40px; padding: 0 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 850;
+        display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s;
+        background: var(--primary-color); color: white !important; border: none;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+    }
+    .btn-add-subscriber:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.4); filter: brightness(1.1); }
+    
+    .btn-add-subscriber:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.4); filter: brightness(1.1); }
+
+    /* Elite Table Architecture */
+    .sw-table-container { 
+        background: var(--card-bg); border: 1px solid var(--border-color); 
+        border-radius: 16px; overflow-x: auto; box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+    .sw-table { width: 100%; border-collapse: collapse; min-width: 1350px; }
+    
+    .sw-table thead th { 
+        background: var(--primary-color); color: white; border-bottom: none; 
+        padding: 14px 16px; font-size: 0.72rem; font-weight: 900; 
+        text-transform: uppercase; letter-spacing: 0.06em; text-align: left;
+        white-space: nowrap;
+    }
+    .sw-table thead th:first-child { border-top-left-radius: 16px; }
+    .sw-table thead th:last-child { border-top-right-radius: 16px; }
+
+    .sw-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-color); vertical-align: middle; background: var(--card-bg); white-space: nowrap; }
+    .sw-table tr:last-child td { border-bottom: none; }
+    .sw-table tr:hover td { background: var(--bg-hover) !important; }
+
+    /* Sticky Action Architecture */
+    .sticky-action { position: sticky; right: 0; background: var(--card-bg); z-index: 5; border-left: 1px solid var(--border-color); }
+    .sw-table tr:hover .sticky-action { background: var(--bg-hover) !important; }
+
+    .org-stack { display: flex; align-items: center; gap: 14px; }
+    .org-icon { 
+        width: 38px; height: 38px; border-radius: 10px; 
+        background: rgba(var(--primary-rgb), 0.08); color: var(--primary-color); 
+        display: flex; align-items: center; justify-content: center; 
+        font-size: 1.1rem; flex-shrink: 0;
+    }
+    
+    .text-stack { display: flex; flex-direction: column; gap: 2px; }
+    .text-main { font-weight: 850; color: var(--text-main); font-size: 0.85rem; white-space: nowrap; }
+    .text-sub { font-size: 0.7rem; color: var(--text-muted); font-weight: 750; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .status-pill { padding: 5px 12px; border-radius: 8px; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+    .status-paid { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .status-pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+    .action-group { display: flex; gap: 8px; justify-content: center; }
+    .action-btn {
+        width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+        background: transparent; border: 1.5px solid var(--border-color); cursor: pointer; 
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); font-size: 0.85rem; padding: 0;
+    }
+    .action-btn:hover { transform: scale(1.1) translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    
+    /* Action Specific Elite Variants */
+    .btn-action-edit { 
+        border-color: rgba(251, 191, 36, 0.4); color: #fbbf24; 
+    }
+    .btn-action-edit:hover { 
+        background: #fbbf24; color: white; border-color: #fbbf24;
+    }
+    
+    .btn-action-delete { 
+        border-color: rgba(239, 68, 68, 0.4); color: #ef4444; 
+    }
+    .btn-action-delete:hover { 
+        background: #ef4444; color: white; border-color: #ef4444;
+    }
+
+    .btn-action-success { 
+        border-color: rgba(16, 185, 129, 0.4); color: #10b981; 
+    }
+    .btn-action-success:hover { 
+        background: #10b981; color: white; border-color: #10b981;
+    }
+
+    /* Modal Architecture - ROBUST STANDARD (Fixed Footer & Body Scroll) */
+    .sw-modal-container { 
+        display: none; position: fixed; inset: 0; top: 80px; height: calc(100vh - 80px);
+        background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10001; 
+        padding: 40px 15px; align-items: center; justify-content: center;
+    }
+    .sw-modal-container.show { display: flex; }
+    .sw-modal { 
+        background: var(--card-bg); width: 100%; max-width: 600px; border-radius: 20px; 
+        overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+        margin: auto; animation: modalFadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid var(--border-color);
+        display: flex; flex-direction: column;
+        max-height: 95%;
+    }
+    #subForm { 
+        display: flex; flex-direction: column; flex: 1; overflow: hidden; 
+    }
+    .sw-modal-header { 
+        background: var(--primary-color); padding: 18px 20px; flex-shrink: 0;
+        display: flex; justify-content: space-between; align-items: center; color: white;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sw-modal-body { 
+        padding: 18px; 
+        flex: 1;
+        overflow-y: auto !important;
+    }
+    .sw-modal-footer { 
+        padding: 16px 20px; background: var(--bg-hover); border-top: 1px solid var(--border-color); 
+        display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0;
+    }
+    .sw-form-group { position: relative; margin-bottom: 12px; }
+    .sw-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 0; position: relative; }
+    .sw-form-label { 
+        display: block; font-size: 0.7rem; font-weight: 850; color: var(--primary-color); 
+        margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; 
+    }
+    .sw-form-control { 
+        width: 100%; height: 38px; padding: 0 12px; border-radius: 12px; 
+        border: 1.5px solid var(--border-color); background: var(--card-bg); 
+        color: var(--text-main); font-weight: 700; outline: none; transition: all 0.2s; 
+    }
+    .sw-form-control:focus { border-color: var(--primary-color); box-shadow: 0 0 0 4px var(--primary-light); }
+
+    /* Theme-aware native elite form fields */
+    .sw-native-field {
+        width: 100%; height: 38px; padding: 0 12px; border-radius: 12px;
+        border: 1.5px solid var(--input-border, var(--border-color));
+        background: var(--card-bg); color: var(--text-main);
+        font-weight: 700; font-size: 0.8rem; outline: none;
+        transition: border-color 0.2s; appearance: auto;
+    }
+    .sw-native-field:focus { border-color: var(--primary-color); }
+    body:not(.dark-mode) .sw-native-field { background: #f8fafc; border-color: #cbd5e1; color-scheme: light; }
+    body.dark-mode .sw-native-field { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.18); color: #f1f5f9; color-scheme: dark; }
+
+    /* Fix for native select dropdown backgrounds */
+    .sw-native-field option {
+        background: var(--card-bg);
+        color: var(--text-main);
+    }
+
+    .modal-section { 
+        background: rgba(var(--primary-rgb), 0.03); border: 1.5px solid var(--border-color); 
+        border-radius: 18px; padding: 15px; margin-bottom: 15px; 
+    }
+    .modal-section-title { 
+        font-size: 0.7rem; font-weight: 950; color: var(--primary-color); 
+        text-transform: uppercase; margin-bottom: 12px; display: flex; 
+        align-items: center; gap: 10px;
+    }
+
+    @media (max-width: 480px) {
+        .sw-form-grid { grid-template-columns: 1fr; gap: 12px; }
+        .sw-modal { width: 95%; max-height: 95%; border-radius: 24px; }
+        .sw-modal-container { top: 0; height: 100vh; padding: 15px; align-items: center; } 
+        .sw-search-unit { width: 100%; order: 2; margin-top: 15px; }
+        .sw-controls-row { flex-direction: column; align-items: flex-start; padding: 20px; border-radius: 20px; gap: 10px; }
+        .sw-controls-left { order: 1; margin-bottom: 5px; }
+        .sw-controls-right { order: 2; width: 100%; flex-direction: column; align-items: stretch; gap: 15px; }
+        .btn-add-subscriber { order: 3; width: 100%; justify-content: center; height: 48px; margin: 0; }
+    }
+
+    @keyframes modalFadeUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    /* SweetAlert Premium Theming for Image Proofs */
+    .sw-premium-modal {
+        border-radius: 24px !important;
+        border: 1.5px solid var(--border-color) !important;
+        background: var(--card-bg) !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+    .sw-premium-title {
+        color: var(--text-main) !important;
+        font-weight: 850 !important;
+        font-size: 1.25rem !important;
+        letter-spacing: -0.01em !important;
+    }
+    .sw-premium-image {
+        border-radius: 12px !important;
+        border: 1px solid var(--border-color) !important;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2) !important;
+    }
+    .sw-premium-button {
+        background: var(--primary-color) !important;
+        color: white !important;
+        font-weight: 900 !important;
+        padding: 12px 30px !important;
+        border-radius: 12px !important;
+        border: none !important;
+        margin-top: 10px !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+    }
+    .sw-premium-button:hover {
+        filter: brightness(1.1) !important;
+        transform: scale(1.02) !important;
+    }
+
+    /* Searchable Dropdown Elite Architecture - SCOPED to modal only */
+    #subscriberModal .sw-dropdown { position: relative; width: 100%; display: block; }
+    #subscriberModal .sw-dropdown-trigger { 
+        height: 38px; min-height: 38px; width: 100%; padding: 0 12px; 
+        border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between;
+        cursor: pointer; transition: all 0.2s; font-weight: 700; color: var(--text-main); font-size: 0.8rem;
+        box-sizing: border-box;
+    }
+    #subscriberModal .sw-dropdown.active .sw-dropdown-trigger { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2); }
+    #subscriberModal .sw-dropdown.disabled .sw-dropdown-trigger { opacity: 0.8; cursor: not-allowed; pointer-events: none; border-style: dashed; }
+    
+    #subscriberModal .sw-dropdown-content {
+        position: absolute; top: calc(100% + 4px); left: 0; right: 0; 
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        z-index: 10005; display: none; overflow: hidden; transform-origin: top;
+        animation: dropSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #subscriberModal .sw-dropdown.active .sw-dropdown-content { display: block; }
+    
+    #subscriberModal .sw-dropdown-search { padding: 12px; border-bottom: 1px solid var(--border-color); background: var(--bg-hover); }
+    #subscriberModal .sw-dropdown-search input { 
+        height: 36px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color);
+        padding: 0 12px; font-size: 0.8rem; font-weight: 650; outline: none;
+    }
+    
+    #subscriberModal .sw-dropdown-list { max-height: 250px; overflow-y: auto; padding: 8px 0; }
+    #subscriberModal .dropdown-item {
+        padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+        cursor: pointer; transition: all 0.15s; font-size: 0.825rem; font-weight: 650;
+    }
+    #subscriberModal .dropdown-item:hover { background: var(--bg-hover); color: var(--primary-color); }
+    #subscriberModal .dropdown-item i { width: 16px; text-align: center; opacity: 0.5; }
+
+    @keyframes dropSlideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Nuclear Z-Index Stack for Premium SweetAlerts */
+    .swal2-container { z-index: 40000 !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="subscribers-container">
+    <div class="sw-controls-row">
+        <div class="sw-controls-left">
+            <h3 style="margin:0; font-size:1.1rem; font-weight:850; display:flex; align-items:center; gap:10px;">
+                <span style="height:32px; width:32px; border-radius:8px; background:var(--primary-color); display:flex; align-items:center; justify-content:center; color:white; font-size:1rem;">
+                    <i class="fas fa-tasks"></i>
+                </span>
+                Activation Queue
+            </h3>
+        </div>
+
+        <div class="sw-controls-right" style="display:flex; align-items:center; gap:12px;">
+            <div class="sw-search-unit">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchBox" placeholder="Search by institution name or ID..." onkeyup="handleSearch(event)">
+                <div class="search-divider"></div>
+                <button class="refresh-btn" onclick="loadSubscribers()" title="Refresh Queue">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+
+            <button class="btn btn-secondary" onclick="openFilter()" style="height:46px; padding:0 20px; border-radius:12px; font-weight:700; display:flex; align-items:center; gap:8px; background:rgba(var(--primary-rgb), 0.1); color:var(--primary-color); border:none; cursor:pointer;">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+
+            <button class="btn btn-primary btn-add-subscriber" onclick="resetModal(); document.getElementById('subscriberModal').classList.add('show'); fetchSchools();" style="height:46px; padding:0 20px; border-radius:12px; font-weight:700; display:flex; align-items:center; gap:8px; margin:0;">
+                <i class="fas fa-plus-circle"></i> Add Subscriber
+            </button>
+        </div>
+    </div>
+
+    <div class="sw-table-container">
+        <table class="sw-table" style="min-width: 1100px;">
+            <thead>
+                <tr>
+                    <th style="width:50px; text-align:center;">SN</th>
+                    <th style="width:120px; text-align:center;">ACTION</th>
+                    <th style="width:210px;">SUBSCRIPTION NO.</th>
+                    <th>SCHOOL NAME</th>
+                    <th style="width:110px;">SCHOOL CODE</th>
+                    <th>PLAN NAME</th>
+                    <th style="width:110px; text-align:right;">AMOUNT</th>
+                    <th style="width:90px; text-align:center;">MONTHS</th>
+                    <th style="width:110px; text-align:center;">START DATE</th>
+                    <th style="width:110px; text-align:center;">END DATE</th>
+                </tr>
+            </thead>
+            <tbody id="subTableBody">
+                <!-- Loaded via AJAX -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Advanced Filter Modal -->
+<div id="filterModal" class="sw-modal-container">
+    <div class="sw-modal" style="max-width: 450px;">
+        <div class="sw-modal-header" style="background: var(--primary-color);">
+            <h2 style="font-size: 1.1rem; margin: 0; font-weight: 850; color: white; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-filter"></i> Advanced Filters
+            </h2>
+            <button onclick="closeFilter()" style="background:transparent; border:none; color:white; cursor:pointer; font-size: 1.5rem; display:flex; align-items:center; justify-content:center;">&times;</button>
+        </div>
+        <div class="sw-modal-body" style="padding: 25px;">
+            <div class="sw-form-group">
+                <label class="sw-form-label">Search Context</label>
+                <input type="text" id="filterSearch" class="sw-form-control" placeholder="Search activation records...">
+            </div>
+            
+            {% if request.session.ProfileID == 1 %}
+            <div class="sw-form-group" style="margin-top: 20px;">
+                <label class="sw-form-label">Filter by School / Institution</label>
+                <select id="filterSchool" class="sw-native-field" style="height: 44px; font-size: 0.9rem;">
+                    <option value="0">-- All Institutions --</option>
+                    {% for school in schools %}
+                    <option value="{{ school.SchoolID }}">
+                        {% if school.SchoolCode %}[{{ school.SchoolCode }}] {% endif %}{{ school.SchoolName }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px; font-weight: 700;">
+                    <i class="fas fa-info-circle"></i> Showing all registered schools for global administration.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="sw-modal-footer">
+            <button onclick="resetFilters()" style="background:none; border:none; font-weight:850; color:var(--text-muted); cursor:pointer;">Reset All</button>
+            <button onclick="applyFilters()" class="btn btn-primary" style="background: var(--primary-color); color: white; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 850;">Apply Filter</button>
+        </div>
+    </div>
+</div>
+
+<!-- Subscriber Architect Modal -->
+<div id="subscriberModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <h2 id="modalTitle" style="font-size: 1.15rem; margin: 0; font-weight: 800; display: flex; align-items: center; gap: 12px; color: white;">
+                <i class="fas fa-id-card-alt"></i>
+                <span id="modalActionTitle">Validate & Activate License</span>
+            </h2>
+            <button onclick="closeModal()" style="background:transparent; border:none; color:white; cursor:pointer; font-size: 1.5rem; display:flex; align-items:center; justify-content:center;">&times;</button>
+        </div>
+        <form id="subForm" onsubmit="saveSubscriber(event)">
+            <div class="sw-modal-body">
+                <input type="hidden" id="subscriberId">
+                
+                <div class="sw-form-group" id="institutionalSelectorGroup">
+                    <label class="sw-form-label">TARGET SCHOOL / INSTITUTION</label>
+                    <select id="subRefId" class="sw-native-field" style="height: 44px; font-size: 0.9rem;" required>
+                        <option value="">-- Choose Institution --</option>
+                        <option value="0">ShikshaWave Global (System Context)</option>
+                        {% for school in schools %}
+                        <option value="{{ school.SchoolID }}">
+                            {% if school.SchoolCode %}[{{ school.SchoolCode }}] {% endif %}{{ school.SchoolName }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px; font-weight: 750;">
+                        <i class="fas fa-info-circle"></i> Select the institution to apply this subscription license.
+                    </p>
+                </div>
+
+                <div class="sw-form-grid" style="margin-bottom: 25px;">
+                    <div class="sw-form-group" style="margin-bottom: 0;">
+                        <label class="sw-form-label">SUBSCRIPTION PLAN</label>
+                        <select id="planId" class="sw-form-control" required></select>
+                    </div>
+                    <div class="sw-form-group" style="margin-bottom: 0;">
+                        <label class="sw-form-label">ACTIVATION DATE</label>
+                        <input type="date" id="startDate" class="sw-form-control" required>
+                    </div>
+                </div>
+
+                <div class="sw-form-grid" style="margin-bottom: 25px;">
+                    <div class="sw-form-group" style="margin-bottom: 0;">
+                        <label class="sw-form-label">PAYMENT STATUS</label>
+                        <select id="payStatus" class="sw-form-control">
+                            <option value="Pending">Approval Pending</option>
+                            <option value="Paid">Verified & Active</option>
+                        </select>
+                    </div>
+                    <div class="sw-form-group" style="margin-bottom: 0;">
+                        <label class="sw-form-label">REFERENCE NO / UPI</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="payRef" class="sw-form-control" placeholder="TXN ID" style="flex: 1;">
+                            <button type="button" id="viewProofBtn" class="action-btn" title="View Payment Evidence" onclick="openProofLightbox()" style="display: none; height: 38px; width: 38px; border-radius: 12px; background: var(--bg-hover);">
+                                <i class="fas fa-image" style="color: var(--primary-color);"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Incentive Engine Integration (Elite Restoration) -->
+                <div class="modal-section" id="referralSection">
+                    <div class="modal-section-title">
+                        <i class="fas fa-handshake"></i>
+                        REFERRAL & INCENTIVES
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">REFERRAL PARTNER</label>
+                        <input type="hidden" id="refPartnerId">
+                        <select id="partnerSelect" class="sw-native-field"
+                                onchange="onPartnerSelect(this)">
+                            <option value="">-- Select Partner --</option>
+                        </select>
+                    </div>
+                    <div class="sw-form-grid">
+                        <div class="sw-form-group" style="margin-bottom: 0;">
+                            <label class="sw-form-label">% SHARE</label>
+                            <input type="number" id="refPercent" class="sw-form-control" placeholder="10.00" step="0.01" oninput="syncIncentive('PERCENT')">
+                        </div>
+                        <div class="sw-form-group" style="margin-bottom: 0;">
+                            <label class="sw-form-label">REWARD (₹)</label>
+                            <input type="number" id="refIncentive" class="sw-form-control" placeholder="0.00" step="0.01" oninput="syncIncentive('AMOUNT')">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing & Institution Restoration -->
+                <div class="modal-section" id="billingSection">
+                    <div class="modal-section-title">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        INVOICING & BILLING DETAILS
+                    </div>
+                    <div class="sw-form-group">
+                        <label class="sw-form-label">LEGAL INSTITUTION NAME</label>
+                        <input type="text" id="billingName" class="sw-form-control" placeholder="Institutional Name">
+                    </div>
+                    <div class="sw-form-grid">
+                        <div class="sw-form-group" style="margin-bottom: 0;">
+                            <label class="sw-form-label">GSTIN NO.</label>
+                            <input type="text" id="billingGst" class="sw-form-control">
+                        </div>
+                        <div class="sw-form-group" style="margin-bottom: 0;">
+                            <label class="sw-form-label">STATE CODE</label>
+                            <input type="text" id="billingState" class="sw-form-control" placeholder="e.g. 09">
+                        </div>
+                    </div>
+                    <div class="sw-form-group" style="margin-top: 20px; margin-bottom: 0;">
+                        <label class="sw-form-label">REGISTERED ADDRESS</label>
+                        <textarea id="billingAddress" class="sw-form-control" style="height: 80px; padding: 12px; resize: none;"></textarea>
+                    </div>
+                </div>
+                <!-- Payment Proof Preview (Hidden) -->
+                <img id="proofPreview" style="display: none;">
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" onclick="closeModal()" style="background:none; border:none; font-weight:800; color:var(--text-muted); cursor:pointer;">Discard</button>
+                <button type="submit" class="btn-add-subscriber" style="height: 38px; padding: 0 24px; border-radius: 12px;">Execute License</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    console.log("🛠️ Antigravity-Sync-V4: Initializing Subscribers Page");
+    let currentSubscribers = [];
+    let plans = [];
+    let schools = [];
+    let allPartners = [];
+    let searchTimer;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        init();
+    });
+
+    async function init() {
+        // Parallelized Loading for Instant Display
+        loadSubscribers(); // Priority 1: Main Grid Data
+
+        // Priority 2: Modal Lookups
+        loadSubscribers();
+        Promise.all([
+            fetchPlans(),
+            fetchSchools(),
+            fetchPartners()
+        ]);
+    }
+
+    async function fetchPlans() {
+        try {
+            const url = `/subscription/plans/list/?t=${Date.now()}`;
+            console.log('Fetching Plans from:', url);
+            const resp = await fetch(url);
+            const d = await resp.json();
+            if (d.status === 'SUCCESS') {
+                plans = d.plans;
+                const planEl = document.getElementById('planId');
+                if (planEl) {
+                    let opts = '<option value="">-- Choose Plan --</option>';
+                    plans.forEach(p => {
+                        opts += `<option value="${p.PlanID}">${p.PlanName} (₹${parseFloat(p.Price).toLocaleString('en-IN')})</option>`;
+                    });
+                    planEl.innerHTML = opts;
+                }
+            }
+        } catch(e) { console.error('Plans Load Error:', e); }
+    }
+
+    async function fetchSchools() {
+        // Obsolete: Using Django context for reliability as per user request
+        console.log("School list pre-populated via server context.");
+    }
+
+    async function fetchPartners() {
+        try {
+            const url = `/subscription/referral-partners/list/?t=${Date.now()}`;
+            console.log('Fetching Partners from:', url);
+            const r = await fetch(url);
+            const d = await r.json();
+            if (d.status === 'SUCCESS') {
+                allPartners = d.partners || d.data || [];
+                const sel = document.getElementById('partnerSelect');
+                if (sel) {
+                    sel.innerHTML = '<option value="">-- Select Partner --</option>';
+                    allPartners.forEach(p => {
+                        const pid = p.id || p.UserID;
+                        const pname = p.name || p.UserName;
+                        const pcode = p.code || p.UserCode || '';
+                        sel.innerHTML += `<option value="${pid}">${pname} ${pcode ? '('+pcode+')' : ''}</option>`;
+                    });
+                }
+            }
+        } catch(e) { console.error('Partners Load Error:', e); }
+    }
+
+    function renderSchoolList(data) {
+        let list = document.getElementById('schoolList');
+        if (!list) return;
+
+        // Ensure "ShikshaWave Global" is available at the top for system-wide context
+        const hasGlobal = data.some(s => (s.id === 0 || s.SchoolID === 0));
+        let html = '';
+        if (!hasGlobal) {
+            html += `
+                <div class="dropdown-item" onclick="selectSchool(0, 'ShikshaWave Global')">
+                    <i class="fas fa-globe" style="color:var(--primary-color);"></i>
+                    <span style="font-weight:800;">ShikshaWave Global (System)</span>
+                </div>`;
+        }
+
+        html += data.map(s => {
+            const rawId = s.id || s.SchoolID || s.raw_id;
+            const sName = s.name || s.SchoolName || '';
+            const sCode = s.code || s.SchoolCode || '';
+            const displayName = sCode ? `[${sCode}] ${sName}` : sName;
+            
+            return `
+                <div class="dropdown-item" onclick="selectSchool('${rawId}', '${displayName}')">
+                    <i class="fas fa-university" style="opacity:0.4;"></i>
+                    <span>${displayName}</span>
+                </div>
+            `;
+        }).join('');
+        
+        list.innerHTML = html || '<div style="padding:15px; text-align:center; opacity:0.5;">No schools found</div>';
+    }
+
+    function filterSchools(input) {
+        const q = input.value.toLowerCase();
+        const items = document.querySelectorAll('#schoolList .dropdown-item');
+        items.forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = text.includes(q) ? 'flex' : 'none';
+        });
+    }
+
+    function toggleDropdown(e) {
+        const drop = document.getElementById('schoolDropdown');
+        if (!drop) return;
+        
+        // If disabled, just focus the text (helps user see full name if truncated)
+        if (drop.classList.contains('disabled')) {
+            const txt = document.getElementById('selectedSchoolText');
+            if (txt) txt.select();
+            e.stopPropagation();
+            return;
+        }
+        
+        drop.classList.toggle('active');
+        e.stopPropagation();
+    }
+
+    let filterState = {
+        schoolId: '0',
+        search: ''
+    };
+
+    function openFilter() {
+        document.getElementById('filterModal').classList.add('show');
+        document.getElementById('filterSearch').value = filterState.search;
+        const schoolSel = document.getElementById('filterSchool');
+        if (schoolSel) schoolSel.value = filterState.schoolId;
+    }
+
+    function closeFilter() {
+        document.getElementById('filterModal').classList.remove('show');
+    }
+
+    function applyFilters() {
+        filterState.search = document.getElementById('filterSearch').value;
+        const schoolSel = document.getElementById('filterSchool');
+        if (schoolSel) filterState.schoolId = schoolSel.value;
+        
+        document.getElementById('searchBox').value = filterState.search;
+        closeFilter();
+        loadSubscribers();
+    }
+
+    function resetFilters() {
+        filterState.search = '';
+        filterState.schoolId = '0';
+        document.getElementById('filterSearch').value = '';
+        const schoolSel = document.getElementById('filterSchool');
+        if (schoolSel) schoolSel.value = '0';
+        
+        document.getElementById('searchBox').value = '';
+        applyFilters();
+    }
+
+    function selectSchool(id, name) {
+        document.getElementById('subRefId').value = id;
+        document.getElementById('selectedSchoolText').value = name;
+        document.getElementById('schoolDropdown').classList.remove('active');
+    }
+
+
+    function loadSubscribers() {
+        const q = document.getElementById('searchBox').value;
+        const schoolId = filterState.schoolId || '0';
+        
+        const params = new URLSearchParams({
+            search: q,
+            school_id: schoolId
+        });
+
+        fetch(`/subscription/subscribers/list/?${params.toString()}`)
+            .then(r => r.json())
+            .then(data => {
+                currentSubscribers = data.subscribers || [];
+                const body = document.getElementById('subTableBody');
+                
+                if (!currentSubscribers.length) {
+                    body.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:100px; opacity:0.5; font-weight:600;">No records found.</td></tr>';
+                    return;
+                }
+                const isSuperAdmin = data.isSuperAdmin;
+                body.innerHTML = currentSubscribers.map((x, i) => {
+                    const statusClass = x.PaymentStatus === 'Paid' ? 'status-active' : 'status-pending';
+                    const startDate = x.StartDate || 'TBD';
+                    const endDate   = x.EndDate   || 'TBD';
+                    return `
+                        <tr>
+                            <td data-label="SN" style="text-align:center; font-weight:800; opacity:0.4;">${i + 1}</td>
+                            <td data-label="ACTION" class="sticky-action">
+                                <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                                    ${isSuperAdmin && x.PaymentStatus === 'Pending' ? `
+                                    <button class="action-btn btn-action-success" title="Validate &amp; Activate" onclick="validateSubscriber(${x.SubscriberID})">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </button>` : x.PaymentStatus === 'Paid' ? `
+                                    <div style="color:var(--success-color); font-size:1rem; width:32px; text-align:center;" title="Verified &amp; Active"><i class="fas fa-check-double"></i></div>` : ''}
+                                    <button class="action-btn btn-action-edit" title="Edit" onclick="editSubscriber(${x.SubscriberID})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn btn-action-delete" title="Delete" onclick="deleteSubscriber(${x.SubscriberID})">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td data-label="SUB NO." style="font-size:0.78rem; font-weight:650; opacity:0.8; letter-spacing:0.02em;">${x.SubscriptionNo || '—'}</td>
+                            <td data-label="INSTITUTION" style="font-weight:750; font-size:0.85rem;">${x.SubscriberName || '—'}</td>
+                            <td data-label="CODE" style="font-weight:700; font-size:0.82rem; color:var(--primary-color);">${x.SchoolCode || '—'}</td>
+                            <td data-label="PLAN" style="font-weight:700; font-size:0.85rem;">
+                                ${x.PlanName || '—'}
+                                ${x.PlanType ? `<span style="font-size:0.65rem; font-weight:600; opacity:0.5; margin-left:6px;">(${x.PlanType})</span>` : ''}
+                            </td>
+                            <td data-label="AMOUNT" style="text-align:right; font-weight:800; font-size:0.9rem;">₹${parseFloat(x.FinalAmount||0).toLocaleString('en-IN')}</td>
+                            <td data-label="MONTHS" style="text-align:center; font-weight:700; font-size:0.85rem;">${x.DurationMonths || '—'}</td>
+                            <td data-label="START" style="text-align:center; font-size:0.8rem; font-weight:650;">${startDate}</td>
+                            <td data-label="END" style="text-align:center; font-size:0.8rem; font-weight:650;">${endDate}</td>
+                        </tr>
+                    `;
+                }).join('');
+            });
+    }
+
+    function validateSubscriber(id) {
+        editSubscriber(id, 'VALIDATE');
+    }
+
+    function editSubscriber(id, mode = 'EDIT') {
+        const data = currentSubscribers.find(s => s.SubscriberID === id);
+        if (!data) return;
+
+        // Ensure schools are loaded for potential change
+        fetchSchools();
+
+        document.getElementById('subForm').reset();
+        document.getElementById('subscriberId').value = data.SubscriberID;
+        const modalActionTitle = document.getElementById('modalActionTitle');
+
+        if (mode === 'VALIDATE') {
+            modalActionTitle.innerText = "Validate & Activate License";
+        } else {
+            modalActionTitle.innerText = "Modify Subscription";
+        }
+        
+        const schoolDrop = document.getElementById('schoolDropdown');
+        const planId = document.getElementById('planId');
+        const payStatus = document.getElementById('payStatus');
+        const referralSec = document.getElementById('referralSection');
+        const billingSec = document.getElementById('billingSection');
+        const submitBtn = document.querySelector('#subForm .btn-add-subscriber');
+        
+        // Target School – set select value
+        const sId = data.SchoolID !== undefined && data.SchoolID !== null ? String(data.SchoolID) : '';
+        const schoolEl = document.getElementById('subRefId');
+        if (schoolEl) {
+            schoolEl.value = sId;
+            schoolEl.disabled = true; // Lock school on edit
+        }
+        planId.value = data.PlanID;
+        planId.disabled = true;
+
+        document.getElementById('startDate').value = data.StartDate || '';
+        document.getElementById('payStatus').value = data.PaymentStatus;
+        if (data.PaymentReference) {
+            document.getElementById('payRef').value = data.PaymentReference;
+        } else {
+            document.getElementById('payRef').value = '';
+        }
+
+        // Handle Payment Proof Visibility (Restored)
+        const proofBtn = document.getElementById('viewProofBtn');
+        const proofImg = document.getElementById('proofPreview');
+        const proofData = data.PaymentProof;
+        if (proofData && proofData.length > 10) { // Standard Data URI check
+            if (proofBtn) proofBtn.style.display = 'flex';
+            if (proofImg) proofImg.src = proofData;
+        } else {
+            if (proofBtn) proofBtn.style.display = 'none';
+            if (proofImg) proofImg.src = '';
+        }
+
+        // Referral Partner – populate and select
+        const pSel = document.getElementById('partnerSelect');
+        const partnerId = data.ReferredByUserID ? String(data.ReferredByUserID) : '';
+        document.getElementById('refPartnerId').value = partnerId;
+        if (pSel) pSel.value = partnerId;
+        document.getElementById('refPercent').value = data.ReferralIncentivePercent || 10.00;
+        document.getElementById('refIncentive').value = data.ReferralIncentive || '';
+
+        // Billing Data (with smart pre-population fallback)
+        document.getElementById('billingName').value = data.BillingCompanyName || data.SubscriberName || '';
+        document.getElementById('billingGst').value = data.BillingGSTIN || '';
+        document.getElementById('billingAddress').value = data.BillingAddress || data.SchoolAddress || '';
+        document.getElementById('billingState').value = data.BillingStateCode || '';
+
+        if (mode === 'VALIDATE') {
+            payStatus.value = 'Paid'; // Force Activation
+            payStatus.disabled = false;
+            if (referralSec) referralSec.style.display = 'block'; 
+            if (billingSec) billingSec.style.display = 'block';
+            if (submitBtn) submitBtn.innerText = 'Validate & Activate';
+        } else {
+            payStatus.disabled = true; // Not allowed to activate from regular edit
+            if (referralSec) referralSec.style.display = 'none'; 
+            if (billingSec) billingSec.style.display = 'none';
+            if (submitBtn) submitBtn.innerText = 'Save Changes';
+        }
+
+        document.getElementById('subscriberModal').classList.add('show');
+        
+        // Trigger calculation if percentage exists
+        if (document.getElementById('refPercent').value) {
+            syncIncentive('PERCENT');
+        }
+    }
+
+    function resetModal() {
+        const form = document.getElementById('subForm');
+        if (form) form.reset();
+        
+        document.getElementById('subscriberId').value = '';
+        
+        const schoolEl = document.getElementById('subRefId');
+        if (schoolEl) {
+            schoolEl.value = '';
+            schoolEl.disabled = false;
+        }
+        
+        document.getElementById('planId').disabled = false;
+        document.getElementById('payStatus').disabled = false;
+        const referralSec = document.getElementById('referralSection');
+        if (referralSec) referralSec.style.display = 'block';
+        document.getElementById('billingSection').style.display = 'none';
+        
+        // Reset Proof UI
+        const pb = document.getElementById('viewProofBtn');
+        if (pb) pb.style.display = 'none';
+        const pp = document.getElementById('proofPreview');
+        if (pp) pp.src = '';
+        
+        const submitBtn = document.querySelector('#subForm .btn-add-subscriber');
+        if (submitBtn) submitBtn.innerText = 'Execute License';
+        
+        const modalTitle = document.getElementById('modalActionTitle');
+        if (modalTitle) modalTitle.innerText = 'Execute New License';
+        
+        document.getElementById('subscriberModal').classList.remove('show');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('subscriberModal');
+        if (modal) modal.classList.remove('show');
+    }
+
+    async function saveSubscriber(e) {
+        if (e) e.preventDefault();
+        const subId = document.getElementById('subscriberId').value;
+        const payload = {
+            action: subId ? 'UPDATE' : 'INSERT',
+            subscriber_id: subId || null,
+            school_id: document.getElementById('subRefId').value,
+            plan_id: document.getElementById('planId').value,
+            start_date: document.getElementById('startDate').value,
+            payment_status: document.getElementById('payStatus').value,
+            payment_reference: document.getElementById('payRef').value,
+            referred_by_id: document.getElementById('refPartnerId').value,
+            referral_percentage: document.getElementById('refPercent').value,
+            referral_incentive: document.getElementById('refIncentive').value,
+            billing_info: {
+                company_name: document.getElementById('billingName').value,
+                gstin: document.getElementById('billingGst').value,
+                address: document.getElementById('billingAddress').value,
+                state_code: document.getElementById('billingState').value
+            }
+        };
+
+        // Ensure status is sent even if disabled (regular edit mode)
+        if (payload.action === 'UPDATE' && document.getElementById('payStatus').disabled) {
+            payload.payment_status = document.getElementById('payStatus').value;
+        }
+
+        try {
+            const res = await fetch('/subscription/subscribers/save/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify(payload)
+            });
+            const r = await res.json();
+            if (r.status === 'SUCCESS') {
+                closeModal();
+                loadSubscribers();
+                Swal.fire('Success', r.message, 'success');
+            } else {
+                Swal.fire('Error', r.message, 'error');
+            }
+        } catch(err) {
+            console.error('Save Error:', err);
+            Swal.fire('System Error', 'Failed to communicate with activation engine.', 'error');
+        }
+    }
+
+    // Bi-directional Incentive Calculation
+    function syncIncentive(source) {
+        const subId = document.getElementById('subscriberId').value;
+        const subData = currentSubscribers.find(s => s.SubscriberID == subId);
+        
+        let price = 0;
+        if (subData) {
+            price = parseFloat(subData.FinalAmount || 0);
+        } else {
+            const planId = document.getElementById('planId').value;
+            const plan = plans.find(p => p.PlanID == planId);
+            if (plan) price = parseFloat(plan.Price || 0);
+        }
+
+        const percentInput = document.getElementById('refPercent');
+        const amountInput = document.getElementById('refIncentive');
+
+        // Ensure zero rewards for zero-value plans or free tiers
+        if (price <= 0) {
+            amountInput.value = "0.00";
+            if (source === 'AMOUNT') percentInput.value = "0.00";
+            return;
+        }
+
+        if (source === 'PERCENT') {
+            const p = parseFloat(percentInput.value || 0);
+            amountInput.value = ((price * p) / 100).toFixed(2);
+        } else if (source === 'AMOUNT') {
+            const a = parseFloat(amountInput.value || 0);
+            percentInput.value = ((a / price) * 100).toFixed(2);
+        }
+    }
+
+    function openProofLightbox() {
+        const src = document.getElementById('proofPreview').src;
+        if (!src || src === window.location.href) return;
+        
+        Swal.fire({
+            title: 'Verification Proof',
+            imageUrl: src,
+            imageAlt: 'Payment Receipt',
+            imageWidth: '100%',
+            background: 'var(--card-bg)',
+            color: 'var(--text-main)',
+            confirmButtonText: '<i class="fas fa-check-double" style="margin-right:8px;"></i> Verified, Close View',
+            buttonsStyling: false,
+            customClass: {
+                popup: 'sw-premium-modal',
+                title: 'sw-premium-title',
+                image: 'sw-premium-image',
+                confirmButton: 'sw-premium-button'
+            },
+            showCloseButton: false,
+            width: '550px',
+            padding: '24px'
+        });
+    }
+
+    // Add listener to plan change to update reward if percent exists
+    document.getElementById('planId').addEventListener('change', () => syncIncentive('PERCENT'));
+
+    // Global click listener for dropdowns
+    document.addEventListener('click', () => {
+        document.getElementById('partnerDropdown')?.classList.remove('active');
+        document.getElementById('schoolDropdown')?.classList.remove('active');
+    });
+
+    function handleSearch(e) {
+        if (e.key === 'Enter') {
+            loadSubscribers();
+        } else {
+            clearTimeout(traceTimer);
+            traceTimer = setTimeout(loadSubscribers, 500);
+        }
+    }
+
+    function onPartnerSelect(sel) {
+        document.getElementById('refPartnerId').value = sel.value;
+        syncIncentive('PERCENT');
+    }
+
+    function deleteSubscriber(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will deactivate the institution license!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Yes, Delete'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/subscription/subscribers/delete/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ action: 'DELETE', subscriber_id: id })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'SUCCESS') {
+                        Swal.fire('Deleted!', res.message, 'success');
+                        loadSubscribers();
+                    }
+                });
+            }
+        });
+    }
+
+    function initSubscribers() {
+        console.log('🚀 ShikshaWave Subscriber Interface Initializing...');
+        loadSubscribers();
+        Promise.all([
+            fetchPlans(), 
+            fetchSchools(), 
+            fetchPartners()
+        ]);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSubscribers);
+    } else {
+        initSubscribers();
+    }
+</script>
+{% endblock %}

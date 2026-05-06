@@ -1,0 +1,407 @@
+/* Standard School Form Styles */
+/* Inheritance from shikshawave-core.css and base.html variables */
+
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: rgba(79, 70, 229, 0.1);
+    --text-color: #1f2937;
+    --text-light: #6b7280;
+    --border-color: #e5e7eb;
+    --light-gray: #f9fafb;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --error-color: #ef4444;
+    --success-color: #10b981;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    min-height: 100vh;
+    padding-top: var(--header-height);
+    overflow-x: hidden;
+}
+
+body.dark-mode {
+    background-color: #111827;
+    /* Standard Dark Background */
+}
+
+.container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 15px;
+}
+
+/* Global Form Section - Premium Card */
+.form-section {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--card-shadow);
+}
+
+body.dark-mode .form-section {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+/* Section Title - Clean & Iconified */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+body.dark-mode .section-title {
+    color: #f3f4f6;
+    border-bottom-color: #374151;
+}
+
+.section-title i {
+    color: var(--primary-color);
+    width: 24px;
+    text-align: center;
+}
+
+/* Controls Header Row */
+.controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 0 20px 0;
+    padding: 16px 24px;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    position: sticky;
+    top: 80px;
+    z-index: 900;
+}
+
+body.dark-mode .controls-row {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+.controls-left h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+body.dark-mode .controls-left h2 {
+    color: #f3f4f6;
+}
+
+/* Standard Form Controls */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin: 0;
+}
+
+body.dark-mode .form-group label {
+    color: #9ca3af;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+
+body.dark-mode .form-control {
+    background: #111827;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    outline: none;
+}
+
+/* Address Card Components */
+.address-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin: 24px 0;
+}
+
+.address-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+}
+
+body.dark-mode .address-card {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+.address-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.address-header i {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    width: 24px;
+    text-align: center;
+}
+
+.address-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+body.dark-mode .address-header h4 {
+    color: #f3f4f6;
+}
+
+.address-input {
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 100px;
+    background: white;
+    color: var(--text-color);
+}
+
+body.dark-mode .address-input {
+    background: #111827;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.address-card.disabled {
+    opacity: 0.7;
+}
+
+.address-card.disabled .address-input {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+}
+
+body.dark-mode .address-card.disabled .address-input {
+    background-color: #374151;
+}
+
+/* Toggle Switch Component */
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-switch input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    background: var(--border-color);
+    border-radius: 24px;
+    transition: all 0.3s ease;
+}
+
+body.dark-mode .toggle-slider {
+    background: #4b5563;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch input[type="checkbox"]:checked+.toggle-slider {
+    background: var(--primary-color);
+}
+
+.toggle-switch input[type="checkbox"]:checked+.toggle-slider::before {
+    transform: translateX(24px);
+}
+
+.toggle-label {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+body.dark-mode .toggle-label {
+    color: #d1d5db;
+}
+
+/* File Upload Component - Compact & Premium */
+.file-upload {
+    border: 2px dashed var(--border-color);
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--light-gray);
+    cursor: pointer;
+    min-height: 80px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+body.dark-mode .file-upload {
+    background: #1f2937;
+    border-color: #4b5563;
+}
+
+.file-upload:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+/* Modern Date Picker (Flatpickr) Styling */
+.flatpickr-calendar {
+    background: white !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--border-color) !important;
+    font-family: inherit !important;
+}
+
+body.dark-mode .flatpickr-calendar {
+    background: #1f2937 !important;
+    border-color: #4b5563 !important;
+}
+
+.flatpickr-months {
+    background: var(--primary-color) !important;
+    padding: 12px !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.flatpickr-day.selected {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Document List Components */
+.compact-doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.compact-doc-row {
+    display: grid;
+    grid-template-columns: 2fr 3fr 1fr;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+body.dark-mode .compact-doc-row {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+.compact-doc-row:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding-top: 100px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        position: static !important;
+        margin-top: 30px;
+    }
+
+    .form-section {
+        padding: 15px;
+    }
+}

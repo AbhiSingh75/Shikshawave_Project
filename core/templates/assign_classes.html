@@ -1,0 +1,1156 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Assign Classes | ShikshaWave{% endblock %}
+
+{% block extra_head %}
+    <meta name="cache-buster" content="v1.0-assign-classes">
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        :root {
+            --primary-color: #004aad;
+            --primary-hover: #4338ca;
+            --secondary-color: #f9fafb;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --light-gray: #f3f4f6;
+            --border-color: #e5e7eb;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --transition-speed: 0.3s;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --header-height: 80px;
+            --controls-height: 70px;
+        }
+
+        body.dark-mode {
+            --primary-color: #6366f1;
+            --primary-hover: #818cf8;
+            --secondary-color: #1f2937;
+            --text-color: #f9fafb;
+            --text-light: #d1d5db;
+            --light-gray: #374151;
+            --border-color: #4b5563;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        /* Ensure header is visible on mobile */
+        @media (max-width: 768px) {
+            :root {
+                --header-height: 70px;
+            }
+
+            header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                width: 100%;
+                height: var(--header-height);
+                display: flex;
+                align-items: center;
+                box-sizing: border-box;
+                padding: 0 15px;
+            }
+
+            header .brand h2 {
+                font-size: 1.1rem;
+            }
+
+            header .school-info span {
+                font-size: 0.9rem;
+            }
+
+            header .user-details {
+                min-width: 100px;
+                max-width: 150px;
+            }
+
+            header .user-details span {
+                font-size: 0.8rem;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.4;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            min-height: 100vh;
+            padding-top: calc(var(--header-height) + 10px);
+            padding-bottom: 10px;
+            overflow-x: hidden;
+        }
+
+        /* Mobile-specific body padding */
+        @media (max-width: 768px) {
+            body {
+                padding-top: calc(var(--header-height) + 30px);
+                padding-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: calc(var(--header-height) + 25px);
+                padding-bottom: 15px;
+            }
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0 10px;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+        }
+
+        .page-header {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        body.dark-mode .page-header {
+            background: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: calc(var(--header-height) + 100px);
+            }
+
+            .container {
+                padding-top: 10px;
+            }
+
+            .page-header {
+                padding: 12px;
+                margin-top: 10px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .page-title h1 {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header {
+                margin-top: calc(var(--header-height) + 15px);
+                padding: 1rem;
+                border-radius: 10px;
+            }
+        }
+
+        .page-title {
+            flex: 1;
+        }
+
+        .page-title h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-title h1 i {
+            font-size: 1rem;
+        }
+
+        .form-container {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 15px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem;
+                margin: 0;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 1.25rem;
+                margin: 0;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 10px;
+            }
+        }
+
+        body.dark-mode .form-container {
+            background: var(--secondary-color);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.3rem;
+            font-size: 0.8rem;
+        }
+
+        .required {
+            color: var(--error-color);
+        }
+
+        .form-input,
+        .form-select {
+            padding: 0.4rem 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all var(--transition-speed) ease;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            min-height: 36px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+            min-width: 20px;
+            min-height: 20px;
+        }
+
+        .checkbox-group label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            min-height: 36px;
+            touch-action: manipulation;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-hover), #3730a3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #0da271);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-light);
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+
+
+            .page-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .page-title h1 {
+                font-size: 1.4rem;
+                line-height: 1.3;
+            }
+
+            .page-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                align-self: flex-start;
+            }
+
+            .page-description {
+                font-size: 0.9rem;
+                line-height: 1.4;
+                margin-top: 0.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+
+            .form-group {
+                margin-bottom: 0;
+            }
+
+            .form-label {
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                color: var(--text-color);
+            }
+
+            .form-input,
+            .form-select {
+                padding: 1rem;
+                font-size: 1rem;
+                border-radius: 10px;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                border: 2px solid var(--border-color);
+                transition: all 0.3s ease;
+            }
+
+            .form-input:focus,
+            .form-select:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            }
+
+            .form-actions {
+                flex-direction: column;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+                font-weight: 600;
+                border-radius: 10px;
+                min-height: 50px;
+            }
+
+            .checkbox-group {
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background: var(--light-gray);
+                border-radius: 8px;
+            }
+
+            .checkbox-group input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                margin-right: 0.75rem;
+            }
+
+            .checkbox-group label {
+                font-size: 0.95rem;
+                font-weight: 500;
+            }
+
+            .alert {
+                padding: 1rem;
+                font-size: 0.9rem;
+                border-radius: 10px;
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+
+            .page-title h1 {
+                font-size: 1.25rem;
+                line-height: 1.2;
+            }
+
+            .page-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1.1rem;
+            }
+
+            .page-description {
+                font-size: 0.85rem;
+                line-height: 1.3;
+            }
+
+            .form-label {
+                font-size: 0.85rem;
+                margin-bottom: 0.4rem;
+            }
+
+            .form-input,
+            .form-select {
+                padding: 0.9rem;
+                font-size: 0.95rem;
+                border-radius: 8px;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .form-actions {
+                gap: 0.75rem;
+                margin-top: 1.5rem;
+            }
+
+            .btn {
+                padding: 0.9rem 1.25rem;
+                font-size: 0.95rem;
+                min-height: 48px;
+            }
+
+            .checkbox-group {
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .checkbox-group input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                margin-right: 0.5rem;
+            }
+
+            .checkbox-group label {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Assign Classes to Teachers</h1>
+        </div>
+        <a href="/staff/view-assign-class/" class="btn btn-primary">
+            <i class="fas fa-eye"></i> View Assignments
+        </a>
+    </div>
+
+    <!-- Main Form Container -->
+    <div class="form-container">
+        <form id="assignClassesForm" method="post" action="/staff/assign-classes/submit/">
+            {% csrf_token %}
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+            
+            <!-- Loading Indicator -->
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <span>Processing assignment...</span>
+            </div>
+
+            <!-- Form Fields -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Teacher <span class="required">*</span></label>
+                    <select class="form-select" name="teacher_id" id="teacherSelect" required>
+                        <option value="">Select Teacher</option>
+                        {% for teacher in teachers %}
+                        <option value="{{ teacher.TeacherId }}">{{ teacher.TeacherName }} ({{ teacher.EmployeeCode }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Academic Year <span class="required">*</span></label>
+                    <select class="form-select" name="academic_year" id="academicYear" required>
+                        <option value="">Select Academic Year</option>
+                        {% for year in academic_years %}
+                        <option value="{{ year.name }}">{{ year.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Class <span class="required">*</span></label>
+                    <select class="form-select" name="class_id" id="classSelect" required>
+                        <option value="">Select Class</option>
+                        {% for class in classes %}
+                        <option value="{{ class.id }}">{{ class.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Section</label>
+                    <select class="form-select" name="section_id" id="sectionSelect">
+                        <option value="">Select Section</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Subject <span class="required">*</span></label>
+                    <select class="form-select" name="subject_id" id="subjectSelect">
+                        <option value="">Select Subject</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" class="form-input" name="start_date" id="startDate">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="date" class="form-input" name="end_date" id="endDate">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Assignment Order</label>
+                    <input type="number" class="form-input" name="assignment_order" id="assignmentOrder" placeholder="Order (Optional)">
+                </div>
+            </div>
+
+            <!-- Checkbox for Class Teacher -->
+            <div class="checkbox-group">
+                <input type="checkbox" name="is_class_teacher" id="isClassTeacher" value="true">
+                <label for="isClassTeacher">Mark as Class Teacher</label>
+            </div>
+
+            <!-- Remarks -->
+            <div class="form-group">
+                <label class="form-label">Remarks</label>
+                <textarea class="form-input" name="remarks" id="remarks" rows="3" placeholder="Additional notes (Optional)"></textarea>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-danger" id="cancelBtn" onclick="cancelForm()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-secondary" id="clearBtn" onclick="testClear()">
+                    <i class="fas fa-undo"></i> Clear Form
+                </button>
+                <button type="submit" class="btn btn-success" id="assignBtn">
+                    <i class="fas fa-check"></i> Assign Teacher
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default dates
+    const today = new Date();
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    
+    if (startDate) startDate.value = today.toISOString().split('T')[0];
+    if (endDate) {
+        const endOfYear = new Date(today.getFullYear(), 11, 31);
+        endDate.value = endOfYear.toISOString().split('T')[0];
+    }
+
+    // Form submission handler
+    const form = document.getElementById('assignClassesForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        console.log('Form submission started');
+        
+        const teacherId = document.getElementById('teacherSelect').value;
+        const classId = document.getElementById('classSelect').value;
+        const subjectId = document.getElementById('subjectSelect').value;
+        const academicYear = document.getElementById('academicYear').value;
+        
+        console.log('Form data:', {teacherId, classId, subjectId, academicYear});
+        
+        if (!teacherId || !classId || !subjectId || !academicYear) {
+            showAlert('Please fill in all required fields.', 'error');
+            return;
+        }
+        
+        showLoading(true);
+        hideAlert();
+        
+        const formData = new FormData(form);
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        console.log('CSRF Token:', csrfToken);
+        console.log('Submitting to:', '/staff/assign-classes/submit/');
+        
+        fetch('/staff/assign-classes/submit/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            console.log('Content-Type:', contentType);
+            
+            if (!contentType || !contentType.includes('application/json')) {
+                return response.text().then(text => {
+                    console.log('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response: ' + text);
+                });
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            console.log('Data type:', typeof data);
+            console.log('Data status:', data ? (data.status || data.Status) : 'undefined');
+            
+            showLoading(false);
+            
+            const status = data ? (data.status || data.Status) : null;
+            const message = data ? (data.message || data.Message) : null;
+            
+            if (status === 'SUCCESS') {
+                showAlert(message || 'Success!', 'success');
+                clearForm();
+            } else if (status === 'ERROR' || status === 'FAILED') {
+                showAlert(message || 'Error occurred', 'error');
+            } else {
+                console.error('Unexpected response format:', data);
+                showAlert('Unexpected response from server', 'error');
+            }
+        })
+        .catch(error => {
+            showLoading(false);
+            console.error('Error details:', error);
+            showAlert('An error occurred: ' + error.message, 'error');
+        });
+    });
+
+    // Handle class selection and load sections/subjects dynamically
+    document.getElementById('classSelect').addEventListener('change', function() {
+        const classId = this.value;
+        const sectionSelect = document.getElementById('sectionSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+        
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        
+        if (classId) {
+            fetch('/api/sections/?class_id=' + classId, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'SUCCESS' && data.sections && data.sections.length > 0) {
+                    data.sections.forEach(section => {
+                        const option = document.createElement('option');
+                        option.value = section.id;
+                        option.textContent = section.name;
+                        sectionSelect.appendChild(option);
+                    });
+                } else {
+                    sectionSelect.innerHTML = '<option value="">No sections found</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading sections:', error);
+                sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+            });
+            
+            fetch('/api/subjects-by-class/?class_id=' + classId, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'SUCCESS' && data.subjects && data.subjects.length > 0) {
+                    data.subjects.forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject.SubjectID;
+                        option.textContent = subject.SubjectName + ' (' + subject.SubjectCode + ')';
+                        subjectSelect.appendChild(option);
+                    });
+                } else {
+                    subjectSelect.innerHTML = '<option value="">No subjects found</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading subjects:', error);
+                subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+            });
+        }
+    });
+    
+    // Check if teacher is already class teacher for another class in same academic year
+    function checkClassTeacherConflict() {
+        const teacherId = document.getElementById('teacherSelect').value;
+        const academicYear = document.getElementById('academicYearSelect').value;
+        const classId = document.getElementById('classSelect').value;
+        const isClassTeacher = document.getElementById('isClassTeacher').checked;
+        
+        if (teacherId && academicYear && classId && isClassTeacher) {
+            fetch('/api/check-class-teacher/?teacher_id=' + teacherId + '&academic_year=' + academicYear + '&class_id=' + classId, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'CONFLICT') {
+                    showAlert('This teacher is already assigned as class teacher for another class in the same academic year. Please uncheck "Mark as Class Teacher" or select a different teacher.', 'error');
+                    document.getElementById('isClassTeacher').checked = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking class teacher conflict:', error);
+            });
+        }
+    }
+    
+    // Add event listeners for class teacher conflict checking
+    const teacherSelectEl = document.getElementById('teacherSelect');
+    const academicYearSelectEl = document.getElementById('academicYearSelect');
+    const isClassTeacherEl = document.getElementById('isClassTeacher');
+    
+    if (teacherSelectEl) teacherSelectEl.addEventListener('change', checkClassTeacherConflict);
+    if (academicYearSelectEl) academicYearSelectEl.addEventListener('change', checkClassTeacherConflict);
+    if (isClassTeacherEl) isClassTeacherEl.addEventListener('change', checkClassTeacherConflict);
+    
+    // Add event listener for clear button
+    const clearButton = document.getElementById('clearBtn');
+    if (clearButton) {
+        clearButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Clear button clicked');
+            clearForm();
+        });
+    } else {
+        console.error('Clear button not found');
+    }
+    
+    // Also add a simple onclick as backup
+    if (clearButton) {
+        clearButton.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Clear button onclick triggered');
+            clearForm();
+        };
+    }
+    
+    // Add event listener for cancel button
+    const cancelButton = document.getElementById('cancelBtn');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Cancel button clicked via event listener');
+            cancelForm();
+        });
+    }
+});
+
+// Cancel form function
+function cancelForm() {
+    console.log('Cancel button clicked');
+    
+    // Check if form has any data
+    const teacherSelect = document.getElementById('teacherSelect');
+    const academicYearSelect = document.getElementById('academicYearSelect');
+    const classSelect = document.getElementById('classSelect');
+    const remarksTextarea = document.getElementById('remarks');
+    
+    let hasData = false;
+    if (teacherSelect && teacherSelect.value) hasData = true;
+    if (academicYearSelect && academicYearSelect.value) hasData = true;
+    if (classSelect && classSelect.value) hasData = true;
+    if (remarksTextarea && remarksTextarea.value.trim()) hasData = true;
+    
+    if (hasData) {
+        // Ask for confirmation if there's data
+        if (confirm('You have unsaved changes. Are you sure you want to cancel?')) {
+            // Navigate back or close the form
+            window.history.back();
+        }
+    } else {
+        // No data, just cancel
+        window.history.back();
+    }
+}
+
+// Simple test function
+function testClear() {
+    console.log('Test clear function called');
+    alert('Clear button is working!');
+    clearForm();
+}
+
+function clearForm() {
+    console.log('Clear form function called');
+    
+    // Simple test - just clear one field first
+    const teacherSelect = document.getElementById('teacherSelect');
+    if (teacherSelect) {
+        teacherSelect.value = '';
+        console.log('Teacher dropdown cleared - function is working');
+    }
+    
+    try {
+        // Get all form elements
+        const teacherSelect = document.getElementById('teacherSelect');
+        const academicYearSelect = document.getElementById('academicYearSelect');
+        const classSelect = document.getElementById('classSelect');
+        const sectionSelect = document.getElementById('sectionSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+        const isClassTeacherCheckbox = document.getElementById('isClassTeacher');
+        const remarksTextarea = document.getElementById('remarks');
+        
+        // Clear all dropdowns
+        if (teacherSelect) {
+            teacherSelect.value = '';
+            console.log('Teacher dropdown cleared');
+        }
+        
+        if (academicYearSelect) {
+            academicYearSelect.value = '';
+            console.log('Academic year dropdown cleared');
+        }
+        
+        if (classSelect) {
+            classSelect.value = '';
+            console.log('Class dropdown cleared');
+        }
+        
+        // Clear section dropdown and reset options
+        if (sectionSelect) {
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            sectionSelect.value = '';
+            console.log('Section dropdown cleared');
+        }
+        
+        // Clear subject dropdown and reset options
+        if (subjectSelect) {
+            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            subjectSelect.value = '';
+            console.log('Subject dropdown cleared');
+        }
+        
+        // Clear checkbox
+        if (isClassTeacherCheckbox) {
+            isClassTeacherCheckbox.checked = false;
+            console.log('Checkbox cleared');
+        }
+        
+        // Clear textarea
+        if (remarksTextarea) {
+            remarksTextarea.value = '';
+            console.log('Remarks cleared');
+        }
+        
+        // Clear and set default dates
+        if (startDate) {
+            startDate.value = '';
+            const today = new Date();
+            startDate.value = today.toISOString().split('T')[0];
+            console.log('Start date set to:', startDate.value);
+        }
+        
+        if (endDate) {
+            endDate.value = '';
+            const today = new Date();
+            const endOfYear = new Date(today.getFullYear(), 11, 31);
+            endDate.value = endOfYear.toISOString().split('T')[0];
+            console.log('End date set to:', endDate.value);
+        }
+        
+        console.log('All form fields cleared successfully');
+        
+    } catch (error) {
+        console.error('Error clearing form:', error);
+    }
+}
+
+function showLoading(show) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const assignBtn = document.getElementById('assignBtn');
+    
+    if (show) {
+        loadingIndicator.classList.add('show');
+        assignBtn.disabled = true;
+        assignBtn.innerHTML = '<div class="spinner"></div> Processing...';
+    } else {
+        loadingIndicator.classList.remove('show');
+        assignBtn.disabled = false;
+        assignBtn.innerHTML = '<i class="fas fa-check"></i> Assign Teacher';
+    }
+}
+
+function showAlert(message, type) {
+    const alertContainer = document.getElementById('alertContainer');
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+    
+    alertContainer.innerHTML = `
+        <div class="alert ${alertClass}">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            ${message}
+        </div>
+    `;
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            hideAlert();
+        }, 5000);
+    }
+}
+
+function hideAlert() {
+    const alertContainer = document.getElementById('alertContainer');
+    alertContainer.innerHTML = '';
+}
+</script>
+{% endblock %}

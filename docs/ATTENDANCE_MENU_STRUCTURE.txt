@@ -1,0 +1,118 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    ATTENDANCE MENU STRUCTURE - UPDATED                        ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📋 MENU HIERARCHY
+═══════════════════════════════════════════════════════════════════════════════
+
+    Attendance (Parent Menu)
+    │   Icon: fas fa-calendar-check
+    │   URL: NULL
+    │   Order: 30
+    │
+    ├── Mark Student Attendance
+    │   │   Icon: fas fa-user-check
+    │   │   URL: /attendance/mark/
+    │   │   Order: 1
+    │   │   Access: School Admin, Teacher
+    │   │   Permissions: View, Add, Edit
+    │
+    ├── View Student Attendance
+    │   │   Icon: fas fa-eye
+    │   │   URL: /attendance/view/
+    │   │   Order: 2
+    │   │   Access: School Admin, Teacher
+    │   │   Permissions: View only
+    │
+    ├── Mark Employee/Staff Attendance ⭐ NEW
+    │   │   Icon: fas fa-user-tie
+    │   │   URL: /attendance/mark-employee/
+    │   │   Order: 3
+    │   │   Access: School Admin, Teacher, Accountant, Driver, Librarian
+    │   │   Permissions: View, Add, Edit
+    │
+    └── View Employee/Staff Attendance ⭐ NEW
+        │   Icon: fas fa-users
+        │   URL: /attendance/view-employee/
+        │   Order: 4
+        │   Access: School Admin, Teacher, Accountant, Driver, Librarian
+        │   Permissions: View only
+
+
+👥 PROFILE TYPES
+═══════════════════════════════════════════════════════════════════════════════
+
+    ProfileID | Profile Name  | Description
+    ──────────┼───────────────┼─────────────────────
+    1         | Super Admin   | System Administrator
+    2         | School Admin  | School Administrator
+    3         | Teacher       | School Teacher
+    4         | Student       | School Student
+    5         | Accountant    | School Accountant ⭐ NEW
+    6         | Driver        | School Driver ⭐ NEW
+    7         | Librarian     | School Librarian ⭐ NEW
+
+
+🔐 ACCESS PERMISSIONS MATRIX
+═══════════════════════════════════════════════════════════════════════════════
+
+    ┌─────────────────────────────────────────────────────────────────────────┐
+    │                        STUDENT ATTENDANCE                               │
+    ├──────────────┬──────────────────────┬──────────────────────────────────┤
+    │ Profile      │ Mark Student         │ View Student                     │
+    ├──────────────┼──────────────────────┼──────────────────────────────────┤
+    │ Super Admin  │ ✗ No Access          │ ✗ No Access                      │
+    │ School Admin │ ✓ View, Add, Edit    │ ✓ View                           │
+    │ Teacher      │ ✓ View, Add, Edit    │ ✓ View                           │
+    │ Student      │ ✗ No Access          │ ✗ No Access                      │
+    │ Accountant   │ ✗ No Access          │ ✗ No Access                      │
+    │ Driver       │ ✗ No Access          │ ✗ No Access                      │
+    │ Librarian    │ ✗ No Access          │ ✗ No Access                      │
+    └──────────────┴──────────────────────┴──────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────────────┐
+    │                      EMPLOYEE/STAFF ATTENDANCE                          │
+    ├──────────────┬──────────────────────┬──────────────────────────────────┤
+    │ Profile      │ Mark Employee        │ View Employee                    │
+    ├──────────────┼──────────────────────┼──────────────────────────────────┤
+    │ Super Admin  │ ✗ No Access          │ ✗ No Access                      │
+    │ School Admin │ ✓ View, Add, Edit    │ ✓ View                           │
+    │ Teacher      │ ✓ View, Add, Edit    │ ✓ View                           │
+    │ Student      │ ✗ No Access          │ ✗ No Access                      │
+    │ Accountant   │ ✓ View, Add, Edit    │ ✓ View                           │
+    │ Driver       │ ✓ View, Add, Edit    │ ✓ View                           │
+    │ Librarian    │ ✓ View, Add, Edit    │ ✓ View                           │
+    └──────────────┴──────────────────────┴──────────────────────────────────┘
+
+
+📦 INSTALLATION
+═══════════════════════════════════════════════════════════════════════════════
+
+    Step 1: Run Migration
+    ─────────────────────
+    cd c:\Users\AbhishekKumar\Desktop\ShikshaWave_Project
+    python manage.py migrate
+
+    Step 2: Verify
+    ──────────────
+    Check database for new menus and profiles
+
+    Step 3: Implement Backend
+    ─────────────────────────
+    See NEXT_STEPS_ATTENDANCE.md for details
+
+
+📝 NOTES
+═══════════════════════════════════════════════════════════════════════════════
+
+    ⭐ NEW items are marked with a star
+    ✓ = Has access with specified permissions
+    ✗ = No access
+    
+    All menus are active by default (IsActive = 1)
+    All menus are not deleted (IsDeleted = 0)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            END OF STRUCTURE DIAGRAM
+═══════════════════════════════════════════════════════════════════════════════

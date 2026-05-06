@@ -1,0 +1,1151 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Template Management | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --elite-indigo: #003B73;
+        --elite-indigo-light: rgba(0, 59, 115, 0.1);
+        --elite-emerald: #4B9C4A;
+        --elite-shadow: 0 10px 30px -5px rgba(0, 59, 115, 0.15);
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+    }
+
+    .dashboard-container {
+        padding: 24px;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Standardized Control Row (Elite Version) */
+    .sw-controls-row {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--elite-shadow);
+        padding: 18px 24px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .sw-controls-left h3 {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .sw-controls-right .form-select {
+        min-width: 320px;
+        height: 44px;
+        background-color: var(--bg-color);
+        border: 1.5px solid var(--border-color);
+        font-weight: 500;
+        border-radius: 10px;
+    }
+
+    /* Elite Template Grid */
+    .template-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 24px;
+    }
+
+    .template-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow-md);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .template-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--elite-emerald));
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .template-card:hover {
+        transform: translateY(-8px) scale(1.01);
+        box-shadow: 0 20px 40px -10px rgba(0, 59, 115, 0.2);
+        border-color: var(--primary-color);
+    }
+
+    .template-card:hover::before {
+        opacity: 1;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-bottom: 1.5px solid var(--border-color);
+        padding-bottom: 16px;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 24px;
+        color: var(--primary-color);
+    }
+
+    .card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    /* Form Elements Enhancements */
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 10px 14px;
+        background: var(--bg-color);
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        color: var(--text-main);
+        font-size: 0.95rem;
+        transition: var(--transition);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 18px;
+    }
+
+    .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px var(--primary-light);
+    }
+
+    .btn-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 5px;
+    }
+
+    .btn {
+        height: 44px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(var(--primary-rgb), 0.3);
+    }
+
+    .btn-secondary {
+        background: var(--bg-color);
+        color: var(--text-main);
+        border: 1.5px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    /* Notice Hardening */
+    .elite-notice {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        color: #d97706;
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    body.dark-mode .elite-notice {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+    }
+
+    .elite-notice i { font-size: 20px; }
+
+    /* Global & Security Card Spotlights */
+    .global-template-card {
+        border-width: 2px;
+    }
+
+    .subscription-invoice-card {
+        border-color: var(--elite-emerald);
+        background: linear-gradient(to bottom right, var(--card-bg), rgba(75, 156, 74, 0.03));
+    }
+
+    .subscription-invoice-card::before {
+        background: linear-gradient(90deg, var(--elite-emerald), var(--primary-color));
+        opacity: 0.6;
+    }
+
+    .security-template-card {
+        border-color: var(--primary-color);
+        background: linear-gradient(to bottom right, var(--card-bg), rgba(0, 59, 115, 0.03));
+    }
+
+    .security-template-card::before {
+        background: linear-gradient(90deg, var(--primary-color), var(--elite-emerald));
+        opacity: 0.4;
+    }
+
+    .security-template-card .card-icon {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    /* Preview Modal Hardening */
+    .preview-modal {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        left: 0; top: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .preview-modal.show {
+        display: flex;
+        opacity: 1;
+    }
+
+    .preview-content {
+        background: var(--card-bg);
+        width: 95%;
+        max-width: 1000px;
+        height: 85vh;
+        border-radius: 24px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        transform: scale(0.95);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .preview-modal.show .preview-content {
+        transform: scale(1);
+    }
+
+    .preview-header {
+        padding: 20px 28px;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Dark Mode Utility Classes */
+    body.dark-mode .template-card {
+        background: var(--card-bg);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 15px; }
+        .sw-controls-row { flex-direction: column; align-items: stretch; gap: 15px; }
+        .sw-controls-right .form-select { min-width: 100%; }
+        .template-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="sw-controls-row">
+        <div class="sw-controls-left">
+            <h3><i class="fas fa-layer-group"></i> Template Management</h3>
+        </div>
+        
+        {% if is_super_admin %}
+        <div class="sw-controls-right">
+            <select id="super_admin_school" class="form-select"
+                onchange="window.location.replace('/template-management/?school_id=' + this.value)">
+                <option value="">-- Select School --</option>
+                {% for school in schools %}
+                <option value="{{ school.SchoolID }}" {% if selected_school_id == school.SchoolID %}selected{% endif %}>{{ school.DisplayName }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if is_super_admin %}
+        {% if selected_school_id == None or selected_school_id == 0 %}
+    <div class="elite-notice">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            {% if selected_school_id == 0 %}
+            <strong>Global Management Active:</strong> Security and Subscription templates are enabled. Please select a specific school to manage institutional documents like Fee Receipts or ID Cards.
+            {% else %}
+            <strong>Action Required:</strong> Please select an institution from the control row above to manage school-specific templates.
+            {% endif %}
+        </div>
+    </div>
+    <style>
+        .template-grid .template-card:not(.global-template-card) { opacity: 0.5; filter: grayscale(0.5); pointer-events: none; }
+    </style>
+        {% endif %}
+    {% endif %}
+
+    <div class="template-grid">
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-user-graduate"></i></div>
+                <h5 class="card-title">Admission Acknowledgment</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="AdmissionAcknowledgment">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="ack_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option
+                            value="core/document_templates/admission_acknowledgment/admission_acknowledgment_template1.html"
+                            {% if templates.AdmissionAcknowledgment == 'core/document_templates/admission_acknowledgment/admission_acknowledgment_template1.html' %}selected{% endif %}>Template 1 - Modern Gradient Purple</option>
+                        <option
+                            value="core/document_templates/admission_acknowledgment/admission_acknowledgment_template2.html"
+                            {% if templates.AdmissionAcknowledgment == 'core/document_templates/admission_acknowledgment/admission_acknowledgment_template2.html' %}selected{% endif %}>Template 2 - Professional Blue</option>
+                        <option
+                            value="core/document_templates/admission_acknowledgment/admission_acknowledgment_template3.html"
+                            {% if templates.AdmissionAcknowledgment == 'core/document_templates/admission_acknowledgment/admission_acknowledgment_template3.html' %}selected{% endif %}>Template 3 - Classic Formal</option>
+                        <option
+                            value="core/document_templates/admission_acknowledgment/admission_acknowledgment_template4.html"
+                            {% if templates.AdmissionAcknowledgment == 'core/document_templates/admission_acknowledgment/admission_acknowledgment_template4.html' %}selected{% endif %}>Template 4 - Corporate Blue Green</option>
+                        <option
+                            value="core/document_templates/admission_acknowledgment/admission_acknowledgment_template5.html"
+                            {% if templates.AdmissionAcknowledgment == 'core/document_templates/admission_acknowledgment/admission_acknowledgment_template5.html' %}selected{% endif %}>Template 5 - Colorful Pink Orange</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="previewTemplate('AdmissionAcknowledgment')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-receipt"></i></div>
+                <h5 class="card-title">Payment Receipt</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="PaymentReceipt">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="receipt_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/payment_receipt/payment_success.html" {% if templates.PaymentReceipt == 'core/document_templates/payment_receipt/payment_success.html' %}selected{% endif %}>Template 1 - Modern Success</option>
+                        <option value="core/document_templates/payment_receipt/payment_receipt_template2.html" {% if templates.PaymentReceipt == 'core/document_templates/payment_receipt/payment_receipt_template2.html' %}selected{% endif %}>Template 2 - Professional Corporate</option>
+                        <option value="core/document_templates/payment_receipt/payment_receipt_template3.html" {% if templates.PaymentReceipt == 'core/document_templates/payment_receipt/payment_receipt_template3.html' %}selected{% endif %}>Template 3 - Modern Gradient</option>
+                        <option value="core/document_templates/payment_receipt/payment_receipt_template4.html" {% if templates.PaymentReceipt == 'core/document_templates/payment_receipt/payment_receipt_template4.html' %}selected{% endif %}>Template 4 - Classic Elegant</option>
+                        <option value="core/document_templates/payment_receipt/payment_receipt_template5.html" {% if templates.PaymentReceipt == 'core/document_templates/payment_receipt/payment_receipt_template5.html' %}selected{% endif %}>Template 5 - Fresh Green Receipt</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('PaymentReceipt')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-id-card"></i></div>
+                <h5 class="card-title">Student ID Card</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="StudentCard">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" required>
+                        <option value="">-- Select Template --</option>
+                        <optgroup label="Horizontal ID Cards">
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_1.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_1.html' %}selected{% endif %}>Horizontal 1 - Corporate Blue</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_2.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_2.html' %}selected{% endif %}>Horizontal 2 - Modern Green</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_3.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_3.html' %}selected{% endif %}>Horizontal 3 - Orange Professional</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_4.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_4.html' %}selected{% endif %}>Horizontal 4 - Purple Professional</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_5.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_5.html' %}selected{% endif %}>Horizontal 5 - Dark Blue</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_6.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_6.html' %}selected{% endif %}>Horizontal 6 - Rainbow Border</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_7.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_7.html' %}selected{% endif %}>Horizontal 7 - Green Border</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_8.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_8.html' %}selected{% endif %}>Horizontal 8 - Teal Corporate</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_9.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_9.html' %}selected{% endif %}>Horizontal 9 - Red Professional</option>
+                            <option value="core/document_templates/student_id_card/student_card_horizontal_10.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_horizontal_10.html' %}selected{% endif %}>Horizontal 10 - Dark Modern</option>
+                        </optgroup>
+                        <optgroup label="Vertical ID Cards">
+                            <option value="core/document_templates/student_id_card/student_card_vertical_1.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_1.html' %}selected{% endif %}>Vertical 1 - Classic Purple</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_2.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_2.html' %}selected{% endif %}>Vertical 2 - Modern Orange</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_3.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_3.html' %}selected{% endif %}>Vertical 3 - Pink Yellow</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_4.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_4.html' %}selected{% endif %}>Vertical 4 - Purple Header</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_5.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_5.html' %}selected{% endif %}>Vertical 5 - Red Orange</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_6.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_6.html' %}selected{% endif %}>Vertical 6 - Purple Elegant</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_7.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_7.html' %}selected{% endif %}>Vertical 7 - Wave Design</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_8.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_8.html' %}selected{% endif %}>Vertical 8 - Navy Blue Elegant</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_9.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_9.html' %}selected{% endif %}>Vertical 9 - Maroon Classic</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_10.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_10.html' %}selected{% endif %}>Vertical 10 - Modern Geometric</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_11.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_11.html' %}selected{% endif %}>Vertical 11 - Elegant Pattern</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_12.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_12.html' %}selected{% endif %}>Vertical 12 - Clean Modern</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_13.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_13.html' %}selected{% endif %}>Vertical 13 - Pattern Background</option>
+                            <option value="core/document_templates/student_id_card/student_card_vertical_14.html" {% if templates.StudentCard == 'core/document_templates/student_id_card/student_card_vertical_14.html' %}selected{% endif %}>Vertical 14 - Fresh Pattern Design</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('StudentIDCard')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <h5 class="card-title">Fee Receipt</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="FeeReceipt">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="fee_receipt_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template1.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template1.html' %}selected{% endif %}>Template 1 - Purple Gradient</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template2.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template2.html' %}selected{% endif %}>Template 2 - Modern Blue</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template3.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template3.html' %}selected{% endif %}>Template 3 - Classic Elegant</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template4.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template4.html' %}selected{% endif %}>Template 4 - Minimalist</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template5.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template5.html' %}selected{% endif %}>Template 5 - Green Professional</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template6.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template6.html' %}selected{% endif %}>Template 6 - Corporate Orange</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template7.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template7.html' %}selected{% endif %}>Template 7 - Royal Purple</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template8.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template8.html' %}selected{% endif %}>Template 8 - Teal Modern</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template9.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template9.html' %}selected{% endif %}>Template 9 - Navy Corporate</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template10.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template10.html' %}selected{% endif %}>Template 10 - Crimson Elite</option>
+                        <option value="core/document_templates/fee_receipt/fee_receipt_template11.html" {% if templates.FeeReceipt == 'core/document_templates/fee_receipt/fee_receipt_template11.html' %}selected{% endif %}>Template 11 - Gradient Fusion</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('FeeReceipt')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                <h5 class="card-title">Salary Slip</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="SalarySlip">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="salary_slip_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template0.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template0.html' %}selected{% endif %}>Template 0 - Default Modern (Original)</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template1.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template1.html' %}selected{% endif %}>Template 1 - Classic Blue</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template2.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template2.html' %}selected{% endif %}>Template 2 - Green Professional</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template3.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template3.html' %}selected{% endif %}>Template 3 - Red Corporate</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template4.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template4.html' %}selected{% endif %}>Template 4 - Purple Modern</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template5.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template5.html' %}selected{% endif %}>Template 5 - Cyan Tabular</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template6.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template6.html' %}selected{% endif %}>Template 6 - Orange Classic</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template7.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template7.html' %}selected{% endif %}>Template 7 - Dark Professional</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template8.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template8.html' %}selected{% endif %}>Template 8 - Monospace Retro</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template9.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template9.html' %}selected{% endif %}>Template 9 - Gradient Modern</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template10.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template10.html' %}selected{% endif %}>Template 10 - Rose Elegant</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template11.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template11.html' %}selected{% endif %}>Template 11 - Wave Gradient Modern</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template12.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template12.html' %}selected{% endif %}>Template 12 - Dark Cyan Neon</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template13.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template13.html' %}selected{% endif %}>Template 13 - Pink Gradient Playful</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template14.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template14.html' %}selected{% endif %}>Template 14 - Green Minimalist Box</option>
+                        <option value="core/document_templates/salary_slip/salary_slip_template15.html" {% if templates.SalarySlip == 'core/document_templates/salary_slip/salary_slip_template15.html' %}selected{% endif %}>Template 15 - Orange Bubble Rounded</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('SalarySlip')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-envelope-open-text"></i></div>
+                <h5 class="card-title">Employee Job Letter</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="EmployeeJobLetter">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="job_letter_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/job_letter/job_letter_template1.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template1.html' %}selected{% endif %}>Template 1 - Modern Blue</option>
+                        <option value="core/document_templates/job_letter/job_letter_template2.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template2.html' %}selected{% endif %}>Template 2 - Elegant Gold</option>
+                        <option value="core/document_templates/job_letter/job_letter_template3.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template3.html' %}selected{% endif %}>Template 3 - Minimalist Gray</option>
+                        <option value="core/document_templates/job_letter/job_letter_template4.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template4.html' %}selected{% endif %}>Template 4 - Vibrant Green</option>
+                        <option value="core/document_templates/job_letter/job_letter_template5.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template5.html' %}selected{% endif %}>Template 5 - Classic Corporate</option>
+                        <option value="core/document_templates/job_letter/job_letter_template6.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template6.html' %}selected{% endif %}>Template 6 - Creative Dynamic</option>
+                        <option value="core/document_templates/job_letter/job_letter_template7.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template7.html' %}selected{% endif %}>Template 7 - Compact Efficiency</option>
+                        <option value="core/document_templates/job_letter/job_letter_template8.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template8.html' %}selected{% endif %}>Template 8 - Premium Borderless</option>
+                        <option value="core/document_templates/job_letter/job_letter_template9.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template9.html' %}selected{% endif %}>Template 9 - Professional Indigo</option>
+                        <option value="core/document_templates/job_letter/job_letter_template10.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template10.html' %}selected{% endif %}>Template 10 - Modern Dark</option>
+                        <option value="core/document_templates/job_letter/job_letter_template11.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template11.html' %}selected{% endif %}>Template 11 - Legacy Professional</option>
+                        <option value="core/document_templates/job_letter/job_letter_template12.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template12.html' %}selected{% endif %}>Template 12 - Modern Centered</option>
+                        <option value="core/document_templates/job_letter/job_letter_template13.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template13.html' %}selected{% endif %}>Template 13 - Left Sidebar</option>
+                        <option value="core/document_templates/job_letter/job_letter_template14.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template14.html' %}selected{% endif %}>Template 14 - Geometric Abstract</option>
+                        <option value="core/document_templates/job_letter/job_letter_template15.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template15.html' %}selected{% endif %}>Template 15 - Corporate Elegant</option>
+                        <option value="core/document_templates/job_letter/job_letter_template16.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template16.html' %}selected{% endif %}>Template 16 - Royal Violet</option>
+                        <option value="core/document_templates/job_letter/job_letter_template17.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template17.html' %}selected{% endif %}>Template 17 - Dark Executive</option>
+                        <option value="core/document_templates/job_letter/job_letter_template18.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template18.html' %}selected{% endif %}>Template 18 - Red Academic</option>
+                        <option value="core/document_templates/job_letter/job_letter_template19.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template19.html' %}selected{% endif %}>Template 19 - Sky Tabular</option>
+                        <option value="core/document_templates/job_letter/job_letter_template20.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template20.html' %}selected{% endif %}>Template 20 - Orange Banner</option>
+                        <option value="core/document_templates/job_letter/job_letter_template21.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template21.html' %}selected{% endif %}>Template 21 - Green Playful</option>
+                        <option value="core/document_templates/job_letter/job_letter_template22.html" {% if templates.EmployeeJobLetter == 'core/document_templates/job_letter/job_letter_template22.html' %}selected{% endif %}>Template 22 - Professional Blue Header</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('EmployeeJobLetter')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-poll"></i></div>
+                <h5 class="card-title">Exam Result</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="ExamResult">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="exam_result_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/exam_result/exam_result_template1.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template1.html' %}selected{% endif %}>Template 1 - Modern Purple</option>
+                        <option value="core/document_templates/exam_result/exam_result_template2.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template2.html' %}selected{% endif %}>Template 2 - Professional Blue</option>
+                        <option value="core/document_templates/exam_result/exam_result_template3.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template3.html' %}selected{% endif %}>Template 3 - Classic Formal</option>
+                        <option value="core/document_templates/exam_result/exam_result_template4.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template4.html' %}selected{% endif %}>Template 4 - Teal Green</option>
+                        <option value="core/document_templates/exam_result/exam_result_template5.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template5.html' %}selected{% endif %}>Template 5 - Orange Vibrant</option>
+                        <option value="core/document_templates/exam_result/exam_result_template6.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template6.html' %}selected{% endif %}>Template 6 - Elegant Rose</option>
+                        <option value="core/document_templates/exam_result/exam_result_template7.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template7.html' %}selected{% endif %}>Template 7 - Minimalist Dark</option>
+                        <option value="core/document_templates/exam_result/exam_result_template8.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template8.html' %}selected{% endif %}>Template 8 - Colorful Modern</option>
+                        <option value="core/document_templates/exam_result/exam_result_template9.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template9.html' %}selected{% endif %}>Template 9 - Royal Gold</option>
+                        <option value="core/document_templates/exam_result/exam_result_template10.html" {% if templates.ExamResult == 'core/document_templates/exam_result/exam_result_template10.html' %}selected{% endif %}>Template 10 - Neon Cyber</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('ExamResult')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-rocket"></i></div>
+                <h5 class="card-title">Promotion Email</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="PromotionEmail">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="promotion_email_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/promotion_email/promotion_template1.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template1.html' %}selected{% endif %}>Template 1 - Modern Celebration</option>
+                        <option value="core/document_templates/promotion_email/promotion_template2.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template2.html' %}selected{% endif %}>Template 2 - Formal Notice</option>
+                        <option value="core/document_templates/promotion_email/promotion_template3.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template3.html' %}selected{% endif %}>Template 3 - Modern Glassmorphism</option>
+                        <option value="core/document_templates/promotion_email/promotion_template4.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template4.html' %}selected{% endif %}>Template 4 - Royal Gold</option>
+                        <option value="core/document_templates/promotion_email/promotion_template5.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template5.html' %}selected{% endif %}>Template 5 - Cyberpunk Dark</option>
+                        <option value="core/document_templates/promotion_email/promotion_template6.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template6.html' %}selected{% endif %}>Template 6 - Vibrant Gradient</option>
+                        <option value="core/document_templates/promotion_email/promotion_template7.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template7.html' %}selected{% endif %}>Template 7 - Professional Corporate</option>
+                        <option value="core/document_templates/promotion_email/promotion_template8.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template8.html' %}selected{% endif %}>Template 8 - Fresh Eco</option>
+                        <option value="core/document_templates/promotion_email/promotion_template9.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template9.html' %}selected{% endif %}>Template 9 - Minimalist Clean</option>
+                        <option value="core/document_templates/promotion_email/promotion_template10.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template10.html' %}selected{% endif %}>Template 10 - Playful Student</option>
+                        <option value="core/document_templates/promotion_email/promotion_template11.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template11.html' %}selected{% endif %}>Template 11 - Tech/SaaS Style</option>
+                        <option value="core/document_templates/promotion_email/promotion_template12.html" {% if templates.PromotionEmail == 'core/document_templates/promotion_email/promotion_template12.html' %}selected{% endif %}>Template 12 - Classic Certificate</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('PromotionEmail')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if selected_school_id == 0 %}
+        <div class="template-card global-template-card security-template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-key"></i></div>
+                <h5 class="card-title">Login OTP Email</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="LOGIN_OTP">
+                <input type="hidden" name="school_id" value="0">
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/security_emails/variant_1_indigo_elite.html" {% if templates.LOGIN_OTP == 'core/document_templates/security_emails/variant_1_indigo_elite.html' %}selected{% endif %}>Variant 1 - Elite Indigo</option>
+                        <option value="core/document_templates/security_emails/variant_2_modern_minimal.html" {% if templates.LOGIN_OTP == 'core/document_templates/security_emails/variant_2_modern_minimal.html' %}selected{% endif %}>Variant 2 - Modern Minimal</option>
+                        <option value="core/document_templates/security_emails/variant_3_glassmorphism.html" {% if templates.LOGIN_OTP == 'core/document_templates/security_emails/variant_3_glassmorphism.html' %}selected{% endif %}>Variant 3 - Glassmorphism</option>
+                        <option value="core/document_templates/security_emails/variant_4_vibrant_orange.html" {% if templates.LOGIN_OTP == 'core/document_templates/security_emails/variant_4_vibrant_orange.html' %}selected{% endif %}>Variant 4 - Vibrant Success</option>
+                        <option value="core/document_templates/security_emails/variant_5_corporate_pro.html" {% if templates.LOGIN_OTP == 'core/document_templates/security_emails/variant_5_corporate_pro.html' %}selected{% endif %}>Variant 5 - Corporate Pro</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewSecurity('LOGIN_OTP')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card global-template-card security-template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-user-lock"></i></div>
+                <h5 class="card-title">Account Blocked Alert</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="ACCOUNT_BLOCKED">
+                <input type="hidden" name="school_id" value="0">
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/security_emails/variant_1_indigo_elite.html" {% if templates.ACCOUNT_BLOCKED == 'core/document_templates/security_emails/variant_1_indigo_elite.html' %}selected{% endif %}>Variant 1 - Elite Indigo</option>
+                        <option value="core/document_templates/security_emails/variant_2_modern_minimal.html" {% if templates.ACCOUNT_BLOCKED == 'core/document_templates/security_emails/variant_2_modern_minimal.html' %}selected{% endif %}>Variant 2 - Modern Minimal</option>
+                        <option value="core/document_templates/security_emails/variant_3_glassmorphism.html" {% if templates.ACCOUNT_BLOCKED == 'core/document_templates/security_emails/variant_3_glassmorphism.html' %}selected{% endif %}>Variant 3 - Glassmorphism</option>
+                        <option value="core/document_templates/security_emails/variant_4_vibrant_orange.html" {% if templates.ACCOUNT_BLOCKED == 'core/document_templates/security_emails/variant_4_vibrant_orange.html' %}selected{% endif %}>Variant 4 - Vibrant Success</option>
+                        <option value="core/document_templates/security_emails/variant_5_corporate_pro.html" {% if templates.ACCOUNT_BLOCKED == 'core/document_templates/security_emails/variant_5_corporate_pro.html' %}selected{% endif %}>Variant 5 - Corporate Pro</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewSecurity('ACCOUNT_BLOCKED')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card global-template-card security-template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
+                <h5 class="card-title">Password Changed Alert</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="PASSWORD_CHANGED_NOTIFICATION">
+                <input type="hidden" name="school_id" value="0">
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/security_emails/variant_1_indigo_elite.html" {% if templates.PASSWORD_CHANGED_NOTIFICATION == 'core/document_templates/security_emails/variant_1_indigo_elite.html' %}selected{% endif %}>Variant 1 - Elite Indigo</option>
+                        <option value="core/document_templates/security_emails/variant_2_modern_minimal.html" {% if templates.PASSWORD_CHANGED_NOTIFICATION == 'core/document_templates/security_emails/variant_2_modern_minimal.html' %}selected{% endif %}>Variant 2 - Modern Minimal</option>
+                        <option value="core/document_templates/security_emails/variant_3_glassmorphism.html" {% if templates.PASSWORD_CHANGED_NOTIFICATION == 'core/document_templates/security_emails/variant_3_glassmorphism.html' %}selected{% endif %}>Variant 3 - Glassmorphism</option>
+                        <option value="core/document_templates/security_emails/variant_4_vibrant_orange.html" {% if templates.PASSWORD_CHANGED_NOTIFICATION == 'core/document_templates/security_emails/variant_4_vibrant_orange.html' %}selected{% endif %}>Variant 4 - Vibrant Success</option>
+                        <option value="core/document_templates/security_emails/variant_5_corporate_pro.html" {% if templates.PASSWORD_CHANGED_NOTIFICATION == 'core/document_templates/security_emails/variant_5_corporate_pro.html' %}selected{% endif %}>Variant 5 - Corporate Pro</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewSecurity('PASSWORD_CHANGED_NOTIFICATION')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card global-template-card security-template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-key"></i></div>
+                <h5 class="card-title">Password Reset OTP</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="PASSWORD_RESET_OTP">
+                <input type="hidden" name="school_id" value="0">
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/security_emails/variant_1_indigo_elite.html" {% if templates.PASSWORD_RESET_OTP == 'core/document_templates/security_emails/variant_1_indigo_elite.html' %}selected{% endif %}>Variant 1 - Elite Indigo</option>
+                        <option value="core/document_templates/security_emails/variant_2_modern_minimal.html" {% if templates.PASSWORD_RESET_OTP == 'core/document_templates/security_emails/variant_2_modern_minimal.html' %}selected{% endif %}>Variant 2 - Modern Minimal</option>
+                        <option value="core/document_templates/security_emails/variant_3_glassmorphism.html" {% if templates.PASSWORD_RESET_OTP == 'core/document_templates/security_emails/variant_3_glassmorphism.html' %}selected{% endif %}>Variant 3 - Glassmorphism</option>
+                        <option value="core/document_templates/security_emails/variant_4_vibrant_orange.html" {% if templates.PASSWORD_RESET_OTP == 'core/document_templates/security_emails/variant_4_vibrant_orange.html' %}selected{% endif %}>Variant 4 - Vibrant Success</option>
+                        <option value="core/document_templates/security_emails/variant_5_corporate_pro.html" {% if templates.PASSWORD_RESET_OTP == 'core/document_templates/security_emails/variant_5_corporate_pro.html' %}selected{% endif %}>Variant 5 - Corporate Pro</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewSecurity('PASSWORD_RESET_OTP')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card global-template-card security-template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-satellite-dish"></i></div>
+                <h5 class="card-title">New Login Alert</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="NEW_LOGIN_ALERT">
+                <input type="hidden" name="school_id" value="0">
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/security_emails/variant_1_indigo_elite.html" {% if templates.NEW_LOGIN_ALERT == 'core/document_templates/security_emails/variant_1_indigo_elite.html' %}selected{% endif %}>Variant 1 - Elite Indigo</option>
+                        <option value="core/document_templates/security_emails/variant_2_modern_minimal.html" {% if templates.NEW_LOGIN_ALERT == 'core/document_templates/security_emails/variant_2_modern_minimal.html' %}selected{% endif %}>Variant 2 - Modern Minimal</option>
+                        <option value="core/document_templates/security_emails/variant_3_glassmorphism.html" {% if templates.NEW_LOGIN_ALERT == 'core/document_templates/security_emails/variant_3_glassmorphism.html' %}selected{% endif %}>Variant 3 - Glassmorphism</option>
+                        <option value="core/document_templates/security_emails/variant_4_vibrant_orange.html" {% if templates.NEW_LOGIN_ALERT == 'core/document_templates/security_emails/variant_4_vibrant_orange.html' %}selected{% endif %}>Variant 4 - Vibrant Success</option>
+                        <option value="core/document_templates/security_emails/variant_5_corporate_pro.html" {% if templates.NEW_LOGIN_ALERT == 'core/document_templates/security_emails/variant_5_corporate_pro.html' %}selected{% endif %}>Variant 5 - Corporate Pro</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewSecurity('NEW_LOGIN_ALERT')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="template-card subscription-invoice-card global-template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-credit-card"></i></div>
+                <h5 class="card-title">Subscription Invoice</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="SubscriptionInvoice">
+                <input type="hidden" name="school_id" value="0">
+                <div class="form-group">
+                    <label>Elite Series Design</label>
+                    <select name="template_file" class="form-select" id="subscription_invoice_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/subscription_invoice/template1.html" {% if templates.SubscriptionInvoice == 'core/document_templates/subscription_invoice/template1.html' %}selected{% endif %}>Template 1 - Elite Indigo (Master)</option>
+                        <option value="core/document_templates/subscription_invoice/template2.html" {% if templates.SubscriptionInvoice == 'core/document_templates/subscription_invoice/template2.html' %}selected{% endif %}>Template 2 - Elite Slate (Slate Grey)</option>
+                        <option value="core/document_templates/subscription_invoice/template3.html" {% if templates.SubscriptionInvoice == 'core/document_templates/subscription_invoice/template3.html' %}selected{% endif %}>Template 3 - Emerald Prestige (Green)</option>
+                        <option value="core/document_templates/subscription_invoice/template4.html" {% if templates.SubscriptionInvoice == 'core/document_templates/subscription_invoice/template4.html' %}selected{% endif %}>Template 4 - Royal Crimson (Red)</option>
+                        <option value="core/document_templates/subscription_invoice/template5.html" {% if templates.SubscriptionInvoice == 'core/document_templates/subscription_invoice/template5.html' %}selected{% endif %}>Template 5 - Midnight Indigo (Deep Indigo)</option>
+                        <option value="core/document_templates/subscription_invoice/template6.html" {% if templates.SubscriptionInvoice == 'core/document_templates/subscription_invoice/template6.html' %}selected{% endif %}>Template 6 - Classic Monochrome (B&W)</option>
+                        <option value="core/document_templates/subscription_invoice/template7.html" {% if templates.SubscriptionInvoice == 'core/document_templates/subscription_invoice/template7.html' %}selected{% endif %}>Template 7 - Ultimate Brand Edition (Indigo & Green)</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('SubscriptionInvoice')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-calendar-alt"></i></div>
+                <h5 class="card-title">Exam Timetable</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="ExamTimetable">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="exam_timetable_template" required>
+                        <option value="">-- Select Template --</option>
+                        <optgroup label="Landscape Templates">
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template1.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template1.html' %}selected{% endif %}>L1 - Purple Gradient</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template2.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template2.html' %}selected{% endif %}>L2 - Professional Blue</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template3.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template3.html' %}selected{% endif %}>L3 - Classic Formal</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template4.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template4.html' %}selected{% endif %}>L4 - Cyan Modern</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template5.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template5.html' %}selected{% endif %}>L5 - Green Fresh</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template6.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template6.html' %}selected{% endif %}>L6 - Orange Warm</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template7.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template7.html' %}selected{% endif %}>L7 - Pink Vibrant</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template8.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template8.html' %}selected{% endif %}>L8 - Dark Professional</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template9.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template9.html' %}selected{% endif %}>L9 - Violet Elegant</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_template10.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_template10.html' %}selected{% endif %}>L10 - Red Classic</option>
+                        </optgroup>
+                        <optgroup label="Portrait Templates">
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_1.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_1.html' %}selected{% endif %}>P1 - Purple Gradient</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_2.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_2.html' %}selected{% endif %}>P2 - Professional Blue</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_3.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_3.html' %}selected{% endif %}>P3 - Classic Formal</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_4.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_4.html' %}selected{% endif %}>P4 - Cyan Modern</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_5.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_5.html' %}selected{% endif %}>P5 - Green Fresh</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_6.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_6.html' %}selected{% endif %}>P6 - Orange Warm</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_7.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_7.html' %}selected{% endif %}>P7 - Pink Vibrant</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_8.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_8.html' %}selected{% endif %}>P8 - Dark Professional</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_9.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_9.html' %}selected{% endif %}>P9 - Violet Elegant</option>
+                            <option value="core/document_templates/exam_timetable/exam_timetable_portrait_10.html" {% if templates.ExamTimetable == 'core/document_templates/exam_timetable/exam_timetable_portrait_10.html' %}selected{% endif %}>P10 - Red Classic</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('ExamTimetable')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-book"></i></div>
+                <h5 class="card-title">Class Timetable</h5>
+            </div>
+            <form method="POST" action="{% url 'template_management_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="template_type" value="ClassTimetable">
+                {% if is_super_admin and selected_school_id %}
+                <input type="hidden" name="school_id" value="{{ selected_school_id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label>Design Variant</label>
+                    <select name="template_file" class="form-select" id="class_timetable_template" required>
+                        <option value="">-- Select Template --</option>
+                        <option value="core/document_templates/class_timetable/timetable_template1.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template1.html' %}selected{% endif %}>Template 1 - Modern Purple Gradient</option>
+                        <option value="core/document_templates/class_timetable/timetable_template2.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template2.html' %}selected{% endif %}>Template 2 - Professional Blue</option>
+                        <option value="core/document_templates/class_timetable/timetable_template3.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template3.html' %}selected{% endif %}>Template 3 - Green Fresh</option>
+                        <option value="core/document_templates/class_timetable/timetable_template4.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template4.html' %}selected{% endif %}>Template 4 - Orange Vibrant</option>
+                        <option value="core/document_templates/class_timetable/timetable_template5.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template5.html' %}selected{% endif %}>Template 5 - Cyan Modern</option>
+                        <option value="core/document_templates/class_timetable/timetable_template6.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template6.html' %}selected{% endif %}>Template 6 - Red Classic</option>
+                        <option value="core/document_templates/class_timetable/timetable_template7.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template7.html' %}selected{% endif %}>Template 7 - Dark Professional</option>
+                        <option value="core/document_templates/class_timetable/timetable_template8.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template8.html' %}selected{% endif %}>Template 8 - Pink Purple Gradient</option>
+                        <option value="core/document_templates/class_timetable/timetable_template9.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template9.html' %}selected{% endif %}>Template 9 - Yellow Playful</option>
+                        <option value="core/document_templates/class_timetable/timetable_template10.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template10.html' %}selected{% endif %}>Template 10 - Monospace Dark</option>
+                        <option value="core/document_templates/class_timetable/timetable_template11.html" {% if templates.ClassTimetable == 'core/document_templates/class_timetable/timetable_template11.html' %}selected{% endif %}>Template 11 - Minimal Classic</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="previewTemplate('ClassTimetable')">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="previewModal" class="preview-modal">
+    <div class="preview-content">
+        <div class="preview-header">
+            <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-search-dollar"></i> Template Live Preview
+            </h4>
+            <button onclick="closePreview()"
+                style="background: rgba(255,255,255,0.1); border: none; color: white; width: 32px; height: 32px; border-radius: 8px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div style="flex: 1; background: #fff;">
+            <iframe id="previewFrame" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewTemplate(type) {
+        console.log('Preview clicked for:', type);
+
+        // Mapping between JS call types and backend template types
+        const typeMap = {
+            'AdmissionAcknowledgment': 'AdmissionAcknowledgment',
+            'PaymentReceipt': 'PaymentReceipt',
+            'StudentIDCard': 'StudentCard',
+            'FeeReceipt': 'FeeReceipt',
+            'SalarySlip': 'SalarySlip',
+            'ExamResult': 'ExamResult',
+            'OTPEmail': 'OTP_EMAIL',
+            'ExamTimetable': 'ExamTimetable',
+            'ClassTimetable': 'ClassTimetable',
+            'PromotionEmail': 'PromotionEmail',
+            'EmployeeJobLetter': 'EmployeeJobLetter',
+            'SubscriptionInvoice': 'SubscriptionInvoice'
+        };
+
+        const backendType = typeMap[type] || type;
+        let url = '';
+
+        // Get the select element by ID if possible, otherwise find it in the card
+        const getTemplateValue = (id) => {
+            const el = document.getElementById(id);
+            return el ? el.value : null;
+        };
+
+        if (type === 'ExamTimetable') {
+            const template = getTemplateValue('exam_timetable_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/exam/timetable/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'AdmissionAcknowledgment') {
+            const template = getTemplateValue('ack_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/admission/acknowledgment/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'PaymentReceipt') {
+            const template = getTemplateValue('receipt_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/payment/receipt/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'StudentIDCard' || type === 'OTPEmail') {
+            // Find by hidden input value
+            const hiddenInput = document.querySelector('form input[name="template_type"][value="' + backendType + '"]');
+            if (hiddenInput) {
+                const template = hiddenInput.closest('form').querySelector('select[name="template_file"]').value;
+                if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+                url = (type === 'StudentIDCard' ? '/student/card/preview/' : '/otp-email/preview/') + '?template=' + encodeURIComponent(template);
+            }
+        } else if (type === 'FeeReceipt') {
+            const template = getTemplateValue('fee_receipt_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/fee/receipt/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'SalarySlip') {
+            const template = getTemplateValue('salary_slip_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/salary/slip/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'PromotionEmail') {
+            const template = getTemplateValue('promotion_email_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/promotion/email/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'SubscriptionInvoice') {
+            const template = getTemplateValue('subscription_invoice_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/subscription-invoice/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'EmployeeJobLetter') {
+            const template = getTemplateValue('job_letter_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/employee/job-letter/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'ExamResult') {
+            const template = getTemplateValue('exam_result_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/exams/results/preview/?template=' + encodeURIComponent(template);
+        } else if (type === 'ClassTimetable') {
+            const template = getTemplateValue('class_timetable_template');
+            if (!template) { ShikshaWave.Notification.showToast('warning', 'Please select a template first'); return; }
+            url = '/timetable/preview/?template=' + encodeURIComponent(template);
+        }
+
+        if (!url) {
+            console.error('Could not determine preview URL for type:', type);
+            return;
+        }
+
+        // For super admin, append school_id from the hidden input in the same form
+        const typeInput = document.querySelector('input[name="template_type"][value="' + backendType + '"]');
+        if (typeInput) {
+            const schoolIdInput = typeInput.closest('form').querySelector('input[name="school_id"]');
+            if (schoolIdInput && schoolIdInput.value) {
+                url += (url.includes('?') ? '&' : '?') + 'school_id=' + schoolIdInput.value;
+            }
+        }
+
+        console.log('Final Preview URL:', url);
+        const iframe = document.getElementById('previewFrame');
+        const modal = document.getElementById('previewModal');
+
+        iframe.src = url;
+        modal.classList.add('show');
+
+        // Push state for back button support
+        if (!window.history.state || window.history.state.modal !== 'preview') {
+            window.history.pushState({ modal: 'preview' }, '');
+        }
+    }
+
+    function closePreview(fromPopState = false) {
+        const modal = document.getElementById('previewModal');
+        const iframe = document.getElementById('previewFrame');
+
+        if (modal.classList.contains('show')) {
+            modal.classList.remove('show');
+            setTimeout(() => { iframe.src = 'about:blank'; }, 100);
+
+            // Sync history if not called from popstate
+            if (!fromPopState && window.history.state && window.history.state.modal === 'preview') {
+                window.history.back();
+            }
+        }
+    }
+
+    document.getElementById('previewModal').addEventListener('click', function (e) {
+        if (e.target === this) closePreview();
+    });
+
+    window.addEventListener('popstate', function (e) {
+        const modal = document.getElementById('previewModal');
+        if (modal.classList.contains('show')) {
+            closePreview(true);
+        }
+    });
+
+    function previewSecurity(code) {
+        const form = document.querySelector('input[name="template_type"][value="' + code + '"]').closest('form');
+        const template = form.querySelector('select[name="template_file"]').value;
+        
+        if (!template) {
+            Swal.fire('No Template Selected', 'Please select a design variant first.', 'warning');
+            return;
+        }
+
+        const url = `/security-email/preview/?code=${code}&template=${encodeURIComponent(template)}`;
+        const iframe = document.getElementById('previewFrame');
+        const modal = document.getElementById('previewModal');
+
+        iframe.src = url;
+        modal.classList.add('show');
+
+        if (!window.history.state || window.history.state.modal !== 'preview') {
+            window.history.pushState({ modal: 'preview' }, '');
+        }
+    }
+</script>
+{% endblock %}

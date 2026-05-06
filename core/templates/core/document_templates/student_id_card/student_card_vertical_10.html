@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;">
+<div class="id-card v10">
+<div class="t">{% if student.SchoolLogoBase64 %}<img src = "data:image/png;base64,{{ student.SchoolLogoBase64 }}" class = "logo">{% endif %}<div>{{ student.SchoolName|default:"School Name" }}</div></div>
+<div class="m">{% if student.PhotoBase64 %}<img src = "data:image/png;base64,{{ student.PhotoBase64 }}" class = "photo">{% else %}<div class = "photo-ph">{{ student.FullName|first|upper }}</div>{% endif %}</div>
+<div class="b"><h3>{{ student.FullName }}</h3><div class="c">{{ student.StudentCode }}</div><div class="r"><span>Class:</span><b>{{ student.ClassName }}-{{ student.SectionName }}</b></div><div class="r"><span>Roll No:</span><b>{{ student.RollNumber|default:"N/A" }}</b></div><div class="r"><span>DOB:</span><b>{{ student.DateOfBirth|date:"d/m/Y"|default:"N/A" }}</b></div><div class="r"><span>Contact:</span><b>{{ student.ParentMobile|default:"N/A" }}</b></div></div>
+</div>
+<style>
+.v10{width:240px;height:400px;background:linear-gradient(135deg,#0ea5e9,#0284c7);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.2);margin:0;overflow:hidden}
+.v10 .t{background:rgba(255,255,255,0.2);padding:8px;text-align:center;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.v10 .logo{width:30px;height:30px;border-radius:5px;background:#fff;padding:2px;object-fit:contain}
+.v10 .m{padding:12px;text-align:center}
+.v10 .photo{width:90px;height:90px;border-radius:50%;border:3px solid #fff;object-fit:cover;box-shadow:0 5px 15px rgba(0,0,0,0.2)}
+.v10 .photo-ph{width:90px;height:90px;border-radius:50%;border:3px solid #fff;background:#fff;color:#0ea5e9;display:inline-flex;align-items:center;justify-content:center;font-size:36px;font-weight:bold;box-shadow:0 5px 15px rgba(0,0,0,0.2)}
+.v10 .b{background:#fff;padding:12px;border-radius:16px 16px 0 0;height:100%}
+.v10 h3{font-size:14px;text-align:center;margin:0 0 6px;color:#1f2937}
+.v10 .c{text-align:center;background:#f3f4f6;padding:4px;border-radius:6px;font-size:10px;font-weight:700;color:#0ea5e9;margin-bottom:10px}
+.v10 .r{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:10px}
+.v10 .r:last-child{border:none}
+.v10 .r span{color:#6b7280}
+.v10 .r b{color:#1f2937}
+</style>
+</body>
+</html>

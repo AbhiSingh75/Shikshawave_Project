@@ -1,0 +1,132 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║              STAFF ATTENDANCE APPROVAL WORKFLOW                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+STEP 1: MARK ATTENDANCE
+═══════════════════════════════════════════════════════════════════════════════
+    
+    👤 Staff (Teacher/Accountant/Driver/Librarian)
+    │
+    ├─► Opens: /attendance/mark-employee/
+    │
+    ├─► Selects Date
+    │
+    ├─► Marks Status for each employee:
+    │   • Present
+    │   • Absent
+    │   • Leave
+    │   • Half Day
+    │   • Late
+    │
+    ├─► Adds Remarks (optional)
+    │
+    └─► Clicks "Save Attendance"
+        │
+        ▼
+    📊 Database: StaffAttendance
+        • AttendanceState = 'Pending' ⏳
+        • CreatedBy = Staff UserID
+        • CreatedAt = Current DateTime
+
+
+STEP 2: REVIEW PENDING ATTENDANCE
+═══════════════════════════════════════════════════════════════════════════════
+    
+    👨‍💼 School Admin
+    │
+    ├─► Opens: /attendance/approve-employee/
+    │
+    ├─► Views Pending Records:
+    │   ┌─────────────────────────────────────────────────────────┐
+    │   │ Date | Employee | Role | Status | Remarks | Marked By  │
+    │   ├─────────────────────────────────────────────────────────┤
+    │   │ 15-Jan | John | Teacher | Present | - | Admin      │
+    │   │ 15-Jan | Mary | Driver  | Absent  | Sick | Teacher  │
+    │   └─────────────────────────────────────────────────────────┘
+    │
+    └─► For each record, Admin can:
+        ├─► ✅ Approve
+        └─► ❌ Reject
+
+
+STEP 3: APPROVE OR REJECT
+═══════════════════════════════════════════════════════════════════════════════
+    
+    👨‍💼 School Admin clicks Approve/Reject
+    │
+    ├─► Modal opens for Approval Remarks (optional)
+    │
+    ├─► Admin enters remarks (if needed)
+    │
+    └─► Clicks "Submit"
+        │
+        ▼
+    📊 Database: StaffAttendance Updated
+        • AttendanceState = 'Approved' ✅ or 'Rejected' ❌
+        • ApprovedBy = School Admin UserID
+        • ApprovedAt = Current DateTime
+        • ApprovalRemarks = Admin's remarks
+
+
+STEP 4: VIEW FINAL RECORDS
+═══════════════════════════════════════════════════════════════════════════════
+    
+    👤 Any Staff
+    │
+    ├─► Opens: /attendance/view-employee/
+    │
+    └─► Views All Records with Status:
+        ┌──────────────────────────────────────────────────────────────┐
+        │ Date | Employee | Status | State | Approved By | Remarks   │
+        ├──────────────────────────────────────────────────────────────┤
+        │ 15-Jan | John | Present | ✅ Approved | Admin | Good      │
+        │ 15-Jan | Mary | Absent  | ❌ Rejected | Admin | Invalid   │
+        │ 16-Jan | Tom  | Present | ⏳ Pending  | -     | -         │
+        └──────────────────────────────────────────────────────────────┘
+
+
+ATTENDANCE STATES
+═══════════════════════════════════════════════════════════════════════════════
+
+    ⏳ Pending   → Newly marked, awaiting School Admin approval
+    ✅ Approved  → Approved by School Admin
+    ❌ Rejected  → Rejected by School Admin
+
+
+ACCESS CONTROL
+═══════════════════════════════════════════════════════════════════════════════
+
+    ┌──────────────────┬──────────┬──────────┬──────────┐
+    │ Feature          │ Staff    │ Admin    │ Student  │
+    ├──────────────────┼──────────┼──────────┼──────────┤
+    │ Mark Attendance  │ ✓        │ ✓        │ ✗        │
+    │ View Attendance  │ ✓        │ ✓        │ ✗        │
+    │ Approve/Reject   │ ✗        │ ✓        │ ✗        │
+    └──────────────────┴──────────┴──────────┴──────────┘
+
+    Staff = Teacher, Accountant, Driver, Librarian
+
+
+DATABASE FLOW
+═══════════════════════════════════════════════════════════════════════════════
+
+    Mark Attendance
+    ↓
+    Proc_StaffAttendance_Mark
+    ↓
+    StaffAttendance Table (State = 'Pending')
+    ↓
+    Proc_StaffAttendance_Pending (Get pending records)
+    ↓
+    School Admin Reviews
+    ↓
+    Proc_StaffAttendance_Approve (Update state)
+    ↓
+    StaffAttendance Table (State = 'Approved'/'Rejected')
+    ↓
+    Proc_StaffAttendance_Get (View all records)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            END OF WORKFLOW
+═══════════════════════════════════════════════════════════════════════════════

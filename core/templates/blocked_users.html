@@ -1,0 +1,229 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Blocked Users | ShikshaWave ERP{% endblock %}
+
+{% block extra_head %}
+<meta name="cache-buster" content="v1.0">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=1.0">
+<style>
+    .force-list-view {
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .status-blocked { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .status-risky { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+    
+    .action-btn.unblock-btn { color: #2e7d32; }
+    .action-btn.unblock-btn:hover { background: #e8f5e9; }
+    .action-btn.pw-reset-btn { color: #1976D2; }
+    .action-btn.pw-reset-btn:hover { background: #e3f2fd; }
+
+    /* SweetAlert2 Overrides for standard look */
+    .swal2-popup {
+        border-radius: 20px !important;
+        font-family: 'Poppins', sans-serif !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container force-list-view">
+
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-user-lock"></i> Blocked User List</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Blocked: {{ blocked_users|length }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="quick-search" placeholder="Search blocked users...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+        <div class="table-container">
+            <table id="blocked-table">
+                <thead>
+                    <tr>
+                        <th>Actions</th>
+                        <th>User Code</th>
+                        <th>User Name</th>
+                        <th>Email</th>
+                        <th>Profile</th>
+                        <th>School</th>
+                        <th>Status</th>
+                        <th>Blocked Until</th>
+                        <th>Failed Attempts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in blocked_users %}
+                    <tr id="user-row-{{ user.UserID }}">
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn unblock-btn" title="Unblock User" onclick="unblockUser({{ user.UserID }}, '{{ user.UserName|escapejs }}')">
+                                    <i class="fas fa-unlock"></i>
+                                </button>
+                                <button class="action-btn pw-reset-btn" title="Reset Password" onclick="resetPassword({{ user.UserID }}, '{{ user.UserName|escapejs }}')">
+                                    <i class="fas fa-key"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td><strong>{{ user.UserCode }}</strong></td>
+                        <td>{{ user.UserName }}</td>
+                        <td>{{ user.Email|default:"N/A" }}</td>
+                        <td><span class="badge" style="background:#eee; padding:2px 8px; border-radius:4px;">{{ user.ProfileName }}</span></td>
+                        <td>{{ user.SchoolName|default:"System" }}</td>
+                        <td>
+                            <span class="status-badge {% if user.BlockStatus == 'Temporarily Blocked' %}status-blocked{% else %}status-risky{% endif %}">
+                                <i class="fas {% if user.BlockStatus == 'Temporarily Blocked' %}fa-ban{% else %}fa-exclamation-triangle{% endif %}"></i>
+                                {{ user.BlockStatus }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.BlockedUntil %}
+                                {{ user.BlockedUntil|date:"d M Y, H:i" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="attempts-count" style="color:#d32f2f; font-weight:700;">{{ user.FailedLoginAttempts }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 60px;">
+                            <div style="color: #999;">
+                                <i class="fas fa-check-shield" style="font-size: 3rem; margin-bottom: 15px; color: #4CAF50;"></i>
+                                <div style="font-size: 1.2rem; font-weight: 600;">System Clear</div>
+                                <p>No users are currently blocked or restricted.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const CSRF_TOKEN = '{{ csrf_token }}';
+
+    function unblockUser(userId, userName) {
+        Swal.fire({
+            title: 'Unblock User?',
+            text: `Are you sure you want to restore access for ${userName}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#1976D2',
+            cancelButtonColor: '#666',
+            confirmButtonText: 'Yes, Unblock',
+            customClass: {
+                popup: 'swal-elite'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/users/unblock/${userId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF_TOKEN }
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        Swal.fire('Success!', d.message, 'success');
+                        document.getElementById(`user-row-${userId}`).remove();
+                    } else {
+                        Swal.fire('Error!', d.message, 'error');
+                    }
+                }).catch(err => Swal.fire('Error!', 'Network error occurred.', 'error'));
+            }
+        });
+    }
+
+    function resetPassword(userId, userName) {
+        Swal.fire({
+            title: `Reset Password for ${userName}`,
+            input: 'text',
+            inputLabel: 'Enter New Password',
+            inputPlaceholder: 'Min 8 characters...',
+            inputAttributes: {
+                autocapitalize: 'off',
+                autocorrect: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Update & Unblock',
+            showLoaderOnConfirm: true,
+            preConfirm: (newPassword) => {
+                if (!newPassword || newPassword.length < 8) {
+                    Swal.showValidationMessage('Password must be at least 8 characters');
+                    return false;
+                }
+                const formData = new FormData();
+                formData.append('user_id', userId);
+                formData.append('new_password', newPassword);
+                
+                return fetch('/users/admin-password-reset/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF_TOKEN },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error(response.statusText);
+                    return response.json();
+                })
+                .catch(error => Swal.showValidationMessage(`Request failed: ${error}`));
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed && result.value.success) {
+                Swal.fire('Updated!', result.value.message, 'success');
+                document.getElementById(`user-row-${userId}`).remove();
+            } else if (result.isConfirmed && !result.value.success) {
+                Swal.fire('Error!', result.value.message, 'error');
+            }
+        });
+    }
+
+    // Quick Search Logic
+    document.getElementById('quick-search').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#blocked-table tbody tr');
+        rows.forEach(row => {
+            if (row.textContent.toLowerCase().includes(value)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

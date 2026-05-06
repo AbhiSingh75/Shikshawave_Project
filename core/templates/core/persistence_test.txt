@@ -1,0 +1,5 @@
+TEST CONTENT WITH SPACES:- [x] Confirmation of `view_timetable_detail` returning encrypted IDs for modal use
+- [/] Fix `TemplateDoesNotExist` and Super Admin view issues in `view_timetable`
+    - [ ] Correct template path from `core/error.html` to `error.html`
+    - [ ] Update `view_timetable` to use `timetable_selected_school_id` for Super Admins
+    - [ ] Verify fix by testing timetable view as Super Admin%}

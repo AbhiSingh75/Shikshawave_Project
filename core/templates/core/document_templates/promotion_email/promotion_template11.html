@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .top-bar {
+            height: 8px;
+            background: #6366f1;
+        }
+
+        .body-p {
+            padding: 48px;
+        }
+
+        .logo-box {
+            background: #f1f5f9;
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-weight: 800;
+            color: #6366f1;
+            font-size: 24px;
+        }
+
+        .heading {
+            font-size: 24px;
+            color: #0f172a;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .text {
+            color: #475569;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .data-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .data-label {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .data-value {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #6366f1;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .footer {
+            padding: 32px 48px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            color: #94a3b8;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="top-bar"></div>
+        <div class="body-p">
+            <div class="logo-box">SW</div>
+            <h1 class="heading">Upgrade confirmed: New academic session</h1>
+            <p class="text">Hi {{ student_name }}, we've successfully updated your enrollment for the upcoming session.
+                Your academic track has been updated with the following parameters:</p>
+
+            <div class="data-grid">
+                <div class="data-row">
+                    <span class="data-label">Placement</span>
+                    <span class="data-value">{{ new_class }} / {{ new_section }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Previous Track</span>
+                    <span class="data-value">{{ prev_class }} - {{ prev_section }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Identifier (Roll)</span>
+                    <span class="data-value">#{{ roll_no }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Active Epoch</span>
+                    <span class="data-value">{{ academic_year }}</span>
+                </div>
+            </div>
+
+            <a href="#" class="btn">Access Student Portal</a>
+        </div>
+        <div class="footer">
+            <p>Sent by {{ school_name }}<br>Security verified message</p>
+        </div>
+    </div>
+</body>
+
+</html>

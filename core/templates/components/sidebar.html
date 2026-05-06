@@ -1,0 +1,203 @@
+{% load static %}
+<aside class="sw-sidebar" id="swSidebar">
+    <div class="sw-sidebar-header">
+        <button class="sw-sidebar-toggle" id="sidebarToggle" title="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    <div class="sw-sidebar-nav">
+        <ul class="sw-menu">
+            {% for menu in menus %}
+            <li class="sw-menu-item {% if menu.children %}has-submenu{% endif %}">
+                {% if menu.children %}
+                <a href="{{ menu.url|default:'#' }}"
+                    class="sw-menu-link {% if request.path == menu.url %}active{% endif %}" data-sw-submenu-toggle>
+                    {% else %}
+                    <a href="{{ menu.url|default:'#' }}"
+                        class="sw-menu-link {% if request.path == menu.url %}active{% endif %}">
+                        {% endif %}
+                        <i class="{{ menu.icon|default:'fas fa-cube' }}"></i>
+                        <span>{{ menu.name }}</span>
+                        {% if menu.children %}<i class = "fas fa-chevron-down sw-toggle-icon"></i>{% endif %}
+                    </a>
+                    {% if menu.children %}
+                    <ul class="sw-submenu">
+                        {% for sub in menu.children %}
+                        <li>
+                            <a href="{{ sub.url }}"
+                                class="sw-submenu-link {% if request.path == sub.url %}active{% endif %}">
+                                <i class="{{ sub.icon|default:'fas fa-caret-right' }}"></i>
+                                <span>{{ sub.name }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="sw-sidebar-resizer" id="sidebarResizer"></div>
+</aside>
+
+<style>
+    .sw-sidebar {
+        padding-top: 0px;
+        /* Aligned to header flush */
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sw-sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Horizontally center the toggle */
+        height: var(--header-height);
+        /* Mathematically align with top bar */
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 15px;
+    }
+
+    .sw-sidebar.collapsed .sw-sidebar-header {
+        justify-content: center;
+        padding: 10px 0;
+    }
+
+    /* Restored Hamburger Toggle Styling */
+    .sw-sidebar-toggle {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.85);
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        transition: var(--transition);
+    }
+
+    .sw-sidebar-toggle:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    .sw-menu {
+        list-style: none;
+        padding: 0 12px;
+    }
+
+    .sw-menu-item {
+        margin-bottom: 4px;
+    }
+
+    .sw-menu-link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 16px;
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .sw-menu-link i {
+        width: 20px;
+        text-align: center;
+    }
+
+    .sw-menu-link:hover,
+    .sw-menu-link.active {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .sw-toggle-icon {
+        margin-left: auto;
+        font-size: 0.75rem;
+        transition: var(--transition);
+    }
+
+    .sw-menu-item.open .sw-toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .sw-submenu {
+        list-style: none;
+        padding: 4px 0 4px 12px;
+        height: 0;
+        overflow: hidden;
+        transition: height 0.3s ease;
+    }
+
+    .sw-menu-item.open .sw-submenu {
+        height: auto;
+    }
+
+    .sw-submenu-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px;
+        color: rgba(255, 255, 255, 0.95);
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        transition: var(--transition);
+    }
+
+    .sw-submenu-link:hover,
+    .sw-submenu-link.active {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Hiding submenu when sidebar is collapsed */
+    .sw-sidebar.collapsed .sw-submenu {
+        display: none !important;
+    }
+</style>
+
+<script>
+    document.querySelectorAll('[data-sw-submenu-toggle]').forEach(link => {
+        link.onclick = (e) => {
+            e.preventDefault();
+            const clickedItem = link.closest('.sw-menu-item');
+
+            // Accordion Logic: Close all other open menu items FIRST
+            document.querySelectorAll('.sw-menu-item.open').forEach(openItem => {
+                if (openItem !== clickedItem) {
+                    openItem.classList.remove('open');
+                }
+            });
+
+            // Toggle the clicked item
+            clickedItem.classList.toggle('open');
+        };
+    });
+
+    // Auto-expand menu if a child submenu link is active
+    document.addEventListener('DOMContentLoaded', () => {
+        const activeSubmenuLinks = document.querySelectorAll('.sw-submenu-link.active');
+        activeSubmenuLinks.forEach(activeLink => {
+            const parentMenuItem = activeLink.closest('.sw-menu-item');
+            if (parentMenuItem) {
+                parentMenuItem.classList.add('open');
+                // Optional: also highlight the parent link
+                const parentLink = parentMenuItem.querySelector('.sw-menu-link');
+                if (parentLink) {
+                    parentLink.classList.add('active');
+                }
+            }
+        });
+    });
+</script>

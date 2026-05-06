@@ -1,0 +1,788 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Exam Time Table | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Theme Variables integrated via base_with_header.html */
+
+    /* Dashboard Layout with Premium Spacing */
+    body { padding-top: 0 !important; }
+    .sw-main-content { margin-top: var(--header-height, 70px) !important; padding: 0 !important; }
+    
+    .dashboard-container { 
+        padding: 16px 20px 24px 20px !important; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 12px; 
+    }
+    @media (max-width: 1024px) {
+        .dashboard-container { padding: 12px 12px 80px 12px !important; }
+    }
+
+    .controls-row { 
+        display: flex; justify-content: space-between; align-items: center; 
+        padding: 16px 24px !important; 
+        background-color: var(--card-bg) !important; 
+        border: 1px solid var(--border-color) !important; 
+        border-radius: 12px !important; 
+        box-shadow: var(--card-shadow) !important;
+        position: relative !important;
+        z-index: 10 !important;
+        margin: 0 !important;
+    }
+    
+    .controls-left h3 { 
+        font-size: 1.2rem; font-weight: 700; margin: 0; 
+        color: var(--primary-color); display: flex; align-items: center; gap: 10px;
+    }
+    .controls-left h3 span { color: var(--text-muted, #64748b); font-weight: 500; font-size: 1rem; }
+
+    .controls-right { display: flex; align-items: center; gap: 12px; }
+    
+    .summary-box { 
+        display: flex; 
+        align-items: center; 
+        gap: 10px; 
+        flex-wrap: nowrap;
+    }
+    
+    /* Info Badges */
+    .exam-info-badges { display: flex; gap: 8px; align-items: center; }
+    .info-badge {
+        background: var(--primary-light); color: var(--primary-color);
+        padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+        display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    }
+    body.dark-mode .info-badge { background: var(--primary-light); color: var(--primary-color); }
+
+    .btn-sw-back {
+        background: var(--bg-hover); color: var(--text-light); padding: 8px 16px; 
+        border-radius: 10px; text-decoration: none; font-size: 0.85rem; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+        border: 1px solid var(--border-color);
+    }
+    .btn-sw-back:hover { background: var(--border-color); color: var(--text-color); transform: translateX(-2px); }
+    body.dark-mode .btn-sw-back { background: var(--bg-hover); border-color: var(--border-color); color: var(--text-color); }
+
+    /* Classes Grid - Stat Card Style */
+    .classes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    
+    .class-card { 
+        background: var(--card-bg, white); padding: 16px; border-radius: 12px; 
+        border: 1px solid var(--border-color, #e5e7eb); 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex; flex-direction: column; gap: 12px;
+    }
+    .class-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: var(--primary-color); }
+    body.dark-mode .class-card { background: #1f2937; border-color: #374151; }
+
+    .class-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .class-name { font-size: 1.1rem; font-weight: 700; color: var(--text-main, #1e293b); margin: 0; }
+    body.dark-mode .class-name { color: white; }
+    
+    .class-stats-row { display: flex; align-items: center; justify-content: space-between; }
+    .stat-pill {
+        background: var(--primary-light); color: var(--primary-color);
+        padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+    }
+    .stat-pill.warning { background: var(--warning-light); color: var(--warning-color); }
+    .stat-pill.success { background: var(--success-light); color: var(--success-color); }
+
+    /* Action Buttons */
+    .card-actions { display: flex; gap: 6px; }
+    .sw-action-btn {
+        width: 32px; height: 32px; border-radius: 8px; border: none;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-schedule { background: var(--primary-color); color: white; width: auto; padding: 0 12px; font-weight: 600; font-size: 0.75rem; }
+    .btn-schedule:hover { background: var(--primary-hover); }
+    .btn-print { background: var(--success-color); color: white; }
+    .btn-print:hover { opacity: 0.8; transform: scale(1.1); }
+    .btn-email { background: var(--warning-color); color: white; }
+    .btn-email:hover { opacity: 0.8; transform: scale(1.1); }
+
+    /* Tables & Sections */
+    .scheduled-section { 
+        background: var(--card-bg, white); padding: 20px; border-radius: 12px; 
+        border: 1px solid var(--border-color, #e5e7eb); 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    body.dark-mode .scheduled-section { background: #1f2937; border-color: #374151; }
+    
+    .section-header { 
+        display: flex; justify-content: space-between; align-items: center; 
+        margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);
+    }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); display: flex; align-items: center; gap: 8px; }
+    #filterLabel { color: var(--text-light); font-weight: 500; font-size: 0.95rem; }
+
+    @media (max-width: 1024px) {
+        .controls-row { flex-direction: column; align-items: flex-start; gap: 15px; }
+        .controls-right { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+        .exam-info-badges { width: 100%; order: 2; }
+        .btn-sw-back { order: 1; margin-left: auto; }
+    }
+    @media (max-width: 640px) {
+        .exam-info-badges { flex-direction: column; align-items: flex-start; }
+        .info-badge { width: 100%; }
+        .btn-sw-back { width: 100%; justify-content: center; }
+    }
+    .scheduled-table { width: 100%; border-collapse: collapse; min-width: 1200px; font-size: 0.85rem; }
+    .scheduled-table th, .scheduled-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    body.dark-mode .scheduled-table th, body.dark-mode .scheduled-table td { border-color: var(--border-color); }
+    .scheduled-table th { background: var(--primary-color); font-weight: 600; color: white; font-size: 0.8rem; position: sticky; top: 0; z-index: 10; }
+    body.dark-mode .scheduled-table th { background: var(--primary-color); }
+    .scheduled-table tbody tr:hover { background: var(--primary-light); }
+    body.dark-mode .scheduled-table tbody tr:hover { background: var(--bg-hover); }
+    .scheduled-table td:first-child { width: 40px; text-align: center; color: var(--text-light); }
+    .scheduled-table td:nth-child(5), .scheduled-table td:nth-child(8), .scheduled-table td:nth-child(9), .scheduled-table td:nth-child(10), .scheduled-table td:nth-child(11), .scheduled-table td:nth-child(12) { text-align: center; }
+    .scheduled-table td:last-child { width: 100px; text-align: center; }
+    .time-badge { display: inline-block; background: var(--primary-light); color: var(--primary-color); padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; }
+    body.dark-mode .time-badge { background: var(--primary-light); color: var(--primary-color); }
+    .scheduled-table td:nth-child(14) { text-align: center; font-size: 1.1rem; }
+    body.dark-mode .scheduled-table th { background: var(--card-bg); border-bottom: 2px solid var(--primary-color); }
+    
+    /* Mode Badges */
+    .mode-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .mode-badge.primary { background: var(--primary-light); color: var(--primary-color); }
+    .mode-badge.success { background: var(--success-light); color: var(--success-color); }
+    .mode-badge.warning { background: var(--warning-light); color: var(--warning-color); }
+    body.dark-mode .mode-badge { background: var(--primary-light); color: var(--primary-color); }
+    body.dark-mode .mode-badge.success { background: var(--success-light); color: var(--success-color); }
+    body.dark-mode .mode-badge.warning { background: var(--warning-light); color: var(--warning-color); }
+    
+    /* ── TABS SYSTEM ── */
+    .sw-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border-color, #e5e7eb); margin-bottom: 20px; padding: 0 4px; }
+    .sw-tab { 
+        padding: 10px 20px; font-size: 0.9rem; font-weight: 600; color: var(--text-muted, #64748b);
+        cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;
+    }
+    .sw-tab:hover { color: var(--primary-color); background: var(--primary-light); border-radius: 8px 8px 0 0; }
+    .sw-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+    body.dark-mode .sw-tab.active { color: #818cf8; border-bottom-color: #818cf8; }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: tabFadeIn 0.3s ease; }
+    @keyframes tabFadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── FORM STYLING ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+    
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-light); margin-bottom: 6px; }
+    body.dark-mode .form-label { color: var(--text-light); }
+    
+    .form-input, .form-select {
+        width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color, #e5e7eb);
+        background: var(--card-bg, white); color: var(--text-main, #1e293b); font-size: 0.9rem; transition: all 0.2s;
+    }
+    body.dark-mode .form-input, body.dark-mode .form-select { background: #1f2937 !important; border-color: #374151 !important; color: white !important; }
+    .form-input:focus, .form-select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px var(--primary-light); }
+    
+    .btn-save-schedule { width: 100%; justify-content: center; margin-top: 10px; }
+    
+    @media (max-width: 768px) {
+        body { overflow-x: hidden; }
+        .container { margin: 90px 5px 20px 5px; padding: 10px; max-width: 100vw; }
+        .classes-grid { grid-template-columns: 1fr; }
+        .controls-right { flex-direction: column; align-items: flex-start; }
+        .btn-back { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3 class="page-title"><i class="fas fa-calendar-alt"></i> {{ page_title }} <span>- {{ exam.ExamName }}</span></h3>
+        </div>
+        <div class="controls-right">
+            <div class="summary-box">
+                <span class="info-badge"><i class="fas fa-tag"></i> {{ exam.ExamType|default:"N/A" }}</span>
+                <span class="info-badge"><i class="fas fa-calendar-day"></i> {{ exam.StartDate|date:"M d" }} - {{ exam.EndDate|date:"M d, Y" }}</span>
+            </div>
+            <a href="{% url 'exam_management' %}" class="btn-sw-back">
+                <i class="fas fa-arrow-left"></i> <span class="btn-label">Back</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="classes-grid">
+        {% for cls in classes %}
+        <div class="class-card" onclick="filterByClass({{ cls.ClassID }}, '{{ cls.ClassName }}')">
+            <div class="class-header">
+                <h4 class="class-name">{{ cls.ClassName }}</h4>
+                <div class="card-actions">
+                    {% if cls.IsComplete %}
+                        <button class="sw-action-btn btn-print" title="Print" onclick="event.stopPropagation(); printTimetable({{ cls.ClassID }}, '{{ cls.ClassName }}')">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        <button class="sw-action-btn btn-email" title="Email" onclick="event.stopPropagation(); sendEmailToClass({{ cls.ClassID }}, '{{ cls.ClassName }}')">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="class-stats-row">
+                <span class="stat-pill {% if cls.IsComplete %}success{% else %}warning{% endif %}">
+                    {{ cls.ScheduledCount }}/{{ cls.TotalSubjects }} Scheduled
+                </span>
+                {% if not cls.IsComplete %}
+                    <button class="sw-action-btn btn-schedule" onclick="event.stopPropagation(); openScheduleModal({{ cls.ClassID }}, '{{ cls.ClassName }}')">
+                        <i class="fas fa-plus"></i> &nbsp;Schedule
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="scheduled-section">
+        <div class="section-header">
+            <h3 class="section-title"><i class="fas fa-list"></i> Scheduled Exams <span id="filterLabel"></span></h3>
+            <button onclick="clearFilter()" id="clearFilterBtn" style="display: none;" class="btn btn-secondary">
+                <i class="fas fa-times"></i> <span class="btn-label">Clear Filter</span>
+            </button>
+        </div>
+        <div id="scheduledTableContainer">
+            <p style="text-align: center; color: #6b7280; padding: 40px;">
+                <i class="fas fa-hand-pointer" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                Click on a class card above to view scheduled exams
+            </p>
+        </div>
+    </div>
+</div>
+
+{% comment %} PREMIUM SCHEDULE MODAL {% endcomment %}
+<div id="scheduleModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-calendar-plus"></i>
+                <h2>Schedule Exam for <span id="modalClassName"></span></h2>
+            </div>
+            <button class="sw-modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="sw-modal-body">
+            <div class="sw-tabs">
+                <div class="sw-tab active" onclick="switchTab('basic')">Basic Info</div>
+                <div class="sw-tab" onclick="switchTab('marks')">Marks Setup</div>
+                <div class="sw-tab" onclick="switchTab('other')">Other Details</div>
+            </div>
+            
+            <form id="scheduleForm">
+                {% csrf_token %}
+                <input type="hidden" id="timetableId" name="timetable_id">
+                <input type="hidden" id="classId" name="class_id">
+                
+                <!-- Basic Info Tab -->
+                <div id="basicTab" class="tab-content active">
+                    <div class="form-group">
+                        <label class="form-label">Subject *</label>
+                        <select id="subjectId" class="form-select" required>
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Exam Date * <span style="font-weight:400; color: var(--text-muted,#94a3b8); font-size:0.8rem">({{ exam.StartDate|date:"M d" }} – {{ exam.EndDate|date:"M d, Y" }})</span></label>
+                        <input type="date" id="examDate" class="form-input"
+                            min="{{ exam.StartDate|date:'Y-m-d' }}"
+                            max="{{ exam.EndDate|date:'Y-m-d' }}"
+                            required>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Start Time *</label>
+                            <input type="time" id="startTime" class="form-input" value="10:00" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Time *</label>
+                            <input type="time" id="endTime" class="form-input" value="13:00" required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Exam Mode *</label>
+                            <select id="examMode" class="form-select" required>
+                                <option value="Offline">Offline</option>
+                                <option value="Online">Online</option>
+                                <option value="Hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Room No</label>
+                            <input type="text" id="roomNo" class="form-input" placeholder="e.g. 101">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Invigilator</label>
+                        <input type="text" id="invigilator" class="form-input" placeholder="Teacher name">
+                    </div>
+                </div>
+                
+                <!-- Marks Setup Tab -->
+                <div id="marksTab" class="tab-content">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Max Theory Marks *</label>
+                            <input type="number" id="maxTheoryMarks" class="form-input" value="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Min Theory Marks *</label>
+                            <input type="number" id="minTheoryMarks" class="form-input" value="33" required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Max Practical Marks</label>
+                            <input type="number" id="maxPracticalMarks" class="form-input" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Min Practical Marks</label>
+                            <input type="number" id="minPracticalMarks" class="form-input" placeholder="Optional">
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Max Viva Marks</label>
+                            <input type="number" id="maxVivaMarks" class="form-input" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Min Viva Marks</label>
+                            <input type="number" id="minVivaMarks" class="form-input" placeholder="Optional">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Other Details Tab -->
+                <div id="otherTab" class="tab-content">
+                    <div class="form-group">
+                        <label class="form-label">Exam Location</label>
+                        <input type="text" id="examLocation" class="form-input" placeholder="Room name, lab, or online link">
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Evaluation Type</label>
+                            <select id="evaluationType" class="form-select">
+                                <option value="Marks">Marks</option>
+                                <option value="Grade">Grade</option>
+                                <option value="Both">Both</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Passing Criteria</label>
+                            <input type="text" id="passingCriteria" class="form-input" placeholder="e.g. 33% overall">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Remarks</label>
+                        <textarea id="remarks" class="form-input" rows="3" placeholder="Additional notes"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="sw-modal-footer">
+            <div id="modalError" style="display:none; color:var(--error-color); font-size:0.85rem; font-weight:600; flex:1; text-align:left"></div>
+            <button type="button" class="sw-btn" onclick="closeModal()" style="background: var(--bg-hover, #f3f4f6); color: var(--text-muted, #6b7280);">Cancel</button>
+            <button type="submit" form="scheduleForm" class="sw-btn sw-btn-primary btn-save-schedule">
+                <i class="fas fa-save"></i> Save Schedule
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openScheduleModal(classId, className) {
+    document.getElementById('classId').value = classId;
+    document.getElementById('modalClassName').textContent = className;
+    document.getElementById('scheduleModal').classList.add('show');
+    
+    fetch('/get-subjects-by-class/?class_id=' + classId + '&exam_id={{ exam.ExamID }}')
+        .then(r => r.json())
+        .then(data => {
+            const select = document.getElementById('subjectId');
+            select.innerHTML = '<option value="">Select Subject</option>';
+            if(data.subjects.length === 0) {
+                select.innerHTML += '<option value="" disabled>All subjects scheduled</option>';
+            } else {
+                data.subjects.forEach(s => {
+                    select.innerHTML += `<option value="${s.SubjectID}">${s.SubjectName}</option>`;
+                });
+            }
+        });
+}
+
+function closeModal() {
+    document.getElementById('scheduleModal').classList.remove('show');
+    document.getElementById('scheduleForm').reset();
+    document.getElementById('timetableId').value = '';
+    clearModalError();
+    switchTab('basic');
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.sw-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    if(tab === 'basic') {
+        document.querySelectorAll('.sw-tab')[0].classList.add('active');
+        document.getElementById('basicTab').classList.add('active');
+    } else if(tab === 'marks') {
+        document.querySelectorAll('.sw-tab')[1].classList.add('active');
+        document.getElementById('marksTab').classList.add('active');
+    } else if(tab === 'other') {
+        document.querySelectorAll('.sw-tab')[2].classList.add('active');
+        document.getElementById('otherTab').classList.add('active');
+    }
+}
+
+function showModalError(msg) {
+    const err = document.getElementById('modalError');
+    err.textContent = msg;
+    err.style.display = 'block';
+}
+function clearModalError() {
+    const err = document.getElementById('modalError');
+    if(err) { err.textContent = ''; err.style.display = 'none'; }
+}
+
+document.getElementById('scheduleForm').onsubmit = function(e) {
+    e.preventDefault();
+    clearModalError();
+
+    // Pre-submit validation (fields may be in hidden tabs)
+    const subject = document.getElementById('subjectId').value;
+    const examDate = document.getElementById('examDate').value;
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+    const maxTheory = document.getElementById('maxTheoryMarks').value;
+    const minTheory = document.getElementById('minTheoryMarks').value;
+
+    if(!subject) {
+        switchTab('basic');
+        showModalError('⚠ Please select a Subject.');
+        return;
+    }
+    if(!examDate) {
+        switchTab('basic');
+        showModalError('⚠ Please select an Exam Date.');
+        return;
+    }
+    if(!startTime || !endTime) {
+        switchTab('basic');
+        showModalError('⚠ Please fill in Start and End Time.');
+        return;
+    }
+    if(!maxTheory || !minTheory) {
+        switchTab('marks');
+        showModalError('⚠ Please fill in Theory Marks (Max & Min).');
+        return;
+    }
+
+    const saveBtn = document.querySelector('.btn-save-schedule');
+    const originalHtml = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    saveBtn.disabled = true;
+
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const timetableId = document.getElementById('timetableId').value;
+    
+    const payload = {
+        timetable_id: timetableId || null,
+        exam_id: {{ exam.ExamID }},
+        class_id: document.getElementById('classId').value,
+        subject_id: subject,
+        exam_date: examDate,
+        start_time: startTime,
+        end_time: endTime,
+        exam_mode: document.getElementById('examMode').value,
+        exam_location: document.getElementById('examLocation').value,
+        room_no: document.getElementById('roomNo').value,
+        invigilator: document.getElementById('invigilator').value,
+        max_theory_marks: maxTheory,
+        min_theory_marks: minTheory,
+        max_practical_marks: document.getElementById('maxPracticalMarks').value || null,
+        min_practical_marks: document.getElementById('minPracticalMarks').value || null,
+        max_viva_marks: document.getElementById('maxVivaMarks').value || null,
+        min_viva_marks: document.getElementById('minVivaMarks').value || null,
+        evaluation_type: document.getElementById('evaluationType').value,
+        passing_criteria: document.getElementById('passingCriteria').value,
+        remarks: document.getElementById('remarks').value
+    };
+    
+    fetch('/exam/timetable/save/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+        body: JSON.stringify(payload)
+    }).then(async r => {
+        saveBtn.innerHTML = originalHtml;
+        saveBtn.disabled = false;
+        const text = await r.text();
+        if(r.status === 401) {
+            window.location.href = '/login/';
+            return null;
+        }
+        try {
+            const data = JSON.parse(text);
+            if(!r.ok || data.status === 'FAILED') {
+                showModalError('⚠ ' + (data.message || 'Server error: ' + r.status));
+                return null;
+            }
+            return data;
+        } catch(err) {
+            showModalError('⚠ Server returned an invalid response. Check console.');
+            console.error('Invalid JSON:', text.substring(0, 500));
+            return null;
+        }
+    }).then(data => {
+        if(!data) return;
+        closeModal();
+        location.reload();
+    }).catch(err => {
+        saveBtn.innerHTML = originalHtml;
+        saveBtn.disabled = false;
+        showModalError('⚠ Error: ' + err.message);
+        console.error('Save error:', err);
+    });
+};
+
+function editSchedule(id) {
+    fetch('/api/encrypt-id/?id=' + id)
+        .then(r => r.json())
+        .then(encData => {
+            return fetch('/exam/timetable/get/' + encData.encrypted + '/');
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'SUCCESS') {
+                const item = data.timetable;
+                document.getElementById('timetableId').value = item.ExamTimeTableID;
+                document.getElementById('classId').value = item.ClassID;
+                document.getElementById('examDate').value = item.ExamDate;
+                document.getElementById('startTime').value = item.StartTime;
+                document.getElementById('endTime').value = item.EndTime;
+                document.getElementById('examMode').value = item.ExamMode || 'Offline';
+                document.getElementById('roomNo').value = item.RoomNo || '';
+                document.getElementById('invigilator').value = item.Invigilator || '';
+                document.getElementById('maxTheoryMarks').value = item.MaxTheoryMarks || 100;
+                document.getElementById('minTheoryMarks').value = item.MinTheoryMarks || 33;
+                document.getElementById('maxPracticalMarks').value = item.MaxPracticalMarks || '';
+                document.getElementById('minPracticalMarks').value = item.MinPracticalMarks || '';
+                document.getElementById('maxVivaMarks').value = item.MaxVivaMarks || '';
+                document.getElementById('minVivaMarks').value = item.MinVivaMarks || '';
+                document.getElementById('evaluationType').value = item.EvaluationType || 'Marks';
+                document.getElementById('passingCriteria').value = item.PassingCriteria || '';
+                document.getElementById('remarks').value = item.Remarks || '';
+                document.getElementById('examLocation').value = item.ExamLocation || '';
+                document.getElementById('modalClassName').textContent = item.ClassName;
+                
+                fetch('/get-subjects-by-class/?class_id=' + item.ClassID)
+                    .then(r => r.json())
+                    .then(subData => {
+                        const select = document.getElementById('subjectId');
+                        select.innerHTML = '<option value="">Select Subject</option>';
+                        subData.subjects.forEach(s => {
+                            select.innerHTML += `<option value="${s.SubjectID}">${s.SubjectName}</option>`;
+                        });
+                        document.getElementById('subjectId').value = item.SubjectID;
+                        document.getElementById('scheduleModal').classList.add('show');
+                    });
+            }
+        });
+}
+
+function deleteSchedule(id) {
+    if(!confirm('Are you sure you want to delete this schedule?')) return;
+    
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch('/exam/timetable/delete/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+        body: JSON.stringify({timetable_id: id})
+    }).then(r => r.json()).then(data => {
+        alert(data.message);
+        if(data.status === 'SUCCESS') location.reload();
+    });
+}
+
+function printTimetable(classId, className) {
+    fetch('/api/encrypt-id/?id=' + classId)
+        .then(r => r.json())
+        .then(data => {
+            window.open('/exam/timetable/print/{{ exam.ExamID|encrypt_id }}/' + data.encrypted + '/', '_blank');
+        });
+}
+
+function sendEmailToClass(classId, className) {
+    if(!confirm(`Send exam timetable to all students of ${className}?`)) return;
+    
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    btn.disabled = true;
+    
+    fetch('/api/exam/timetable/send-email/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+        body: JSON.stringify({
+            exam_id: {{ exam.ExamID }},
+            class_id: classId
+        })
+    }).then(r => r.json()).then(data => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert(data.message);
+    }).catch(err => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert('Error sending emails');
+    });
+}
+
+function filterByClass(classId, className) {
+    const container = document.getElementById('scheduledTableContainer');
+    container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 30px;"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem; display:block; margin-bottom:8px;"></i>Loading...</p>';
+    
+    fetch('/api/encrypt-id/?id=' + classId)
+        .then(r => r.json())
+        .then(encData => {
+            return fetch('/exam/timetable/filter/{{ exam.ExamID|encrypt_id }}/' + encData.encrypted + '/');
+        })
+        .then(r => r.json())
+        .then(data => {
+            const filterLabel = document.getElementById('filterLabel');
+            const clearBtn = document.getElementById('clearFilterBtn');
+            
+            filterLabel.textContent = '- ' + className;
+            clearBtn.style.display = 'inline-block';
+            
+            if(!data.timetable || data.timetable.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px; color: var(--text-muted, #6b7280);">
+                        <i class="fas fa-calendar-times" style="font-size:2.5rem; margin-bottom:12px; display:block; opacity:0.4;"></i>
+                        <p style="font-size:1rem; font-weight:600;">No exams scheduled for ${className} yet.</p>
+                        <p style="font-size:0.85rem; margin-top:4px;">Use the <strong>+ Schedule</strong> button on the class card to add one.</p>
+                    </div>`;
+                return;
+            }
+            
+            let tableHTML = `
+            <div style="overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color, #e5e7eb);">
+            <table class="scheduled-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Mode</th>
+                        <th>Room</th>
+                        <th>Location</th>
+                        <th>Theory (Max/Min)</th>
+                        <th>Practical</th>
+                        <th>Viva</th>
+                        <th>Total</th>
+                        <th>Eval Type</th>
+                        <th>Invigilator</th>
+                        <th>Remarks</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+            
+            data.timetable.forEach((item, index) => {
+                const theory = item.MaxTheoryMarks ? `${item.MaxTheoryMarks} / ${item.MinTheoryMarks}` : `<span style="color:var(--text-light)">—</span>`;
+                const practical = item.MaxPracticalMarks ? `${item.MaxPracticalMarks} / ${item.MinPracticalMarks}` : `<span style="color:var(--text-light)">—</span>`;
+                const viva = item.MaxVivaMarks ? `${item.MaxVivaMarks} / ${item.MinVivaMarks}` : `<span style="color:var(--text-light)">—</span>`;
+                const totalMarks = item.TotalMaxMarks || (parseInt(item.MaxTheoryMarks||0) + parseInt(item.MaxPracticalMarks||0) + parseInt(item.MaxVivaMarks||0)) || '—';
+                const remarksHtml = item.Remarks 
+                    ? `<i class="fas fa-comment-dots" style="color: var(--primary-color); cursor:pointer; font-size:1rem;" title="${item.Remarks.replace(/"/g, '&quot;')}"></i>`
+                    : `<span style="color:var(--text-light)">—</span>`;
+                const modeText = item.ExamMode || 'Offline';
+                const modeClass = modeText === 'Online' ? 'success' : modeText === 'Hybrid' ? 'warning' : 'primary';
+                const modeBadge = `<span class="mode-badge ${modeClass}">${modeText}</span>`;
+                const dateStr = item.ExamDate ? new Date(item.ExamDate + 'T00:00:00').toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : '—';
+
+                tableHTML += `
+                <tr>
+                    <td style="color:var(--text-light); font-weight:600;">${index + 1}</td>
+                    <td><strong>${item.SubjectName}</strong></td>
+                    <td style="white-space:nowrap;">${dateStr}</td>
+                    <td><span class="time-badge">${item.StartTime} – ${item.EndTime}</span></td>
+                    <td>${modeBadge}</td>
+                    <td>${item.RoomNo || `<span style="color:var(--text-light)">—</span>`}</td>
+                    <td>${item.ExamLocation || `<span style="color:var(--text-light)">—</span>`}</td>
+                    <td style="text-align:center;">${theory}</td>
+                    <td style="text-align:center;">${practical}</td>
+                    <td style="text-align:center;">${viva}</td>
+                    <td style="text-align:center;"><strong>${totalMarks}</strong></td>
+                    <td>${item.EvaluationType || 'Marks'}</td>
+                    <td>${item.Invigilator || `<span style="color:var(--text-light)">—</span>`}</td>
+                    <td style="text-align:center;">${remarksHtml}</td>
+                    <td>
+                        <div style="display:flex; gap:6px; justify-content:center;">
+                            <button onclick="editSchedule(${item.ExamTimeTableID})" class="sw-action-btn btn-print" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteSchedule(${item.ExamTimeTableID})" class="sw-action-btn" title="Delete" style="background:var(--error-light); color:var(--error-color);">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            tableHTML += `</tbody></table></div>`;
+            container.innerHTML = tableHTML;
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            container.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 20px;"><i class="fas fa-exclamation-circle"></i> Error loading data. Please try again.</p>';
+        });
+}
+
+function clearFilter() {
+    location.reload();
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('scheduleModal');
+    if (event.target == modal) closeModal();
+}
+
+// Check session on page load
+fetch('/exam/management/')
+    .then(r => {
+        if(r.redirected && r.url.includes('login')) {
+            alert('Your session has expired. Please login again.');
+            window.location.href = '/login/';
+        }
+    });
+</script>
+{% endblock %}

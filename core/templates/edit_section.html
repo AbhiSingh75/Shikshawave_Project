@@ -1,0 +1,606 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Edit Section | ShikshaWave{% endblock %}
+
+{% block extra_head %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #004aad;
+        --primary-hover: #4338ca;
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #6b7280;
+        --light-gray: #f3f4f6;
+        --border-color: #e5e7eb;
+        --error-color: #ef4444;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --transition-speed: 0.3s;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    body.dark-mode {
+        --primary-color: #6366f1;
+        --primary-hover: #818cf8;
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --text-light: #d1d5db;
+        --light-gray: #374151;
+        --border-color: #4b5563;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.3;
+        color: #333;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    
+    body.dark-mode {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    .container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 8px;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0 0 20px 0;
+        padding: 15px 20px;
+        background: white;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        border-radius: 8px;
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--secondary-color);
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .controls-left h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--primary-color);
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .edit-panel {
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        padding: 20px;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    body.dark-mode .edit-panel {
+        background: #2d2d2d;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    body.dark-mode .panel-header {
+        border-color: #4b5563;
+    }
+
+    .panel-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: white;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .panel-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #374151;
+        margin: 0;
+    }
+
+    body.dark-mode .panel-title {
+        color: #d1d5db;
+    }
+
+    .class-info {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    body.dark-mode .class-info {
+        background: #374151;
+        border-color: #4b5563;
+    }
+
+    .class-info-label {
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 4px;
+    }
+
+    body.dark-mode .class-info-label {
+        color: #9ca3af;
+    }
+
+    .class-info-value {
+        color: #374151;
+        font-weight: 500;
+    }
+
+    body.dark-mode .class-info-value {
+        color: #d1d5db;
+    }
+
+    .form-section {
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #004aad;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    body.dark-mode .section-title {
+        color: #818cf8;
+        border-color: #4b5563;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    @media (min-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    body.dark-mode .form-label {
+        color: #d1d5db;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: #ef4444;
+        font-weight: 600;
+    }
+
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: white;
+        color: #1f2937;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #004aad;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    body.dark-mode .form-input,
+    body.dark-mode .form-select,
+    body.dark-mode .form-textarea {
+        background: #374151;
+        border-color: #4b5563;
+        color: #f9fafb;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .checkbox-input {
+        width: 18px;
+        height: 18px;
+        accent-color: #004aad;
+    }
+
+    .checkbox-label {
+        font-size: 14px;
+        color: #374151;
+        cursor: pointer;
+    }
+
+    body.dark-mode .checkbox-label {
+        color: #d1d5db;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    @media (min-width: 576px) {
+        .action-buttons {
+            flex-direction: row;
+            justify-content: center;
+        }
+    }
+
+    body.dark-mode .action-buttons {
+        border-color: #4b5563;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        border: none;
+        justify-content: center;
+        flex: 1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    @media (min-width: 576px) {
+        .btn {
+            flex: none;
+            min-width: 140px;
+        }
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-primary {
+        background: #10b981;
+        color: white;
+        border: 1px solid #059669;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: #059669;
+        border: 1px solid #047857;
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #4b5563;
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border: 1px solid #374151;
+        box-shadow: 0 4px 8px rgba(107, 114, 128, 0.4);
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+        border: 1px solid #dc2626;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+        border: 1px solid #b91c1c;
+        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Dark mode button styles */
+    body.dark-mode .btn-primary {
+        background: #10b981;
+        border: 1px solid #059669;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+
+    body.dark-mode .btn-primary:hover {
+        background: #059669;
+        border: 1px solid #047857;
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+    }
+
+    body.dark-mode .btn-secondary {
+        background: #6b7280;
+        border: 1px solid #4b5563;
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+    }
+
+    body.dark-mode .btn-secondary:hover {
+        background: #4b5563;
+        border: 1px solid #374151;
+        box-shadow: 0 4px 8px rgba(107, 114, 128, 0.4);
+    }
+
+    body.dark-mode .btn-danger {
+        background: #ef4444;
+        border: 1px solid #dc2626;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    }
+
+    body.dark-mode .btn-danger:hover {
+        background: #dc2626;
+        border: 1px solid #b91c1c;
+        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Mobile-specific adjustments */
+    @media (max-width: 767px) {
+        .container {
+            padding: 10px;
+        }
+
+        .controls-row {
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            margin-top: 120px;
+        }
+        
+        .controls-left h3 {
+            font-size: 1.2rem;
+        }
+        
+        .edit-panel {
+            padding: 15px;
+        }
+        
+        .panel-header {
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            padding: 12px;
+            font-size: 16px; /* Prevent zoom on iOS */
+        }
+        
+        .form-label {
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+    }
+
+    /* Small mobile devices */
+    @media (max-width: 480px) {
+        .container {
+            padding: 8px;
+        }
+
+        .controls-row {
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            margin-top: 100px;
+        }
+        
+        .controls-left h3 {
+            font-size: 1.1rem;
+        }
+        
+        .edit-panel {
+            padding: 12px;
+        }
+
+        .panel-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+        }
+        
+        .section-title {
+            font-size: 1rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 10px;
+        }
+
+        .btn {
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-edit"></i> Edit Section</h3>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="edit-panel">
+            <div class="panel-header">
+                <div class="panel-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <h2 class="panel-title">Edit Section Information</h2>
+                </div>
+            </div>
+            
+            <!-- Class Information -->
+            <div class="class-info">
+                <div class="class-info-label">Parent Class:</div>
+                <div class="class-info-value">{{ section_data.6 }} ({{ section_data.7 }})</div>
+            </div>
+            
+            <form method="post" action="{% url 'update_section' section_id=section_data.0 %}" id="editSectionForm">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-info-circle"></i> Section Details
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label for="section_name" class="form-label required">Section Name</label>
+                        <input type="text" id="section_name" name="section_name" class="form-input" 
+                               value="{{ section_data.2 }}" placeholder="e.g., A, B, C, etc." required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="capacity" class="form-label">Capacity</label>
+                            <input type="number" id="capacity" name="capacity" class="form-input" 
+                                   value="{{ section_data.3|default:'' }}" placeholder="40" min="1" max="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="room_number" class="form-label">Room Number</label>
+                            <input type="text" id="room_number" name="room_number" class="form-input" 
+                                   value="{{ section_data.4|default:'' }}" placeholder="Room 101">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="is_active" name="is_active" class="checkbox-input" 
+                                   {% if section_data.5 %}checked{% endif %}>
+                            <label for="is_active" class="checkbox-label">Active Section</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'view_class' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Section
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editSectionForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const sectionName = document.getElementById('section_name').value.trim();
+            
+            if (!sectionName) {
+                e.preventDefault();
+                alert('Please fill in the section name!');
+                return false;
+            }
+            
+            // Show loading state
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

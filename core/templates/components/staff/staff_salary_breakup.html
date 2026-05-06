@@ -1,0 +1,109 @@
+{% if salary_breakup %}
+<div class="table-container" id="salary-section" style="margin-top: 24px;">
+    <div class="section-header">
+        <div class="section-title-wrapper">
+            <div class="section-icon"><i class="fas fa-money-bill-wave"></i></div>
+            Salary Breakup
+        </div>
+        <button class="btn-icon" onclick="toggleEdit('salary')">
+            <i class="fas fa-pencil-alt"></i>
+        </button>
+    </div>
+
+    <div class="view-mode">
+        <div class="sw-salary-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
+            <!-- Earnings Table -->
+            <div class="sw-salary-column earnings" style="border-right: 1px solid var(--border-color);">
+                <div class="sw-salary-header" style="padding: 12px 24px; background: rgba(22, 101, 52, 0.05); border-bottom: 1px solid var(--border-color); color: #166534; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="fas fa-plus-circle"></i> EARNINGS
+                </div>
+                <table class="table" style="width: 100%;">
+                    <tbody>
+                        {% for item in salary_breakup %}
+                        {% if item.ComponentType == 'Earning' %}
+                        <tr class="sw-info-item" data-component-id="{{ item.ComponentID }}">
+                            <td style="width: 50%;">{{ item.ComponentName }}</td>
+                            <td class="value currency">₹{{ item.Amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Deductions Table -->
+            <div class="sw-salary-column deductions">
+                <div class="sw-salary-header" style="padding: 12px 24px; background: rgba(153, 27, 27, 0.05); border-bottom: 1px solid var(--border-color); color: #991b1b; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="fas fa-minus-circle"></i> DEDUCTIONS
+                </div>
+                <table class="table" style="width: 100%;">
+                    <tbody>
+                        {% for item in salary_breakup %}
+                        {% if item.ComponentType == 'Deduction' %}
+                        <tr class="sw-info-item deduction" data-component-id="{{ item.ComponentID }}">
+                            <td style="width: 50%;">{{ item.ComponentName }}</td>
+                            <td class="value currency">₹{{ item.Amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Summary Footer -->
+        <div class="sw-salary-summary-horizontal" style="display: flex; align-items: center; justify-content: space-around; padding: 20px; border-top: 1px solid var(--border-color); background: var(--light-gray);">
+            <div class="sw-salary-sum-item" style="text-align: center;">
+                <div class="sw-salary-sum-label" style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Total Earnings</div>
+                <div class="sw-salary-sum-value" id="totalEarningsView" style="font-weight: 700; font-size: 1.1rem; color: #166534;">₹0</div>
+            </div>
+            <div style="width: 1px; height: 30px; background: var(--border-color);"></div>
+            <div class="sw-salary-sum-item" style="text-align: center;">
+                <div class="sw-salary-sum-label" style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Total Deductions</div>
+                <div class="sw-salary-sum-value" id="totalDeductionsView" style="font-weight: 700; font-size: 1.1rem; color: #991b1b;">₹0</div>
+            </div>
+            <div style="width: 1px; height: 30px; background: var(--border-color);"></div>
+            <div class="sw-salary-sum-item" style="text-align: center;">
+                <div class="sw-salary-sum-label" style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Net Payable</div>
+                <div class="sw-salary-sum-value net" id="netSalaryView" style="font-weight: 800; color: var(--primary-color); font-size: 1.3rem;">₹0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="edit-mode" style="display: none; padding: 24px;">
+        <form onsubmit="saveSalary(event)">
+            <div class="sw-form-grid">
+                {% for item in salary_breakup %}
+                <div class="sw-form-group sw-salary-item {% if item.ComponentType == 'Deduction' %}deduction{% endif %}" data-component-id="{{ item.ComponentID }}">
+                    <label>{{ item.ComponentName }}</label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 0.9rem;">₹</span>
+                        <input type="number" step="0.01" name="amount_{{ item.ComponentID }}" value="{{ item.Amount }}" class="sw-form-control salary-amount" style="padding-left: 28px !important;" required>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="salary-summary-footer-edit" style="background: var(--light-gray); padding: 20px; border-radius: 12px; margin-top: 24px; display: flex; justify-content: flex-end; gap: 40px; border: 1px solid var(--border-color);">
+                <div style="text-align: right;">
+                    <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 700;">Gross</div>
+                    <div id="totalEarningsEdit" style="font-weight: 700; font-size: 1.1rem; color: #166534;">₹0</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 700;">Deducted</div>
+                    <div id="totalDeductionsEdit" style="font-weight: 700; font-size: 1.1rem; color: #991b1b;">₹0</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 700;">Net Payable</div>
+                    <div id="netSalaryEdit" style="font-weight: 800; color: var(--primary-color); font-size: 1.4rem;">₹0</div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="toggleEdit('salary')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}

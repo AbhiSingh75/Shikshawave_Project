@@ -1,0 +1,268 @@
+<!-- Horizontal ID Card Template 3 - Orange Professional -->
+<div class="id-card horizontal-card template-h3" data-student-id="{{ student.StudentID }}">
+    <!-- Left Panel -->
+    <div class="left-panel">
+        <div class="school-section">
+            {% if student.SchoolLogoBase64 %}
+            <img src="data:image/jpeg;base64,{{ student.SchoolLogoBase64 }}" alt="School Logo" class="school-logo">
+            {% else %}
+            <div class="logo-placeholder"><i class="fas fa-school"></i></div>
+            {% endif %}
+            <div class="school-name">{{ student.SchoolName|default:"School Name" }}</div>
+        </div>
+        
+        <div class="photo-section">
+            {% if student.PhotoBase64 %}
+            <img src="data:image/png;base64,{{ student.PhotoBase64 }}" alt="{{ student.FullName }}" class="student-photo">
+            {% else %}
+            <div class="photo-placeholder">{{ student.FullName|first|upper }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Right Panel -->
+    <div class="right-panel">
+        <div class="header-section">
+            <i class="fas fa-id-card"></i>
+            <span>STUDENT ID CARD</span>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-row">
+                <i class="fas fa-user"></i>
+                <span class="label">Name:</span>
+                <span class="value">{{ student.FullName }}</span>
+            </div>
+            
+            <div class="info-row">
+                <i class="fas fa-hashtag"></i>
+                <span class="label">ID:</span>
+                <span class="value">{{ student.StudentCode }}</span>
+            </div>
+            
+            <div class="info-row">
+                <i class="fas fa-graduation-cap"></i>
+                <span class="label">Class:</span>
+                <span class="value">{{ student.ClassName }} - {{ student.SectionName }}</span>
+            </div>
+            
+            <div class="info-row">
+                <i class="fas fa-list-ol"></i>
+                <span class="label">Roll:</span>
+                <span class="value">{{ student.RollNumber|default:"N/A" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <i class="fas fa-birthday-cake"></i>
+                <span class="label">DOB:</span>
+                <span class="value">{{ student.DateOfBirth|date:"d M Y"|default:"N/A" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <i class="fas fa-phone"></i>
+                <span class="label">Contact:</span>
+                <span class="value">{{ student.ParentMobile|default:"N/A" }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Main Card Container - Optimized Dimensions */
+.horizontal-card.template-h3 {
+    display: flex;
+    width: 450px;
+    height: 180px;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    margin: 0 auto;
+    position: relative;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Golden Top Stripe */
+.template-h3::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+    z-index: 1;
+}
+
+/* Left Panel - Compact Design */
+.template-h3 .left-panel {
+    width: 130px;
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+/* School Section - Compact */
+.template-h3 .school-section {
+    text-align: center;
+    width: 100%;
+}
+
+.template-h3 .school-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: white;
+    padding: 3px;
+    display: block;
+    margin: 0 auto 6px;
+}
+
+.template-h3 .logo-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff6b35 !important;
+    font-size: 18px;
+    margin: 0 auto 6px;
+}
+
+.template-h3 .school-name {
+    font-size: 9px;
+    color: white !important;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+}
+
+/* Photo Section - Optimized Size */
+.template-h3 .photo-section {
+    width: 75px;
+    height: 75px;
+}
+
+.template-h3 .student-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 3px solid white;
+}
+
+.template-h3 .photo-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white !important;
+    font-weight: bold;
+    border: 3px solid white;
+}
+
+/* Right Panel - Maximized Space */
+.template-h3 .right-panel {
+    flex: 1;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Section - Compact */
+.template-h3 .header-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding-top: 2px;
+}
+
+.template-h3 .header-section i {
+    font-size: 14px !important;
+    color: #ffd700 !important;
+}
+
+.template-h3 .header-section span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffd700 !important;
+    letter-spacing: 0.8px;
+}
+
+/* Info Grid - Optimized Layout */
+.template-h3 .info-grid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* Info Rows - Compact & Efficient */
+.template-h3 .info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.15);
+    padding: 5px 8px;
+    border-radius: 6px;
+    border-left: 3px solid #ffd700;
+    font-size: 10px;
+}
+
+.template-h3 .info-row i {
+    width: 14px !important;
+    color: #ffd700 !important;
+    font-size: 10px !important;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.template-h3 .info-row .label {
+    font-weight: 600;
+    color: rgba(255,255,255,0.9) !important;
+    min-width: 40px;
+    font-size: 9px;
+}
+
+.template-h3 .info-row .value {
+    flex: 1;
+    font-weight: 600;
+    color: white !important;
+    font-size: 10px;
+    text-align: left;
+}
+
+/* FontAwesome Icons - Ensure Visibility */
+.template-h3 i {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Ensure proper text rendering */
+.template-h3 * {
+    text-rendering: optimizeLegibility;
+}
+
+/* Responsive Design */
+@media (max-width: 500px) {
+    .horizontal-card.template-h3 {
+        width: 100%;
+        max-width: 450px;
+    }
+}
+</style>

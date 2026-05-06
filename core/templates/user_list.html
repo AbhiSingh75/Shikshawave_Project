@@ -1,0 +1,476 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}User List | ShikshaWave ERP{% endblock %}
+
+{% block extra_head %}
+<meta name="cache-buster" content="v1.6-clean-production">
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/dist/face-api.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.5">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container force-list-view">
+
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>User List</h3>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <i class="fas fa-users"></i>
+                    <span>Total: {{ total_users|default:0 }}</span>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Active: {{ active_users|default:0 }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="controls-right">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" name="search_name" value="{{ search_name|default:''|escapejs }}"
+                    placeholder="Search users...">
+            </div>
+
+            <div class="control-buttons">
+                {% if current_profile_name == 'Super Admin' or current_profile_name == 'School Admin' %}
+                <button class="btn btn-secondary" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    <span class="btn-label">Filters</span>
+                </button>
+                {% endif %}
+
+                <div class="column-visibility">
+                    <button class="btn btn-secondary" id="columnsBtn">
+                        <i class="fas fa-columns"></i>
+                        <span class="btn-label">Columns</span>
+                    </button>
+                    <div class="column-menu" id="column-menu">
+                        <!-- Dynamically generated -->
+                    </div>
+                </div>
+
+                <div class="export-dropdown-container">
+                    <button class="export-btn" id="exportBtn">
+                        <i class="fas fa-file-export"></i>
+                        <span class="btn-label">Export</span>
+                    </button>
+                    <div class="export-menu" id="exportMenu" data-export-url="{% url 'users_export' %}">
+                        <div class="export-menu-header">Download As</div>
+                        <button class="export-item excel" data-format="excel">
+                            <span class="export-icon"><i class="fas fa-file-excel"></i></span>
+                            Excel (.xlsx)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="comma">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Comma ,)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="pipe">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Pipe |)
+                        </button>
+                        <button class="export-item csv" data-format="csv" data-delimiter="tab">
+                            <span class="export-icon"><i class="fas fa-file-csv"></i></span>
+                            CSV (Tab)
+                        </button>
+                    </div>
+                </div>
+
+                {% if current_profile_name == 'Super Admin' %}
+                <a href="{% url 'create_user' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i>
+                    <span class="btn-label">Add User</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter"></i> Filter Users</h3>
+                <button type="button" class="action-btn" id="close-filter-modal" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-body">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-user-name"><i class="fas fa-user"></i> User Name</label>
+                        <input type="text" id="filter-user-name" name="search_name"
+                            value="{{ search_name|default:''|escapejs }}" placeholder="Enter user name">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-email"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="filter-email" name="email" value="{{ email|default:''|escapejs }}"
+                            placeholder="Enter email">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-phone"><i class="fas fa-phone"></i> Phone</label>
+                        <input type="tel" id="filter-phone" name="phone" value="{{ phone|default:''|escapejs }}"
+                            placeholder="Enter phone number">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-status"><i class="fas fa-toggle-on"></i> Status</label>
+                        <select id="filter-status" name="status">
+                            <option value="">All Status</option>
+                            <option value="Active" {% if status == 'Active' %}selected{% endif %}>Active</option>
+                            <option value="Inactive" {% if status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-status">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Status</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Status</div>
+                                <div class="custom-dropdown-option" data-value="Active">Active</div>
+                                <div class="custom-dropdown-option" data-value="Inactive">Inactive</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-profile"><i class="fas fa-user-tag"></i> Profile</label>
+                        <select id="filter-profile" name="profile">
+                            <option value="">All Profiles</option>
+                            {% for profile in profiles %}
+                            <option value="{{ profile.ProfileID }}" {% if profile_id == profile.ProfileID|stringformat:"s" %}selected{% endif %}>
+                                {{ profile.ProfileName }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-profile">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Profiles</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Profiles</div>
+                                {% for profile in profiles %}
+                                <div class="custom-dropdown-option" data-value="{{ profile.ProfileID }}">{{
+                                    profile.ProfileName }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% if current_profile_name == 'Super Admin' %}
+                    <div class="filter-group">
+                        <label for="filter-school"><i class="fas fa-school"></i> School</label>
+                        <select id="filter-school" name="school">
+                            <option value="">All Schools</option>
+                            {% for school in schools %}
+                            <option value="{{ school.SchoolID }}" {% if school_id == school.SchoolID|stringformat:"s" %}selected{% endif %}>
+                                {{ school.SchoolName }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="custom-dropdown" data-target="filter-school">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">All Schools</span>
+                                <span class="custom-dropdown-arrow">▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">All Schools</div>
+                                {% for school in schools %}
+                                <div class="custom-dropdown-option" data-value="{{ school.SchoolID }}">{{
+                                    school.SchoolName }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-from-date"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" id="filter-from-date" name="from_date"
+                            value="{{ from_date|default:''|escapejs }}">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-to-date"><i class="fas fa-calendar-check"></i> To Date</label>
+                        <input type="date" id="filter-to-date" name="to_date" value="{{ to_date|default:''|escapejs }}">
+                    </div>
+                </div>
+            </div>
+            <div class="filter-footer">
+                <button type="button" class="btn btn-secondary" id="reset-filters">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+        <div class="table-header">
+            <div class="table-info">
+                Showing {{ users.start_index }} to {{ users.end_index }} of {{ users.paginator.count }} entries
+            </div>
+        </div>
+        <!-- Desktop Table View -->
+        <div class="table-container">
+            <table id="user-table">
+                <thead>
+                    <tr>
+                        <th data-column="actions">Actions</th>
+                        <th data-sort="Sequence" class="sortable" data-column="sequence">SN <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="UserCode" class="sortable" data-column="user-code">User Code <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="photo">Photo</th>
+                        <th data-sort="UserName" class="sortable" data-column="user-name">User Name <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="Email" class="sortable" data-column="email">Email <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="Phone" class="sortable" data-column="phone">Phone <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-column="password">Password</th>
+                        <th data-sort="ProfileName" class="sortable" data-column="profile">Profile <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="SchoolName" class="sortable" data-column="school">School <i
+                                class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="Status" class="sortable" data-column="status">Status <i
+                                class="fas fa-sort sort-icon"></i></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="action-buttons">
+                                {% if not user.IsDeleted %}
+                                <button class="action-btn edit-btn" title="Edit" data-user-id="{{ user.UserID }}"
+                                    data-enc-user-id="{{ user.EncryptedUserID }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" title="Delete" data-user-id="{{ user.UserID }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="action-btn face-btn face-auth-trigger-btn" title="Register Face Id"
+                                    data-user-id="{{ user.UserID }}" data-username="{{ user.UserName }}">
+                                    <i class="fas fa-id-card"></i>
+                                </button>
+                                {% else %}
+                                <button class="action-btn restore-btn" title="Restore" data-user-id="{{ user.UserID }}">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td data-column="sequence">{{ forloop.counter0|add:users.start_index }}</td>
+                        <td data-column="user-code">{{ user.UserCode }}</td>
+                        <td data-column="photo">
+                            {% if user.UserPhotoBase64 %}
+                            <img src="data:image/jpeg;base64,{{ user.UserPhotoBase64 }}" class="user-avatar"
+                                alt="User Photo">
+                            {% else %}
+                            <div class="default-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td data-column="user-name">{{ user.UserName }}</td>
+                        <td data-column="email">{{ user.Email|default:"N/A" }}</td>
+                        <td data-column="phone">{{ user.Phone|default:"N/A" }}</td>
+                        <td data-column="password">
+                            <div class="password-field" data-user-id="{{ user.UserID }}">
+                                <span class="password-text" style="display: none;"></span>
+                                <span class="password-mask"></span>
+                                <button class="password-toggle" type="button" title="Show/Hide Password"
+                                    data-user-id="{{ user.UserID }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td data-column="profile">{{ user.ProfileName }}</td>
+                        <td data-column="school">{{ user.SchoolName|default:"N/A" }}</td>
+                        <td data-column="status">
+                            <div class="status-indicator">
+                                <span
+                                    class="status-icon {% if user.Status == 'Active' %}status-active{% else %}status-inactive{% endif %}"></span>
+                                {{ user.Status }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 40px;">
+                            <div style="color: var(--text-light);">
+                                <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <div>No users found</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div> <!-- End content-area -->
+
+
+    <!-- Pagination -->
+    {% if users.has_other_pages %}
+    <div class="pagination">
+        {% if users.has_previous %}
+        <button class="pagination-btn" data-page="1">
+            <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button class="pagination-btn" data-page="{{ users.previous_page_number }}">
+            <i class="fas fa-angle-left"></i>
+        </button>
+        {% endif %}
+
+        {% for i in users.paginator.page_range %}
+        {% if users.number == i %}
+        <button class="pagination-btn active" data-page="{{ i }}">{{ i }}</button>
+        {% elif i > users.number|add:'-2' and i < users.number|add:'2' %} <button class="pagination-btn"
+            data-page="{{ i }}">{{ i }}</button>
+            {% elif i == 1 or i == users.paginator.num_pages %}
+            <button class="pagination-btn" data-page="{{ i }}">{{ i }}</button>
+            {% elif i == users.number|add:'-3' or i == users.number|add:'3' %}
+            <span class="pagination-ellipsis">...</span>
+            {% endif %}
+            {% endfor %}
+
+            {% if users.has_next %}
+            <button class="pagination-btn" data-page="{{ users.next_page_number }}">
+                <i class="fas fa-angle-right"></i>
+            </button>
+            <button class="pagination-btn" data-page="{{ users.paginator.num_pages }}">
+                <i class="fas fa-angle-double-right"></i>
+            </button>
+            {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // --- PASSWORD TOGGLE ---
+        document.addEventListener('click', function (e) {
+            const toggle = e.target.closest('.password-toggle');
+            if (!toggle) return;
+
+            const userId = toggle.dataset.userId;
+            const field = toggle.closest('.password-field');
+            const mask = field.querySelector('.password-mask');
+            const icon = toggle.querySelector('i');
+
+            if (toggle.classList.contains('loading')) return;
+
+            if (toggle.dataset.visible === 'true') {
+                mask.textContent = '********';
+                toggle.dataset.visible = 'false';
+                icon.className = 'fas fa-eye';
+            } else {
+                toggle.classList.add('loading');
+                fetch(`/users/${userId}/password/`, { headers: { 'X-CSRFToken': window.getCSRFToken() } })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) {
+                            mask.textContent = d.password;
+                            toggle.dataset.visible = 'true';
+                            icon.className = 'fas fa-eye-slash';
+                        } else if (window.showToast) window.showToast('error', d.message || 'Failed to fetch password');
+                    })
+                    .catch(() => { if (window.showToast) window.showToast('error', 'Network error'); })
+                    .finally(() => toggle.classList.remove('loading'));
+            }
+        });
+
+        attachActionButtonListeners(document);
+    });
+
+
+    // --- GLOBAL FUNCTIONS ---
+    function attachActionButtonListeners(root) {
+        root.querySelectorAll('.action-btn').forEach(btn => {
+            if (btn.dataset.listenerAttached) return;
+            btn.dataset.listenerAttached = 'true';
+            btn.addEventListener('click', function (e) {
+                e.preventDefault(); e.stopPropagation();
+                const uid = this.dataset.userId, encUid = this.dataset.encUserId, unm = this.dataset.username;
+                if (this.classList.contains('edit-btn')) window.location.href = `/users/${encUid}/update/`;
+                else if (this.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this user?')) deleteUser(uid); }
+                else if (this.classList.contains('restore-btn')) { if (confirm('Are you sure you want to restore this user?')) restoreUser(uid); }
+                else if (this.classList.contains('face-auth-trigger-btn')) {
+                    const userId = this.dataset.userId;
+                    const username = this.dataset.username;
+                    // Create a more secure encrypted parameter
+                    const timestamp = Date.now();
+                    const combined = `${userId}_${timestamp}`;
+                    const encrypted = btoa(combined).replace(/[+/=]/g, function (match) {
+                        return { '+': '-', '/': '_', '=': '' }[match];
+                    });
+                    window.location.href = `/face-registration/?u=${encrypted}&username=${encodeURIComponent(username)}`;
+                }
+            });
+        });
+    }
+
+    function deleteUser(uid) {
+        fetch(`/users/${uid}/delete/`, { method: 'POST', headers: { 'X-CSRFToken': window.getCSRFToken() } })
+            .then(r => r.json()).then(d => {
+                if (d.success) {
+                    updateUserStatus(uid, true);
+                    if (window.showToast) window.showToast('success', d.message || 'User deleted successfully');
+                } else {
+                    if (window.showToast) window.showToast('error', d.message || 'Failed to delete user');
+                }
+            }).catch(err => { if (window.showToast) window.showToast('error', 'Network error occurred'); });
+    }
+
+    function restoreUser(uid) {
+        fetch(`/users/${uid}/restore/`, { method: 'POST', headers: { 'X-CSRFToken': window.getCSRFToken() } })
+            .then(r => r.json()).then(d => {
+                if (d.success) {
+                    updateUserStatus(uid, false);
+                    if (window.showToast) window.showToast('success', d.message || 'User restored successfully');
+                } else {
+                    if (window.showToast) window.showToast('error', d.message || 'Failed to restore user');
+                }
+            }).catch(err => { if (window.showToast) window.showToast('error', 'Network error occurred'); });
+    }
+
+    function updateUserStatus(uid, del) {
+        document.querySelectorAll(`tr:has(.action-btn[data-user-id="${uid}"]),
+    .user-card:has(.action-btn[data-user-id="${uid}"])`).forEach(row => {
+            const ac = row.querySelector('.action-buttons, .user-card-actions');
+            if (ac) {
+                const unm = row.querySelector('.face-auth-trigger-btn')?.dataset.username || '';
+                // Get encUid from the existing edit button before it's replaced, or from the face-auth-trigger-btn if available
+                const existingEditBtn = row.querySelector('.edit-btn');
+                const encUid = existingEditBtn ? existingEditBtn.dataset.encUserId : '';
+
+                ac.innerHTML = del ? `<button class="action-btn restore-btn" title="Restore" data-user-id="${uid}"><i
+                        class="fas fa-undo"></i></button>` :
+                    `<button class="action-btn edit-btn" title="Edit" data-user-id="${uid}" data-enc-user-id="${encUid}"><i class="fas fa-edit"></i></button> <button
+        class="action-btn delete-btn" title="Delete" data-user-id="${uid}"><i class="fas fa-trash"></i></button> <button
+        class="action-btn face-btn face-auth-trigger-btn" title="Register Face Id" data-user-id="${uid}"
+        data-username="${unm}"><i class="fas fa-id-card"></i></button>`;
+                attachActionButtonListeners(ac);
+            }
+            const si = row.querySelector('.status-indicator');
+            if (si) si.innerHTML = del ? '<span class="status-icon status-inactive"></span> Inactive' : '<span class="status-icon status-active"></span> Active';
+        });
+    }
+
+</script>
+{% endblock %}

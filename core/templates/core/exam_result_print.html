@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Report Card</title>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            @page { size: A4; margin: 10mm; }
+        }
+        body { font-family: Arial, sans-serif; margin: 10px; background: white; }
+        .btn-print { background: #004aad; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; font-size: 0.85rem; }
+        .btn-print:hover { background: #4338ca; }
+        .btn-close { background: #6b7280; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; display: inline-block; }
+        .badge-pass { background: #d1fae5; color: #065f46; }
+        .badge-fail { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #e5e7eb; color: #6b7280; }
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-print btn-close" onclick="window.close()">Close</button>
+    </div>
+    
+    <div style="background: white; padding: 20px; border: 3px solid #004aad; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <div style="text-align: center; border-bottom: 3px solid #004aad; padding-bottom: 12px; margin-bottom: 15px; background: linear-gradient(to bottom, #f8f9ff, white);">
+            {% if school_logo_src %}
+            <img src="{{ school_logo_src }}" alt="School Logo" style="width: 60px; height: 60px; margin: 0 auto 8px; display: block; border-radius: 50%; border: 3px solid #004aad; object-fit: cover;" />
+            {% else %}
+            <div style="width: 60px; height: 60px; margin: 0 auto 8px; background: #004aad; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid #6366f1;">
+                <span style="font-size: 30px; color: white;">🎓</span>
+            </div>
+            {% endif %}
+            <h2 style="margin: 0 0 4px 0; color: #1f2937; font-size: 1.3rem; font-weight: 700;">{{ school_name }}</h2>
+            <p style="margin: 0; color: #004aad; font-size: 0.8rem; font-weight: 600;">📋 STUDENT REPORT CARD</p>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #f0f4ff, #e8edff); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #004aad;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.8rem;">
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">🆔</span><strong style="color: #1f2937;">Student Code:</strong> <span style="color: #4b5563;">{{ StudentCode }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">👤</span><strong style="color: #1f2937;">Student Name:</strong> <span style="color: #4b5563;">{{ StudentName }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">🏫</span><strong style="color: #1f2937;">Class:</strong> <span style="color: #4b5563;">{{ ClassName }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">📚</span><strong style="color: #1f2937;">Section:</strong> <span style="color: #4b5563;">{{ SectionName }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">📝</span><strong style="color: #1f2937;">Exam:</strong> <span style="color: #4b5563;">{{ ExamName }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">📋</span><strong style="color: #1f2937;">Exam Type:</strong> <span style="color: #4b5563;">{{ ExamType }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">📅</span><strong style="color: #1f2937;">Start Date:</strong> <span style="color: #4b5563;">{{ StartDate }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">📅</span><strong style="color: #1f2937;">End Date:</strong> <span style="color: #4b5563;">{{ EndDate }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">📢</span><strong style="color: #1f2937;">Published:</strong> <span style="color: #4b5563;">{{ PublishedDate }}</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #004aad;">🏆</span><strong style="color: #1f2937;">Rank:</strong> <span style="color: #4b5563;">{{ Ranks }}</span></div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px;">
+            <div style="background: linear-gradient(135deg, {{ color }}20, {{ color }}10); padding: 14px; border-radius: 8px; text-align: center; border: 3px solid {{ color }}; box-shadow: 0 3px 8px {{ color }}25;">
+                <div style="font-size: 0.7rem; color: #1f2937; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.8px;">📊 TOTAL MARKS</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: {{ color }};">{{ total_obtained }}<span style="font-size: 0.9rem; color: #6b7280;"> / {{ total_max }}</span></div>
+            </div>
+            <div style="background: linear-gradient(135deg, {{ color }}20, {{ color }}10); padding: 14px; border-radius: 8px; text-align: center; border: 3px solid {{ color }}; box-shadow: 0 3px 8px {{ color }}25;">
+                <div style="font-size: 0.7rem; color: #1f2937; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.8px;">📈 PERCENTAGE</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: {{ color }};">{{ percentage }}%</div>
+            </div>
+            <div style="background: linear-gradient(135deg, {{ color }}20, {{ color }}10); padding: 14px; border-radius: 8px; text-align: center; border: 3px solid {{ color }}; box-shadow: 0 3px 8px {{ color }}25;">
+                <div style="font-size: 0.7rem; color: #1f2937; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.8px;">🏆 RESULT</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: {{ color }};">{{ status }}</div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <h3 style="margin: 0 0 10px 0; color: #1f2937; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; font-weight: 600;"><span style="color: #004aad;">📚</span> Subject-wise Performance</h3>
+            <table style="width: 100%; border-collapse: collapse; border: 2px solid #004aad; border-radius: 6px; overflow: hidden; font-size: 0.75rem; box-shadow: 0 2px 6px rgba(79,70,229,0.1);">
+                <thead>
+                    <tr>
+                        <th style="background: #004aad; color: white; padding: 8px 6px; text-align: left; font-weight: 600;">Subject</th>
+                        <th style="background: #004aad; color: white; padding: 8px 6px; text-align: center; font-weight: 600;">Theory</th>
+                        <th style="background: #004aad; color: white; padding: 8px 6px; text-align: center; font-weight: 600;">Practical</th>
+                        <th style="background: #004aad; color: white; padding: 8px 6px; text-align: center; font-weight: 600;">Viva</th>
+                        <th style="background: #004aad; color: white; padding: 8px 6px; text-align: center; font-weight: 600;">Total</th>
+                        <th style="background: #004aad; color: white; padding: 8px 6px; text-align: center; font-weight: 600;">Grade</th>
+                        <th style="background: #004aad; color: white; padding: 8px 6px; text-align: center; font-weight: 600;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in subjects %}
+                    <tr style="background: {% cycle '#ffffff' '#f8f9ff' %};">
+                        <td style="padding: 8px 6px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ subject.SubjectName }}</td>
+                        <td style="padding: 8px 6px; border-bottom: 1px solid #e5e7eb; text-align: center; color: #4b5563;">{% if subject.MaxTheoryMarks %}{{ subject.TheoryMarksObtained|floatformat:0 }} / {{ subject.MaxTheoryMarks|floatformat:0 }}{% else %}-{% endif %}</td>
+                        <td style="padding: 8px 6px; border-bottom: 1px solid #e5e7eb; text-align: center; color: #4b5563;">{% if subject.MaxPracticalMarks %}{{ subject.PracticalMarksObtained|floatformat:0 }} / {{ subject.MaxPracticalMarks|floatformat:0 }}{% else %}-{% endif %}</td>
+                        <td style="padding: 8px 6px; border-bottom: 1px solid #e5e7eb; text-align: center; color: #4b5563;">{% if subject.MaxVivaMarks %}{{ subject.VivaMarksObtained|floatformat:0 }} / {{ subject.MaxVivaMarks|floatformat:0 }}{% else %}-{% endif %}</td>
+                        <td style="padding: 8px 6px; border-bottom: 1px solid #e5e7eb; text-align: center;"><strong style="color: #004aad; font-size: 0.9rem;">{{ subject.TotalMarksObtained|floatformat:0 }}</strong> <span style="color: #9ca3af; font-size: 0.75rem;">/ {{ subject.TotalMaxMarks|floatformat:0 }}</span></td>
+                        <td style="padding: 8px 6px; border-bottom: 1px solid #e5e7eb; text-align: center; font-weight: 700; font-size: 0.95rem; color: #004aad;">{{ subject.Grade|default:"-" }}</td>
+                        <td style="padding: 8px 6px; border-bottom: 1px solid #e5e7eb; text-align: center;"><span class="badge badge-{{ subject.ResultStatus|lower|default:'pending' }}">{{ subject.ResultStatus|default:"Pending" }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #004aad; display: flex; justify-content: space-between;">
+            <div style="text-align: center;"><div style="border-top: 2px solid #1f2937; padding-top: 4px; margin-top: 30px; width: 120px; font-size: 0.8rem;"><strong>Class Teacher</strong></div></div>
+            <div style="text-align: center;"><div style="border-top: 2px solid #1f2937; padding-top: 4px; margin-top: 30px; width: 120px; font-size: 0.8rem;"><strong>Principal</strong></div></div>
+        </div>
+    </div>
+</body>
+</html>

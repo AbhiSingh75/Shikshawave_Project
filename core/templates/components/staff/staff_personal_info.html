@@ -1,0 +1,153 @@
+<div class="table-container" id="personal-section">
+    <div class="section-header">
+        <div class="section-title-wrapper">
+            <div class="section-icon"><i class="fas fa-user"></i></div>
+            Personal Information
+        </div>
+        <button class="btn-icon" onclick="toggleEdit('personal')">
+            <i class="fas fa-pencil-alt"></i>
+        </button>
+    </div>
+
+    <div class="view-mode">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td>Employee Code</td>
+                    <td data-field="EmployeeCode">{{ staff.EmployeeCode|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Employee Name</td>
+                    <td data-field="EmployeeName">{{ staff.EmployeeName|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Profile</td>
+                    <td data-field="ProfileName">{{ staff.ProfileName|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Gender</td>
+                    <td data-field="Gender">{{ staff.Gender|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Date of Birth</td>
+                    <td data-field="DateOfBirth">{% if staff.DateOfBirth %}{{ staff.DateOfBirth|date:"d M, Y" }}{% else %}N/A{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Date of Joining</td>
+                    <td data-field="DateOfJoining">{% if staff.DateOfJoining %}{{ staff.DateOfJoining|date:"d M, Y" }}{% else %}N/A{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Father/Husband Name</td>
+                    <td data-field="FatherOrHusbandName">{{ staff.FatherOrHusbandName|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>National ID</td>
+                    <td data-field="NationalID">{{ staff.NationalID|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Religion</td>
+                    <td data-field="Religion">{{ staff.Religion|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Education</td>
+                    <td data-field="Education">{{ staff.Education|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Blood Group</td>
+                    <td data-field="BloodGroup">{{ staff.BloodGroup|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Experience</td>
+                    <td data-field="Experience">{{ staff.Experience|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Employment Type</td>
+                    <td data-field="EmploymentType">{{ staff.EmploymentType|default:"N/A" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="edit-mode" style="display: none; padding: 20px;">
+        <form onsubmit="savePersonal(event)">
+            <div class="sw-form-grid">
+                <div class="sw-form-group">
+                    <label>Employee Name</label>
+                    <input type="text" name="EmployeeName" value="{{ staff.EmployeeName }}" class="sw-form-control" required>
+                </div>
+                <div class="sw-form-group">
+                    <label>Gender</label>
+                    <select name="Gender" class="sw-form-control">
+                        <option value="Male" {% if staff.Gender == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if staff.Gender == 'Female' %}selected{% endif %}>Female</option>
+                        <option value="Other" {% if staff.Gender == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="sw-form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" name="DateOfBirth" value="{{ staff.DateOfBirth|date:'Y-m-d' }}" class="sw-form-control">
+                </div>
+                <div class="sw-form-group">
+                    <label>Date of Joining</label>
+                    <input type="date" name="DateOfJoining" value="{{ staff.DateOfJoining|date:'Y-m-d' }}" class="sw-form-control">
+                </div>
+                <div class="sw-form-group">
+                    <label>Father/Husband Name</label>
+                    <input type="text" name="FatherOrHusbandName" value="{{ staff.FatherOrHusbandName }}" class="sw-form-control">
+                </div>
+                <div class="sw-form-group">
+                    <label>National ID (Aadhaar/PAN)</label>
+                    <input type="text" name="NationalID" value="{{ staff.NationalID }}" class="sw-form-control">
+                </div>
+                <div class="sw-form-group">
+                    <label>Religion</label>
+                    <select name="Religion" class="sw-form-control">
+                        <option value="">Select Religion</option>
+                        <option value="Hindu" {% if staff.Religion == 'Hindu' %}selected{% endif %}>Hindu</option>
+                        <option value="Muslim" {% if staff.Religion == 'Muslim' %}selected{% endif %}>Muslim</option>
+                        <option value="Sikh" {% if staff.Religion == 'Sikh' %}selected{% endif %}>Sikh</option>
+                        <option value="Christian" {% if staff.Religion == 'Christian' %}selected{% endif %}>Christian</option>
+                        <option value="Jain" {% if staff.Religion == 'Jain' %}selected{% endif %}>Jain</option>
+                        <option value="Buddhism" {% if staff.Religion == 'Buddhism' %}selected{% endif %}>Buddhism</option>
+                        <option value="Other" {% if staff.Religion == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="sw-form-group">
+                    <label>Education</label>
+                    <input type="text" name="Education" value="{{ staff.Education }}" class="sw-form-control" placeholder="e.g. M.A, B.Ed">
+                </div>
+                <div class="sw-form-group">
+                    <label>Blood Group</label>
+                    <select name="BloodGroup" class="sw-form-control">
+                        <option value="">Select Blood Group</option>
+                        <option value="A+" {% if staff.BloodGroup == 'A+' %}selected{% endif %}>A+</option>
+                        <option value="A-" {% if staff.BloodGroup == 'A-' %}selected{% endif %}>A-</option>
+                        <option value="B+" {% if staff.BloodGroup == 'B+' %}selected{% endif %}>B+</option>
+                        <option value="B-" {% if staff.BloodGroup == 'B-' %}selected{% endif %}>B-</option>
+                        <option value="O+" {% if staff.BloodGroup == 'O+' %}selected{% endif %}>O+</option>
+                        <option value="O-" {% if staff.BloodGroup == 'O-' %}selected{% endif %}>O-</option>
+                        <option value="AB+" {% if staff.BloodGroup == 'AB+' %}selected{% endif %}>AB+</option>
+                        <option value="AB-" {% if staff.BloodGroup == 'AB-' %}selected{% endif %}>AB-</option>
+                    </select>
+                </div>
+                <div class="sw-form-group">
+                    <label>Experience (Years)</label>
+                    <input type="number" name="Experience" value="{{ staff.Experience }}" class="sw-form-control" step="0.5">
+                </div>
+                <div class="sw-form-group">
+                    <label>Employment Type</label>
+                    <select name="EmploymentType" class="sw-form-control">
+                        <option value="Permanent" {% if staff.EmploymentType == 'Permanent' %}selected{% endif %}>Permanent</option>
+                        <option value="Contractual" {% if staff.EmploymentType == 'Contractual' %}selected{% endif %}>Contractual</option>
+                        <option value="Probation" {% if staff.EmploymentType == 'Probation' %}selected{% endif %}>Probation</option>
+                        <option value="Part Time" {% if staff.EmploymentType == 'Part Time' %}selected{% endif %}>Part Time</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="toggleEdit('personal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>

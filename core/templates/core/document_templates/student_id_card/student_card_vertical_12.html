@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;">
+<div class="id-card v12">
+<div class="header">{% if student.SchoolLogoBase64 %}<img src = "data:image/png;base64,{{ student.SchoolLogoBase64 }}" class = "logo">{% endif %}</div>
+<div class="school-name">{{ student.SchoolName|default:"School Name" }}</div>
+<div class="tagline">Growing Together, Learning Forever –<br>{{ student.SchoolName|default:"School Name" }}</div>
+<div class="photo">{% if student.PhotoBase64 %}<img src = "data:image/png;base64,{{ student.PhotoBase64 }}" class = "student-photo">{% else %}<div class = "photo-ph">{{ student.FullName|first|upper }}</div>{% endif %}</div>
+<div class="barcode"><div class="bar"></div><div class="bar"></div><div class="bar w"></div><div class="bar"></div><div class="bar"></div><div class="bar w"></div><div class="bar"></div><div class="bar"></div><div class="bar w"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar w"></div><div class="bar"></div><div class="bar"></div></div>
+<div class="name">{{ student.FullName|upper }}</div>
+<div class="bottom"><div class="badge"><i class="fas fa-graduation-cap"></i> STUDENT</div><div class="info"><div>ID → {{ student.StudentCode }}</div><div>Class → {{ student.ClassName }}</div><div>DOA → {{ student.DateOfBirth|date:"d M Y"|default:"01 Apr 2025" }}</div></div><div class="qr"><div class="q1"></div><div class="q2"></div><div class="q3"></div><div class="q4"></div></div></div>
+</div>
+<style>
+.v12{width:240px;height:400px;background:#f1f5f9;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.15);margin:0;overflow:hidden;border:2px solid #e2e8f0;font-family:Arial,sans-serif;position:relative}
+.v12 .header{background:linear-gradient(135deg,#1e293b,#334155);padding:20px;text-align:center;margin:15px 15px 20px;border-radius:12px}
+.v12 .logo{width:50px;height:50px;object-fit:contain;background:white;padding:5px;border-radius:8px}
+.v12 .school-name{font-size:20px;font-weight:700;color:#1e293b;text-align:center;margin:0 15px 10px;line-height:1.1}
+.v12 .tagline{font-size:11px;color:#64748b;text-align:center;margin:0 15px 25px;line-height:1.3}
+.v12 .photo{text-align:center;margin-bottom:20px}
+.v12 .student-photo{width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid white;box-shadow:0 8px 25px rgba(0,0,0,0.15)}
+.v12 .photo-ph{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#e2e8f0,#cbd5e1);display:inline-flex;align-items:center;justify-content:center;color:#64748b;font-size:40px;border:4px solid white;box-shadow:0 8px 25px rgba(0,0,0,0.15)}
+.v12 .barcode{display:flex;justify-content:center;gap:2px;margin-bottom:15px}
+.v12 .bar{width:2px;height:30px;background:#1e293b}
+.v12 .bar.w{width:4px}
+.v12 .name{font-size:16px;font-weight:700;color:#1e293b;text-align:center;margin-bottom:25px;letter-spacing:1px}
+.v12 .bottom{display:flex;justify-content:space-between;align-items:flex-start;padding:0 20px 15px}
+.v12 .badge{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#1e293b;text-decoration:underline;margin-bottom:10px}
+.v12 .info{font-size:11px}
+.v12 .info div{margin-bottom:6px;color:#1e293b}
+.v12 .qr{width:40px;height:40px;background:white;border:2px solid #1e293b;border-radius:6px;position:relative}
+.v12 .q1,.v12 .q2,.v12 .q3,.v12 .q4{position:absolute;width:8px;height:8px;border:1px solid #1e293b}
+.v12 .q1{top:2px;left:2px}
+.v12 .q2{top:2px;right:2px}
+.v12 .q3{bottom:2px;left:2px}
+.v12 .q4{bottom:2px;right:2px}
+</style>
+</body>
+</html>

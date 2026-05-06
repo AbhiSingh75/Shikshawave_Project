@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; }
+        .email-wrapper { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .header { background: linear-gradient(135deg, #1976D2 0%, #4CAF50 100%); padding: 40px 30px; text-align: center; position: relative; }
+        .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom; background-size: cover; }
+        .logo { width: 80px; height: 80px; background: white; border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .header h1 { color: white; font-size: 32px; font-weight: 700; margin: 15px 0 10px; position: relative; z-index: 1; }
+        .header p { color: rgba(255,255,255,0.95); font-size: 16px; position: relative; z-index: 1; }
+        .success-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 20px; margin-top: 15px; backdrop-filter: blur(10px); }
+        .success-icon { font-size: 48px; margin-bottom: 10px; }
+        .content { padding: 40px 30px; }
+        .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+        .info-card { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 12px; padding: 25px; margin: 25px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .info-card h3 { color: #1976D2; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .info-row { display: flex; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); flex-wrap: wrap; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: #555; min-width: 140px; word-break: break-word; }
+        .info-value { color: #333; flex: 1; font-weight: 500; word-break: break-word; min-width: 0; }
+        .plan-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; box-shadow: 0 8px 25px rgba(102,126,234,0.4); }
+        .plan-card h3 { font-size: 20px; margin-bottom: 15px; }
+        .plan-name { font-size: 28px; font-weight: 700; margin: 15px 0; word-break: break-word; }
+        .plan-price { font-size: 36px; font-weight: 700; margin: 20px 0; }
+        .plan-details { opacity: 0.9; font-size: 14px; }
+        .steps-card { background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 25px 0; border-radius: 8px; }
+        .steps-card h4 { color: #856404; margin-bottom: 15px; font-size: 16px; }
+        .steps-card ol { margin: 0; padding-left: 20px; color: #856404; }
+        .steps-card li { margin: 8px 0; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 14px 35px; text-decoration: none; border-radius: 25px; margin: 25px 0; font-weight: 600; box-shadow: 0 4px 15px rgba(76,175,80,0.4); transition: transform 0.3s; }
+        .footer { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 30px; text-align: center; }
+        .footer-links { margin: 15px 0; }
+        .footer-links a { color: #4CAF50; text-decoration: none; margin: 0 10px; }
+        .social-icons { margin: 20px 0; }
+        .social-icons a { display: inline-block; width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; margin: 0 5px; line-height: 36px; color: white; text-decoration: none; font-size: 16px; }
+        @media only screen and (max-width: 600px) {
+            body { padding: 10px; }
+            .email-wrapper { border-radius: 8px; }
+            .header { padding: 30px 20px; }
+            .header h1 { font-size: 24px; }
+            .content { padding: 25px 20px; }
+            .info-card, .plan-card, .steps-card { padding: 20px; margin: 20px 0; }
+            .info-label { min-width: 100px; font-size: 14px; }
+            .info-value { font-size: 14px; }
+            .plan-name { font-size: 22px; }
+            .plan-price { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="header">
+            <div style="width: 100px; height: 100px; background: white; border-radius: 50%; margin: 0 auto 20px; display: table;">
+                <div style="display: table-cell; vertical-align: middle; text-align: center; width: 100px; height: 100px;">
+                    <div style="width: 80px; height: 80px; background: #1976D2; border-radius: 50%; margin: 10px auto; line-height: 80px; color: white; font-size: 36px; font-weight: bold; font-family: Arial, sans-serif;">SW</div>
+                </div>
+            </div>
+            <div class="success-icon">✅</div>
+            <h1>Registration Request Received!</h1>
+            <p>Welcome to ShikshaWave ERP Family</p>
+            <div class="success-badge">🎉 Your journey begins here</div>
+        </div>
+        
+        <div class="content">
+            <p class="greeting">Dear <strong>{{ school_name }}</strong>,</p>
+            
+            <p style="color: #666; line-height: 1.8; margin-bottom: 25px;">Thank you for your interest in ShikshaWave ERP! We have successfully received your registration request. Our dedicated team will review your application and reach out to you within <strong>24 hours</strong>.</p>
+            
+            <div class="info-card">
+                <h3>📋 Registration Details</h3>
+                <div class="info-row">
+                    <div class="info-label">School Name:</div>
+                    <div class="info-value">{{ school_name }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">{{ email }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Phone:</div>
+                    <div class="info-value">{{ phone }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Registration Date:</div>
+                    <div class="info-value">{{ registration_date }}</div>
+                </div>
+            </div>
+            
+            <div class="plan-card">
+                <h3>📦 Your Selected Plan</h3>
+                <div class="plan-name">{{ plan_name }}</div>
+                <div class="plan-price">₹{{ plan_price }}</div>
+                <div class="plan-details">
+                    <p>Duration: {{ duration_months }} months</p>
+                    <p>Start Date: {{ subscription_start_date }}</p>
+                </div>
+            </div>
+            
+            <div class="steps-card">
+                <h4>⏳ What Happens Next?</h4>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li>Our team will verify your registration details</li>
+                    <li>You will receive login credentials via email</li>
+                    <li>Complete payment to activate your subscription</li>
+                    <li>Start using ShikshaWave ERP!</li>
+                </ol>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <p style="color: #666; margin-bottom: 15px;">Need help? We're here for you!</p>
+                <a href="mailto:support@shikshawave.com" class="cta-button">Contact Support</a>
+            </div>
+            
+            <p style="color: #666; line-height: 1.8; margin-top: 30px;">If you have any questions, our support team is available 24/7 at <a href="mailto:support@shikshawave.com" style="color: #1976D2; text-decoration: none; font-weight: 600;">support@shikshawave.com</a></p>
+            
+            <p style="margin-top: 30px; color: #666;">Warm regards,<br><strong style="color: #1976D2; font-size: 18px;">The ShikshaWave Team</strong></p>
+        </div>
+        
+        <div class="footer">
+            <h3 style="margin-bottom: 15px;">ShikshaWave</h3>
+            <p style="margin: 10px 0; opacity: 0.9;">Empowering Education with Technology</p>
+            <table cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 20px auto;">
+                <tr>
+                    <td style="padding: 0 8px;">
+                        <a href="https://facebook.com/shikshawave" style="display: inline-block; width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; text-align: center; line-height: 36px; color: white; text-decoration: none; font-size: 18px;">f</a>
+                    </td>
+                    <td style="padding: 0 8px;">
+                        <a href="https://twitter.com/shikshawave" style="display: inline-block; width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; text-align: center; line-height: 36px; color: white; text-decoration: none; font-size: 18px;">𝕏</a>
+                    </td>
+                    <td style="padding: 0 8px;">
+                        <a href="https://linkedin.com/company/shikshawave" style="display: inline-block; width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; text-align: center; line-height: 36px; color: white; text-decoration: none; font-size: 18px;">in</a>
+                    </td>
+                    <td style="padding: 0 8px;">
+                        <a href="https://youtube.com/@ShikshaWave" style="display: inline-block; width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; text-align: center; line-height: 36px; color: white; text-decoration: none; font-size: 18px;">▶</a>
+                    </td>
+                </tr>
+            </table>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a> | 
+                <a href="#">Terms of Service</a> | 
+                <a href="#">Contact Us</a>
+            </div>
+            <p style="margin-top: 20px; opacity: 0.7; font-size: 12px;">© 2025 ShikshaWave. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

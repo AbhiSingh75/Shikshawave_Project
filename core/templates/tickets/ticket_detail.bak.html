@@ -1,0 +1,604 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Ticket Detail - {{ ticket.TicketNumber }} | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --sw-primary: #6366f1;
+        --sw-primary-rgb: 99, 102, 241;
+        --sw-secondary: #818cf8;
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --card-bg: #0f172a;
+        --bg-hover: rgba(255, 255, 255, 0.05);
+        
+        /* Priority Colors (fallback values for CSS linter) */
+        --p-high: #ef4444;
+        --p-medium: #f59e0b;
+        --p-low: #10b981;
+        
+        /* Dynamic Accent based on Priority */
+        {% if ticket.PriorityName == 'High' %}
+            --accent-color: var(--p-high);
+            --accent-glow: rgba(239, 68, 68, 0.2);
+        {% elif ticket.PriorityName == 'Medium' %}
+            --accent-color: var(--p-medium);
+            --accent-glow: rgba(245, 158, 11, 0.2);
+        {% else %}
+            --accent-color: var(--p-low);
+            --accent-glow: rgba(16, 185, 129, 0.2);
+        {% endif %}
+    }
+
+    body {
+        margin: 0;
+        background: #020617;
+        background-image: 
+            radial-gradient(circle at 0% 0%, rgba(var(--sw-primary-rgb), 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.1) 0%, transparent 50%);
+        color: var(--text-main);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+    }
+
+    .sw-ticket-canvas {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        grid-template-rows: auto 1fr;
+        gap: 2rem;
+        height: calc(100vh - 100px); /* Adjusted for layout padding */
+        box-sizing: border-box;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* --- Immersive Hero Header --- */
+    .sw-hero-header {
+        grid-column: 1 / -1;
+        padding: 1.25rem 2rem;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    }
+
+    .sw-hero-info {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .sw-hero-icon {
+        width: 52px;
+        height: 52px;
+        background: linear-gradient(135deg, var(--sw-primary), var(--sw-secondary));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        box-shadow: 0 8px 20px rgba(var(--sw-primary-rgb), 0.4);
+    }
+
+    .sw-hero-text h1 {
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin: 0 0 0.15rem 0;
+        letter-spacing: -0.02em;
+        background: linear-gradient(to right, #fff, #94a3b8);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .sw-hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sw-id-badge {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 800;
+        padding: 2px 8px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--glass-border);
+        border-radius: 6px;
+        color: var(--sw-primary);
+        font-size: 0.75rem;
+    }
+
+    .sw-status-pill {
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-open { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .status-in-progress { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .status-resolved { background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2); }
+    .status-closed { background: rgba(100, 116, 139, 0.1); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.2); }
+
+    /* --- Scrollable Content Area --- */
+    .sw-main-scroller {
+        overflow-y: auto;
+        padding-right: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        height: 100%;
+    }
+    .sw-main-scroller::-webkit-scrollbar { width: 6px; }
+    .sw-main-scroller::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+
+    /* --- Thread View --- */
+    .sw-thread {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .sw-message {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .sw-message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 0.5rem;
+    }
+
+    .sw-author {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sw-avatar-sm {
+        width: 32px; height: 32px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--sw-primary), var(--sw-secondary));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; font-weight: 700; color: white;
+    }
+
+    .sw-message-bubble {
+        padding: 1.25rem 1.75rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        line-height: 1.6;
+        font-size: 1rem;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .initial-request {
+        background: rgba(var(--sw-primary-rgb), 0.05);
+        border: 1px solid rgba(var(--sw-primary-rgb), 0.3);
+        border-left: 6px solid var(--sw-primary);
+        box-shadow: 0 15px 40px rgba(var(--sw-primary-rgb), 0.1);
+    }
+
+    .sw-system-event {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 0.5rem 0;
+    }
+
+    .sw-system-event::before, .sw-system-event::after {
+        content: ''; flex: 1; height: 1px; background: var(--glass-border);
+    }
+
+    .sw-event-pill {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        background: #020617;
+        padding: 6px 16px;
+        border-radius: 30px;
+        border: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* --- Properties Sidebar --- */
+    .sw-ticket-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        height: 100%;
+        position: relative !important; /* Force override any global fixed positioning */
+        left: auto !important;
+        width: auto !important;
+    }
+
+    .sw-properties-pane {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .sw-prop-group h4 {
+        font-size: 0.65rem;
+        font-weight: 900;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sw-prop-card {
+        padding: 0.75rem 1rem;
+        background: rgba(255,255,255,0.02);
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+    .sw-prop-card:hover { border-color: var(--sw-primary); background: var(--bg-hover); transform: translateX(5px); }
+
+    .sw-prop-icon { 
+        width: 36px; height: 36px; 
+        border-radius: 12px; 
+        background: rgba(var(--sw-primary-rgb), 0.1); 
+        display: flex; align-items: center; justify-content: center;
+        color: var(--sw-primary);
+        font-size: 1rem;
+    }
+
+    .sw-prop-info div:first-child { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px; }
+    .sw-prop-info div:last-child { font-size: 0.9rem; font-weight: 700; }
+
+    /* --- Reply Interface --- */
+    .sw-reply-area {
+        position: sticky;
+        bottom: 0;
+        padding-top: 1rem;
+        background: linear-gradient(to top, #020617 80%, transparent);
+    }
+
+    .sw-reply-box {
+        background: var(--glass-bg);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 1.25rem;
+        box-shadow: 0 -20px 50px rgba(0,0,0,0.4);
+    }
+
+    .sw-reply-box textarea {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        font-size: 1rem;
+        resize: none;
+        min-height: 80px;
+        font-family: inherit;
+        padding: 0.5rem;
+    }
+    .sw-reply-box textarea:focus { outline: none; }
+
+    .sw-reply-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--glass-border);
+    }
+
+    /* Premium Buttons */
+    .btn-sw {
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        text-decoration: none;
+    }
+
+    .btn-sw-primary { 
+        background: linear-gradient(135deg, var(--sw-primary), var(--sw-secondary)); 
+        color: white !important; 
+        box-shadow: 0 8px 20px rgba(var(--sw-primary-rgb), 0.3); 
+    }
+    .btn-sw-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(var(--sw-primary-rgb), 0.5); }
+
+    .btn-sw-ghost { background: var(--bg-hover); color: var(--text-main) !important; border: 1px solid var(--glass-border); }
+    .btn-sw-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+
+    /* Custom Checkbox */
+    .sw-check-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        transition: color 0.2s;
+    }
+    .sw-check-label:hover { color: white; }
+    .sw-check-label input { width: 16px; height: 16px; accent-color: var(--sw-primary); }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-ticket-canvas">
+    <!-- Immersive Hero Header -->
+    <header class="sw-hero-header">
+        <div class="sw-hero-info">
+            <div class="sw-hero-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+            <div class="sw-hero-text">
+                <div class="sw-hero-meta">
+                    <span class="sw-id-badge">{{ ticket.TicketNumber }}</span>
+                    <span class="sw-status-pill status-{{ ticket.CurrentStatus|slugify }}">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i> {{ ticket.CurrentStatus }}
+                    </span>
+                </div>
+                <h1>{{ ticket.Subject }}</h1>
+            </div>
+        </div>
+        
+        <div class="sw-hero-actions">
+            <a href="{% url 'tickets:ticket_list' %}" class="btn-sw btn-sw-ghost">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <button class="btn-sw btn-sw-ghost" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Thread (Scrollable) -->
+    <div class="sw-main-scroller">
+        <main class="sw-thread">
+            <!-- The Initial Request -->
+            <article class="sw-message">
+                <div class="sw-message-header">
+                    <div class="sw-author">
+                        <div class="sw-avatar-sm">{{ ticket.CreatedByName|slice:":1" }}</div>
+                        <div style="font-weight: 700; color: white;">
+                            {{ ticket.CreatedByName }} 
+                            <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem; margin-left: 4px;">initiated the request</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ ticket.CreatedAt|date:"F d, Y • H:i" }}</div>
+                </div>
+                <div class="sw-message-bubble initial-request">
+                    {{ ticket.Description|linebreaks }}
+                </div>
+            </article>
+
+            <!-- Unified Timeline -->
+            {% for entry in timeline %}
+                {% if entry.type == 'activity' %}
+                    <div class="sw-system-event">
+                        <div class="sw-event-pill">
+                            <i class="fas fa-history" style="color: var(--sw-primary);"></i> 
+                            {{ entry.data.ActionDescription }}
+                        </div>
+                    </div>
+                {% else %}
+                    <article class="sw-message">
+                        <div class="sw-message-header">
+                            <div class="sw-author">
+                                <div class="sw-avatar-sm" style="{% if entry.data.IsInternal %}background: #475569;{% endif %}">
+                                    {{ entry.data.CreatedByName|slice:":1" }}
+                                </div>
+                                <div style="font-weight: 700; color: white;">
+                                    {{ entry.data.CreatedByName }}
+                                    {% if entry.data.IsInternal %}
+                                        <span class="sw-id-badge" style="font-size: 0.6rem; margin-left: 8px; color: #94a3b8; border-color: #334155;">PRIVATE NOTE</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">{{ entry.data.CreatedAt|date:"M d, Y • H:i" }}</div>
+                        </div>
+                        <div class="sw-message-bubble {% if entry.data.IsInternal %}internal-note{% endif %}" 
+                             style="{% if entry.data.IsInternal %}background: rgba(71, 85, 105, 0.1); border-color: rgba(71, 85, 105, 0.3);{% endif %}">
+                            {{ entry.data.CommentText|linebreaks }}
+                        </div>
+                    </article>
+                {% endif %}
+            {% empty %}
+                <div class="sw-system-event">
+                    <div class="sw-event-pill">No conversation history yet</div>
+                </div>
+            {% endfor %}
+        </main>
+
+        <!-- Reply Area -->
+        <section class="sw-reply-area">
+            <div class="sw-reply-box">
+                <form action="{% url 'tickets:ticket_add_comment' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="ticket_id" value="{{ ticket.TicketID }}">
+                    <textarea name="comment_text" placeholder="Type your response here..." required></textarea>
+                    <div class="sw-reply-footer">
+                        <div style="display: flex; gap: 1.5rem; align-items: center;">
+                            <label class="btn-sw btn-sw-ghost" style="width: 44px; padding: 0; justify-content: center; cursor: pointer;" title="Attach Documentation">
+                                <i class="fas fa-paperclip" style="font-size: 1.1rem;"></i>
+                                <input type="file" name="attachment" style="display: none;">
+                            </label>
+                            {% if role_name == 'Super Admin' or role_name == 'Support Executive' %}
+                            <label class="sw-check-label">
+                                <input type="checkbox" name="is_internal" value="true">
+                                Internal Note
+                            </label>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn-sw btn-sw-primary">
+                            Send Response <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div style="height: 20px;"></div> <!-- Bottom Padding -->
+        </section>
+    </div>
+
+    <!-- Properties Sidebar -->
+    <aside class="sw-ticket-sidebar">
+        <div class="sw-properties-pane">
+            <div class="sw-prop-group">
+                <h4><i class="fas fa-info-circle"></i> Classification</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div class="sw-prop-card" style="border-left: 4px solid var(--accent-color); box-shadow: inset 10px 0 25px var(--accent-glow);">
+                        <div class="sw-prop-icon"><i class="fas fa-flag"></i></div>
+                        <div class="sw-prop-info">
+                            <div>Urgency</div>
+                            <div style="color: var(--accent-color);">{{ ticket.PriorityName }}</div>
+                        </div>
+                    </div>
+                    <div class="sw-prop-card">
+                        <div class="sw-prop-icon"><i class="fas fa-layer-group"></i></div>
+                        <div class="sw-prop-info">
+                            <div>Category</div>
+                            <div>{{ ticket.CategoryName }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sw-prop-group">
+                <h4><i class="fas fa-user-friends"></i> Stakeholders</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div class="sw-prop-card">
+                        <div class="sw-prop-icon"><i class="fas fa-university"></i></div>
+                        <div class="sw-prop-info">
+                            <div>Affiliated Institution</div>
+                            <div style="font-size: 0.8rem; line-height: 1.2;">{{ ticket.SchoolName }}</div>
+                        </div>
+                    </div>
+                    <div class="sw-prop-card">
+                        <div class="sw-prop-icon"><i class="fas fa-user-shield"></i></div>
+                        <div class="sw-prop-info">
+                            <div>Assigned Officer</div>
+                            <div>{{ ticket.AssignedToName|default:"Pending Assignment" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sw-prop-group" style="margin-top: auto;">
+                <h4><i class="fas fa-bolt"></i> Quick Actions</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <button class="btn-sw btn-sw-ghost" style="height: 48px; font-size: 0.75rem;"><i class="fas fa-sync"></i> Re-assign</button>
+                    <button class="btn-sw btn-sw-ghost" style="height: 48px; font-size: 0.75rem;"><i class="fas fa-check-double"></i> Complete</button>
+                </div>
+            </div>
+        </div>
+
+        {% if attachments %}
+        <div class="sw-properties-pane" style="padding: 1.25rem;">
+            <div class="sw-prop-group">
+                <h4><i class="fas fa-paperclip"></i> Documentation ({{ attachments|length }})</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for file in attachments %}
+                    <a href="#" class="sw-prop-card" style="padding: 0.5rem 0.75rem; text-decoration: none;">
+                        <i class="fas fa-file-pdf" style="color: #ef4444;"></i>
+                        <div class="sw-prop-info">
+                            <div style="color: var(--text-main); font-size: 0.8rem;">{{ file.FileName|truncatechars:20 }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Smooth scroll to bottom on load
+    window.addEventListener('load', () => {
+        const scroller = document.querySelector('.sw-main-scroller');
+        if (scroller) {
+            scroller.scrollTop = scroller.scrollHeight;
+        }
+    });
+
+    // Handle form submission animation
+    const replyForm = document.querySelector('.sw-reply-box form');
+    if (replyForm) {
+        replyForm.addEventListener('submit', function() {
+            const btn = this.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                btn.disabled = true;
+            }
+        });
+    }
+
+    // Handle file input feedback
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const label = this.parentElement;
+                if (label) {
+                    label.style.color = 'var(--sw-primary)';
+                    label.title = `Attached: ${this.files[0].name}`;
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

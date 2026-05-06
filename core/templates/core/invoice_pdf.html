@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Subscription Invoice - ShikshaWave</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 0; padding: 0; line-height: 1.4; }
+        .invoice-container { padding: 40px; max-width: 800px; margin: 0 auto; }
+        
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #004aad; padding-bottom: 20px; }
+        .logo-section img { height: 60px; }
+        .company-info { text-align: right; font-size: 13px; color: #555; }
+        .company-info h1 { margin: 0; color: #004aad; font-size: 24px; text-transform: uppercase; }
+        
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .section-title { font-size: 11px; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 8px; font-weight: bold; }
+        
+        .school-details p, .invoice-details p { margin: 4px 0; font-size: 14px; }
+        .school-name { font-weight: bold; font-size: 16px; color: #111; }
+        
+        .table-section { margin-bottom: 40px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f4f7fa; color: #004aad; text-align: left; padding: 12px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #004aad; }
+        td { padding: 12px; font-size: 14px; border-bottom: 1px solid #eee; }
+        
+        .totals-section { display: flex; justify-content: flex-end; }
+        .totals-box { width: 250px; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+        .total-row.grand-total { border-top: 2px solid #004aad; margin-top: 8px; padding-top: 12px; font-size: 18px; font-weight: bold; color: #004aad; }
+        
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
+        .status-paid { background: #e6f7ef; color: #22c55e; }
+        .status-pending { background: #fffbeb; color: #f59e0b; }
+        
+        .footer { text-align: center; margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; font-size: 11px; color: #888; }
+        
+        @page { size: A4; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <div class="logo-section">
+                <!-- Branding using Data URI for reliability in PDF generation -->
+                <img src="{{ company_logo }}" alt="ShikshaWave">
+            </div>
+            <div class="company-info">
+                <h1>{{ company_name }}</h1>
+                <p>GSTIN: {{ company_gstin }}</p>
+                <p>{{ company_address }}</p>
+                <p>Email: {{ company_email }} | {{ company_website }}</p>
+            </div>
+        </div>
+
+        <div class="details-grid">
+            <div class="school-details">
+                <div class="section-title">Bill To</div>
+                <p class="school-name">{{ school_name }}</p>
+                <p>{{ school_address }}</p>
+                <p>{{ school_district }}, {{ school_state }}</p>
+                <p>Contact: {{ school_contact }}</p>
+            </div>
+            <div class="invoice-details">
+                <div class="section-title">Invoice Details</div>
+                <p><strong>Invoice No:</strong> {{ invoice_number }}</p>
+                <p><strong>Date:</strong> {{ invoice_date }}</p>
+                <p><strong>Due Date:</strong> {{ due_date }}</p>
+                <div class="status-badge status-{{ payment_status|lower }}">
+                    {{ payment_status }}
+                </div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <div class="section-title">Subscription Services</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Item Description</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Unit Price</th>
+                        <th style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.name }}</strong><br>
+                            <small style="color: #666;">{{ item.description }}</small>
+                        </td>
+                        <td style="text-align: center;">{{ item.quantity }}</td>
+                        <td style="text-align: right;">₹{{ item.unit_price }}</td>
+                        <td style="text-align: right;">₹{{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals-section">
+            <div class="totals-box">
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span>₹{{ subtotal }}</span>
+                </div>
+                <div class="total-row">
+                    <span>{{ tax_label|default:"Tax (GST)" }}</span>
+                    <span>₹{{ tax_amount }}</span>
+                </div>
+                {% if discount_amount > 0 %}
+                <div class="total-row" style="color: #ef4444;">
+                    <span>Discount</span>
+                    <span>-₹{{ discount_amount }}</span>
+                </div>
+                {% endif %}
+                <div class="total-row grand-total">
+                    <span>Final Total</span>
+                    <span>₹{{ final_amount }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Payment Status: {{ payment_status }}</strong></p>
+            <p>Support: {{ company_phone }} | {{ company_email }}</p>
+            <p>This is a system generated invoice and does not require a physical signature.</p>
+            <p>© {{ current_year }} {{ company_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1931 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+{% load core_extras %}
+
+{% block title %}Ticket Management | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=3.0">
+<style>
+    /* High-Density Indigo Design Tokens */
+    :root, body {
+        /* Indigo Premium Tokens */
+        --sw-primary: var(--primary-color, #4f46e5);
+        --sw-primary-rgb: var(--primary-rgb, 79, 70, 229);
+        --sw-primary-hover: var(--primary-hover, #4338ca);
+        
+        --sw-bg-main: var(--bg-color);
+        --sw-card-bg: var(--card-bg);
+        --sw-text-main: var(--text-main);
+        --sw-text-muted: var(--text-muted);
+        --sw-border-subtle: var(--border-color);
+        
+        --sw-glass-bg: var(--card-bg);
+        --sw-glass-border: var(--border-color);
+    }
+
+    /* Page Layout */
+    .sw-dashboard {
+        padding: 1.5rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* KPI Grid - Modern & Interactive */
+    .sw-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .sw-kpi-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 0.55rem 0.85rem; /* More compact KPI */
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sw-kpi-card::after {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 100px; height: 100px;
+        background: radial-gradient(circle at top right, var(--kpi-color, var(--sw-primary)), transparent 70%);
+        opacity: 0.05;
+        transition: opacity 0.3s;
+    }
+
+    .sw-kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--kpi-color, var(--sw-primary));
+    }
+
+    .sw-kpi-card:hover::after { opacity: 0.1; }
+
+    .sw-kpi-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.125rem;
+        flex-shrink: 0;
+        background: var(--kpi-bg);
+        color: var(--kpi-color);
+        box-shadow: 0 4px 8px var(--kpi-shadow);
+    }
+
+    .sw-kpi-content { flex: 1; }
+
+    .sw-kpi-value {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1.1;
+        margin-bottom: 0px;
+    }
+
+    .sw-kpi-label {
+        font-size: 0.65rem;
+        font-weight: 750;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+    }
+
+    /* Specific KPI Color Schemes */
+    .kpi-open { --kpi-color: var(--sw-info); --kpi-bg: rgba(59, 130, 246, 0.1); --kpi-shadow: rgba(59, 130, 246, 0.2); }
+    .kpi-progress { --kpi-color: var(--sw-warning); --kpi-bg: rgba(245, 158, 11, 0.1); --kpi-shadow: rgba(245, 158, 11, 0.2); }
+    .kpi-resolved { --kpi-color: #8b5cf6; --kpi-bg: rgba(139, 92, 246, 0.1); --kpi-shadow: rgba(139, 92, 246, 0.2); }
+    .kpi-closed { --kpi-color: var(--sw-success); --kpi-bg: rgba(16, 185, 129, 0.1); --kpi-shadow: rgba(16, 185, 129, 0.2); }
+    .kpi-reopened { --kpi-color: var(--sw-danger); --kpi-bg: rgba(239, 68, 68, 0.1); --kpi-shadow: rgba(239, 68, 68, 0.2); }
+
+    /* High-Density Control Row (Standard Indigo Header) */
+    .sw-control-row {
+        background: var(--card-bg);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 0.45rem 1rem; /* Compact control row */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 0.5rem;
+    }
+
+    .sw-title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sw-title-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--sw-primary); /* Use solid Global Theme Color */
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        box-shadow: 0 4px 10px rgba(var(--sw-primary-rgb), 0.2);
+    }
+
+    .sw-title {
+        font-size: 1.05rem; /* Standardized manageable title */
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0;
+        letter-spacing: -0.01em;
+    }
+
+    .sw-count-badge {
+        background: rgba(var(--sw-primary-rgb), 0.1);
+        color: var(--sw-primary);
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border: 1px solid rgba(var(--sw-primary-rgb), 0.1);
+    }
+
+    .sw-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex: 1;
+        justify-content: flex-end;
+    }
+
+    /* Advanced Global Search */
+    .sw-search-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .sw-search-input {
+        width: 100%;
+        height: 40px;
+        padding: 0 1rem 0 2.5rem;
+        background: var(--bg-soft);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 12px;
+        font-size: 0.875rem;
+        color: var(--text-main);
+        transition: all 0.2s;
+    }
+    body:not(.dark-mode) .sw-search-input { background: #f8fafc; }
+
+    .sw-search-input:focus {
+        outline: none;
+        border-color: var(--sw-primary);
+        box-shadow: 0 0 0 4px rgba(var(--sw-primary-rgb), 0.15);
+        transform: translateY(-1px);
+    }
+
+    /* Ensure search border is always visible in dark mode */
+    body.dark-mode .sw-search-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1.5px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    body.dark-mode .sw-search-input:hover {
+        border-color: rgba(var(--sw-primary-rgb), 0.4);
+    }
+
+    .sw-search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        pointer-events: none;
+    }
+
+    /* Premium Buttons */
+    .sw-btn {
+        height: 40px;
+        padding: 0 1.25rem;
+        border-radius: 12px;
+        font-size: 0.813rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .sw-btn-primary {
+        background: var(--sw-primary) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(var(--sw-primary-rgb), 0.2);
+        border: none !important;
+    }
+
+    .sw-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(var(--sw-primary-rgb), 0.3);
+        filter: brightness(1.1);
+    }
+
+    .sw-btn-secondary {
+        background: var(--card-bg);
+        border-color: var(--border-subtle);
+        color: var(--text-main);
+    }
+
+    .sw-btn-secondary:hover {
+        background: var(--bg-hover);
+        border-color: var(--sw-primary);
+        color: var(--sw-primary);
+    }
+
+    .sw-btn-info {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+
+    .sw-btn-info:hover {
+        background: #3b82f6;
+        color: white;
+    }
+
+    /* Standardized Control Header/Toolbar System */
+    .sw-control-item {
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1.5px solid var(--border-subtle);
+        background: rgba(var(--sw-primary-rgb), 0.02);
+        color: var(--text-main);
+        cursor: pointer;
+        text-decoration: none;
+        gap: 0.5rem;
+    }
+    
+    .sw-control-item:hover {
+        background: rgba(var(--sw-primary-rgb), 0.06);
+        border-color: var(--sw-primary);
+        color: var(--sw-primary);
+        transform: translateY(-1px);
+    }
+
+    body.dark-mode .sw-control-item {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    body.dark-mode .sw-control-item:hover {
+        border-color: var(--sw-primary);
+        background: rgba(var(--sw-primary-rgb), 0.1);
+    }
+
+    /* Variant: Themed Secondary */
+    .sw-control-item-info {
+        background: rgba(var(--sw-primary-rgb), 0.05);
+        border-color: rgba(var(--sw-primary-rgb), 0.15);
+        color: var(--sw-primary);
+    }
+
+    /* Sorted Header Styling */
+    .sw-sort-link {
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        height: 100%;
+    }
+
+    .sw-sort-link:hover {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .sw-sort-icon {
+        font-size: 0.7rem;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .sw-sort-link.active .sw-sort-icon {
+        opacity: 1;
+    }
+
+    /* Table Styles - Premium Indigo */
+    .sw-table-card {
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .sw-table-container { overflow-x: auto; }
+
+    .sw-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .sw-table th {
+        background: var(--sw-primary); /* Solid Global Theme Color */
+        padding: 0.85rem 1.25rem;
+        text-align: left;
+        font-size: 0.725rem;
+        font-weight: 800;
+        color: var(--text-white, #ffffff); /* Standard White Text */
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .sw-table td {
+        padding: 0.4rem 1.15rem; /* Reduced padding for high density */
+        font-size: 0.813rem; /* Slightly smaller for better fit */
+        color: var(--text-main);
+        border-bottom: 1.5px solid rgba(var(--sw-primary-rgb), 0.08);
+        vertical-align: middle;
+        transition: background 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .sw-table-container::-webkit-scrollbar { height: 6px; }
+    .sw-table-container::-webkit-scrollbar-thumb { background: rgba(var(--sw-primary-rgb), 0.2); border-radius: 3px; }
+    .sw-table-container::-webkit-scrollbar-track { background: transparent; }
+
+    .sw-table tr:last-child td { border-bottom: none; }
+
+    .sw-table tr:hover td { background: rgba(var(--sw-primary-rgb), 0.02); }
+
+    /* User Avatar Micro-component */
+    .sw-user-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .sw-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Compact Status Pills */
+    .sw-status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px; /* More compact */
+        border-radius: 6px;
+        font-size: 0.675rem; /* High density */
+        font-weight: 750;
+        gap: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+    }
+
+    .sw-status-indicator {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-open { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .status-open .sw-status-indicator { background: #3b82f6; box-shadow: 0 0 8px rgba(59, 130, 246, 0.6); }
+
+    .status-in-progress { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .status-in-progress .sw-status-indicator { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+
+    .status-resolved { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+    .status-resolved .sw-status-indicator { background: #8b5cf6; box-shadow: 0 0 8px rgba(139, 92, 246, 0.6); }
+
+    .status-closed { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .status-closed .sw-status-indicator { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
+
+    .status-reopened { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .status-reopened .sw-status-indicator { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+
+    /* Badge Overrides */
+    .sw-badge {
+        padding: 3px 10px;
+        border-radius: 8px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .badge-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .badge-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .badge-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    /* Pagination Styling */
+    .sw-pagination {
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(var(--sw-primary-rgb), 0.01);
+    }
+
+    /* Mobile Adaptivity */
+    /* Mobile-Only Utility Classes (CSS logic) */
+    @media (max-width: 991px) {
+        .sw-mobile-hide { display: none !important; }
+        
+        .sw-control-row { 
+            flex-direction: column; 
+            align-items: stretch !important;
+            gap: 1rem !important;
+            padding: 1.25rem !important;
+            height: auto !important;
+        }
+
+        .sw-controls { 
+            justify-content: flex-start !important;
+            flex-wrap: wrap !important;
+            width: 100%;
+        }
+
+        .sw-search-wrapper {
+            max-width: 100% !important;
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .sw-control-item {
+            flex: 1 1 auto;
+            min-width: calc(50% - 0.5rem);
+        }
+
+        /* Essential Ticket #, Status, and Created must hold */
+        .sw-table th:nth-child(1), .sw-table td:nth-child(1) { min-width: 90px; }
+    }
+
+    @media (max-width: 600px) {
+        .sw-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .sw-kpi-card { padding: 0.75rem; gap: 0.75rem; min-height: 80px; }
+        .sw-kpi-icon { width: 34px; height: 34px; border-radius: 8px; font-size: 0.9rem; }
+        .sw-kpi-value { font-size: 1.1rem; }
+        .sw-kpi-label { font-size: 0.6rem; }
+        
+        .sw-control-item { min-width: 100%; } /* Full width buttons on very small phones */
+        
+        /* Hide more on extra small screens */
+        .sw-tablet-hide { display: none !important; }
+    }
+
+    /* Standardized Form Controls (Indigo Premium) */
+    .sw-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .sw-form-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .sw-form-control {
+        width: 100%;
+        height: 48px;
+        padding: 0 1rem;
+        background: var(--secondary-color, #ffffff);
+        border: 2px solid var(--border-color, #e2e8f0);
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-main);
+        transition: all 0.2s ease;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.25rem;
+    }
+
+    /* Date controls should not have the dropdown arrow as they have a native icon */
+    .sw-form-control[type="date"] {
+        background-image: none !important;
+        padding-right: 0.75rem;
+    }
+
+    body.dark-mode .sw-form-control {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        color-scheme: dark; /* Force browser native dropdown to use dark theme */
+        background-repeat: no-repeat;
+        /* Use white chevron for dark mode selects */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    }
+
+    body.dark-mode .sw-form-control[type="date"] {
+        background-image: none !important;
+    }
+
+    body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        opacity: 0.8;
+    }
+
+    body.dark-mode .sw-form-control option,
+    body.dark-mode select option {
+        background-color: #1e293b; /* Match card-bg */
+        color: #ffffff;
+    }
+
+    .sw-form-control:focus {
+        outline: none;
+        border-color: var(--sw-primary);
+        box-shadow: 0 0 0 4px rgba(var(--sw-primary-rgb), 0.15);
+    }
+
+    /* Standardized Modal Overrides */
+    .sw-modal-container {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .sw-modal-container.show {
+        display: flex;
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .sw-modal {
+        background: var(--card-bg);
+        width: 100%;
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--border-subtle);
+        transform: scale(0.95);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .sw-modal-close-custom {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 5px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .sw-modal-close-custom:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        transform: rotate(90deg);
+    }
+
+    .sw-modal-container.show .sw-modal {
+        transform: scale(1);
+    }
+
+    .sw-modal-header {
+        padding: 1.25rem 1.5rem;
+        background: var(--sw-primary);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sw-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sw-modal-title i {
+        font-size: 1.25rem;
+        color: white;
+    }
+
+    .sw-modal-title h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        color: white;
+    }
+
+    .sw-modal-body {
+        padding: 1.5rem;
+        background: var(--card-bg) !important;
+        color: var(--text-main);
+        overflow-y: auto;
+        max-height: 70vh;
+        min-height: 400px;
+    }
+
+    /* Insights Dashboard Specific Styles */
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+        width: 100%;
+    }
+
+    .insight-card {
+        background: var(--sw-bg-main) !important;
+        border: 1px solid var(--sw-border-subtle);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 80px;
+    }
+
+    .insight-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--sw-primary);
+        box-shadow: var(--shadow-md);
+    }
+
+    .insight-number {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--sw-primary);
+        line-height: 1.1;
+    }
+
+    .insight-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--sw-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 0.2rem;
+    }
+
+    /* Dark Mode Enforcement for Insights */
+    body.dark-mode .insight-card,
+    body.dark-mode .insights-stats-card,
+    body.dark-mode .chart-container,
+    body.dark-mode .insights-filter-bar {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: none !important;
+    }
+
+    body.dark-mode .insights-filter-bar span {
+        color: var(--text-muted) !important;
+    }
+
+    body.dark-mode .insight-label {
+        color: var(--text-muted);
+    }
+
+    .insight-card.success { border-bottom: 3px solid var(--sw-success, #10b981); }
+    .insight-card.success .insight-number { color: var(--sw-success, #10b981); }
+    
+    .insight-card.warning { border-bottom: 3px solid var(--sw-warning, #f59e0b); }
+    .insight-card.warning .insight-number { color: var(--sw-warning, #f59e0b); }
+    
+    .insight-card.danger { border-bottom: 3px solid var(--sw-danger, #ef4444); }
+    .insight-card.danger .insight-number { color: var(--sw-danger, #ef4444); }
+
+    .insights-stats-card {
+        background: var(--sw-card-bg);
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid var(--sw-border-subtle);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .insights-stats-card h3 {
+        margin: 0 0 12px 0;
+        color: var(--text-main);
+        font-size: 0.9rem;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--sw-border-subtle);
+    }
+
+    .stat-row:last-child { border-bottom: none; }
+
+    .stat-label { font-size: 0.85rem; color: var(--text-main); font-weight: 500; }
+    .stat-value { font-size: 0.85rem; color: var(--sw-primary); font-weight: 700; }
+
+    .chart-container {
+        position: relative;
+        background: var(--sw-bg-main);
+        border-radius: 16px;
+        border: 1px solid var(--sw-border-subtle);
+        padding: 1.25rem;
+        margin-top: 0.5rem;
+    }
+
+    .distribution-bar-wrapper {
+        width: 100%;
+        height: 8px;
+        background: rgba(var(--sw-primary-rgb), 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 6px;
+    }
+
+    .distribution-bar {
+        height: 100%;
+        background: var(--sw-primary);
+        border-radius: 4px;
+        transition: width 1s ease-out;
+    }
+
+    .sw-user-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .sw-avatar {
+        width: 40px;
+        height: 40px;
+        background: var(--sw-primary);
+        color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* --- Ticket List Mobile Optimization --- */
+    @media (max-width: 768px) {
+        .sw-dashboard {
+            padding: 0.65rem !important;
+        }
+
+        /* High-Density KPI Grid */
+        .sw-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .sw-kpi-card {
+            padding: 0.75rem !important;
+            min-height: 80px !important;
+        }
+        .sw-kpi-icon {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 1rem !important;
+        }
+        .sw-kpi-value {
+            font-size: 1.25rem !important;
+        }
+        .sw-kpi-label {
+            font-size: 0.6rem !important;
+        }
+        .sw-kpi-card:last-child {
+            grid-column: span 2 !important; /* Reopened card spans full width for balance */
+        }
+
+        /* Modular Control Row */
+        .sw-control-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            padding: 1rem !important;
+            height: auto !important;
+        }
+        .sw-title-group {
+            width: 100% !important;
+        }
+        .sw-controls {
+            width: 100% !important;
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important; /* Insights, Filters, PageSize */
+            gap: 8px !important;
+        }
+        .sw-search-wrapper {
+            grid-column: span 3 !important;
+            max-width: none !important;
+            width: 100% !important;
+        }
+        .sw-control-item {
+            justify-content: center !important;
+            padding: 0 !important;
+            height: 40px !important;
+            font-size: 0.75rem !important;
+        }
+        .sw-control-item i {
+            margin-right: 4px !important;
+        }
+        .sw-btn-primary {
+            grid-column: span 3 !important;
+            height: 44px !important;
+        }
+
+        /* --- Hardened Mobile Table (Horizontal Scroll Reversion) --- */
+        .sw-table-card {
+            margin: 0 !important;
+            width: 100% !important;
+            border-radius: 12px !important;
+            padding-left: 0.75rem !important; /* Refined safe-zone for sidebar arrow */
+            background: var(--card-bg) !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+        .sw-table-container {
+            border-radius: 12px !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            width: 100% !important;
+            display: block !important;
+        }
+        .sw-table {
+            min-width: 900px !important; /* Desktop-parity width for breathing room */
+            display: table !important;
+            border-collapse: collapse !important;
+        }
+        .sw-table thead {
+            display: table-header-group !important;
+            background: var(--sw-primary) !important;
+        }
+        .sw-table tr {
+            display: table-row !important;
+            background: transparent !important;
+            padding: 0 !important;
+        }
+        .sw-table th, .sw-table td {
+            display: table-cell !important;
+            padding: 14px 12px !important;
+            font-size: 0.8rem !important;
+            white-space: nowrap !important;
+            border-bottom: 1px solid var(--border-subtle) !important;
+        }
+        
+        /* Subject Column Breathability */
+        .sw-table td:nth-child(4) {
+            white-space: normal !important;
+            min-width: 280px !important;
+            line-height: 1.4 !important;
+        }
+
+        /* Mobile Hiding Utility */
+        .sw-mobile-hide {
+            display: none !important;
+        }
+
+        /* Pagination Compact View */
+        .sw-pagination {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            gap: 10px !important;
+            padding: 1.5rem 1rem !important;
+        }
+        .sw-page-link {
+            min-width: 42px !important;
+            height: 42px !important;
+            font-size: 0.85rem !important;
+        }
+
+        /* --- Insights Modal Mobile Refactor (Final Polish) --- */
+        #insightsModal .sw-modal {
+            width: calc(100% - 14px) !important;
+            margin: 7px !important;
+            max-height: 94vh !important;
+        }
+        #insightsModal .sw-modal-header {
+            padding-right: 3.8rem !important; /* Force clear of the X button */
+            gap: 0.5rem !important;
+        }
+        #insightsModal .sw-modal-title h2 {
+            font-size: 1rem !important;
+            line-height: 1.2 !important;
+            white-space: normal !important;
+        }
+        #insightsModal .sw-modal-body {
+            padding: 1rem 0.75rem 2rem 0.75rem !important; /* Bottom safe-zone */
+        }
+        .insights-filter-bar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            padding: 1rem !important;
+            background: rgba(var(--sw-primary-rgb), 0.05) !important;
+            border-radius: 12px !important;
+        }
+        .insights-filter-bar > div:first-child {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+        .insights-filter-bar .sw-form-control {
+            width: 100% !important;
+            height: 42px !important;
+            text-align: center !important;
+        }
+        .insights-filter-bar span {
+            display: none !important; /* Hide labels for maximum space */
+        }
+        .insights-filter-bar .sw-btn-primary {
+            width: 100% !important;
+            height: 44px !important;
+            margin-top: 4px !important;
+        }
+
+        /* Chart & Grid Stacking */
+        .efficiency-flex, .priority-flex {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 1.25rem !important;
+            padding: 0 !important;
+        }
+        .efficiency-donut, .priority-donut {
+            margin: 0 auto !important;
+            transform: scale(0.9) !important; /* Compact scaling for mobile */
+        }
+        .efficiency-grid {
+            width: 100% !important;
+            margin: 0 !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+        }
+        .priority-legend {
+            width: 100% !important;
+            padding: 1.25rem 0.5rem !important;
+            border-top: 1px solid var(--border-subtle) !important;
+            margin: 0 !important;
+        }
+        
+        /* Layout Stacking Overrides */
+        #insightsModal .sw-modal-body > div:first-child {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 1.5rem !important;
+            padding-top: 1rem !important; /* Header safe-zone */
+        }
+        .category-flex, .performers-flex, .trend-header-flex {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 1rem !important;
+            text-align: center !important;
+        }
+        .trend-header-flex div {
+            justify-content: center !important;
+            width: 100% !important;
+        }
+        .stat-row {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 10px !important;
+            text-align: center !important;
+            padding: 1rem 0 !important;
+        }
+        .stat-row > div {
+            text-align: center !important;
+            align-items: center !important;
+        }
+        .sw-user-badge {
+            flex-direction: column !important;
+            text-align: center !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-dashboard">
+    <!-- KPI Dashboard -->
+    <div class="sw-kpi-grid">
+        <div class="sw-kpi-card kpi-open">
+            <div class="sw-kpi-icon"><i class="fas fa-folder-open"></i></div>
+            <div class="sw-kpi-content">
+                <div class="sw-kpi-value">{{ kpis.open|default:0 }}</div>
+                <div class="sw-kpi-label">Open</div>
+            </div>
+        </div>
+        <div class="sw-kpi-card kpi-progress">
+            <div class="sw-kpi-icon"><i class="fas fa-spinner"></i></div>
+            <div class="sw-kpi-content">
+                <div class="sw-kpi-value">{{ kpis.in_progress|default:0 }}</div>
+                <div class="sw-kpi-label">In Progress</div>
+            </div>
+        </div>
+        <div class="sw-kpi-card kpi-resolved">
+            <div class="sw-kpi-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="sw-kpi-content">
+                <div class="sw-kpi-value">{{ kpis.resolved|default:0 }}</div>
+                <div class="sw-kpi-label">Resolved</div>
+            </div>
+        </div>
+        <div class="sw-kpi-card kpi-closed">
+            <div class="sw-kpi-icon"><i class="fas fa-check-double"></i></div>
+            <div class="sw-kpi-content">
+                <div class="sw-kpi-value">{{ kpis.closed|default:0 }}</div>
+                <div class="sw-kpi-label">Closed</div>
+            </div>
+        </div>
+        <div class="sw-kpi-card kpi-reopened">
+            <div class="sw-kpi-icon"><i class="fas fa-redo"></i></div>
+            <div class="sw-kpi-content">
+                <div class="sw-kpi-value">{{ kpis.reopened|default:0 }}</div>
+                <div class="sw-kpi-label">Reopened</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Control Row -->
+    <div class="sw-control-row">
+        <div class="sw-title-group">
+            <div class="sw-title-icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <div>
+                <h1 class="sw-title">Ticket Management</h1>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                    <span class="sw-count-badge">{{ tickets|length }} Total</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sw-controls">
+            <!-- Advanced Global Search -->
+            <form method="get" class="sw-search-wrapper" style="max-width: 260px;">
+                <i class="fas fa-search sw-search-icon" style="top: 50%; height: auto;"></i>
+                <input type="text" name="search" value="{{ filters.search_term|default:'' }}" 
+                       placeholder="Find a ticket..." class="sw-search-input" 
+                       style="height: 38px; border-radius: 10px; border: 1.5px solid var(--border-subtle); background: rgba(var(--sw-primary-rgb), 0.03);">
+                {% if filters.status %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
+                {% if filters.priority %}<input type="hidden" name="priority" value="{{ filters.priority }}">{% endif %}
+                {% if filters.category %}<input type="hidden" name="category" value="{{ filters.category }}">{% endif %}
+            </form>
+
+            <button type="button" class="sw-control-item sw-control-item-info" onclick="openInsightsModal()">
+                <i class="fas fa-chart-pie"></i> Insights
+            </button>
+            
+            <button type="button" class="sw-control-item" onclick="openFilterModal()">
+                <i class="fas fa-filter"></i> Filters
+            </button>
+
+            <!-- Standardized Page Size Selector -->
+            <div class="sw-control-item" style="position: relative; padding: 0 0.6rem; min-width: 70px;">
+                <i class="fas fa-list-ol" style="font-size: 0.75rem; color: var(--sw-primary); opacity: 0.8;"></i>
+                <select id="pageSize" style="background: transparent; border: none; color: var(--text-main); font-weight: 800; font-size: 0.85rem; outline: none; padding-right: 14px; appearance: none; cursor: pointer;">
+                    <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                    <option value="20" {% if page_size == 20 %}selected{% endif %}>20</option>
+                    <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                </select>
+                <i class="fas fa-chevron-down" style="position: absolute; right: 0.7rem; font-size: 0.6rem; pointer-events: none; opacity: 0.4;"></i>
+            </div>
+
+            {% if can_create %}
+            <a href="{% url 'tickets:ticket_create' %}" class="sw-control-item sw-btn-primary" style="border: none; padding: 0 1.25rem;">
+                <i class="fas fa-plus"></i> <span style="font-weight: 800;">New Ticket</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="sw-table-card">
+        <div class="sw-table-container">
+            <table class="sw-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">SN</th>
+                        <th style="width: 120px;">
+                            <a href="?sort=TicketNumber&direction={% if sort_column == 'TicketNumber' and sort_direction == 'ASC' %}DESC{% else %}ASC{% endif %}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}&page_size={{ page_size }}" class="sw-sort-link {% if sort_column == 'TicketNumber' %}active{% endif %}">
+                                Ticket #
+                                <i class="fas {% if sort_column == 'TicketNumber' %}{% if sort_direction == 'ASC' %}fa-sort-up{% else %}fa-sort-down{% endif %}{% else %}fa-sort{% endif %} sw-sort-icon"></i>
+                            </a>
+                        </th>
+                        <th style="width: 80px; text-align: center;">Actions</th>
+                        <th>
+                            <a href="?sort=Subject&direction={% if sort_column == 'Subject' and sort_direction == 'ASC' %}DESC{% else %}ASC{% endif %}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}&page_size={{ page_size }}" class="sw-sort-link {% if sort_column == 'Subject' %}active{% endif %}">
+                                Subject
+                                <i class="fas {% if sort_column == 'Subject' %}{% if sort_direction == 'ASC' %}fa-sort-up{% else %}fa-sort-down{% endif %}{% else %}fa-sort{% endif %} sw-sort-icon"></i>
+                            </a>
+                        </th>
+                        {% if role_name == 'Super Admin' %}
+                        <th class="sw-mobile-hide">
+                            <a href="?sort=SchoolName&direction={% if sort_column == 'SchoolName' and sort_direction == 'ASC' %}DESC{% else %}ASC{% endif %}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}&page_size={{ page_size }}" class="sw-sort-link {% if sort_column == 'SchoolName' %}active{% endif %}">
+                                School
+                                <i class="fas {% if sort_column == 'SchoolName' %}{% if sort_direction == 'ASC' %}fa-sort-up{% else %}fa-sort-down{% endif %}{% else %}fa-sort{% endif %} sw-sort-icon"></i>
+                            </a>
+                        </th>
+                        {% endif %}
+                        <th class="sw-tablet-hide">
+                            <a href="?sort=CategoryName&direction={% if sort_column == 'CategoryName' and sort_direction == 'ASC' %}DESC{% else %}ASC{% endif %}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}&page_size={{ page_size }}" class="sw-sort-link {% if sort_column == 'CategoryName' %}active{% endif %}">
+                                Category
+                                <i class="fas {% if sort_column == 'CategoryName' %}{% if sort_direction == 'ASC' %}fa-sort-up{% else %}fa-sort-down{% endif %}{% else %}fa-sort{% endif %} sw-sort-icon"></i>
+                            </a>
+                        </th>
+                        <th class="sw-tablet-hide">
+                            <a href="?sort=Priority&direction={% if sort_column == 'Priority' and sort_direction == 'ASC' %}DESC{% else %}ASC{% endif %}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}&page_size={{ page_size }}" class="sw-sort-link {% if sort_column == 'Priority' %}active{% endif %}">
+                                Priority
+                                <i class="fas {% if sort_column == 'Priority' %}{% if sort_direction == 'ASC' %}fa-sort-up{% else %}fa-sort-down{% endif %}{% else %}fa-sort{% endif %} sw-sort-icon"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?sort=CurrentStatus&direction={% if sort_column == 'CurrentStatus' and sort_direction == 'ASC' %}DESC{% else %}ASC{% endif %}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}&page_size={{ page_size }}" class="sw-sort-link {% if sort_column == 'CurrentStatus' %}active{% endif %}">
+                                Status
+                                <i class="fas {% if sort_column == 'CurrentStatus' %}{% if sort_direction == 'ASC' %}fa-sort-up{% else %}fa-sort-down{% endif %}{% else %}fa-sort{% endif %} sw-sort-icon"></i>
+                            </a>
+                        </th>
+                        <th class="sw-mobile-hide">
+                            <a href="?sort=AssignedToName&direction={% if sort_column == 'AssignedToName' and sort_direction == 'ASC' %}DESC{% else %}ASC{% endif %}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}&page_size={{ page_size }}" class="sw-sort-link {% if sort_column == 'AssignedToName' %}active{% endif %}">
+                                Assigned To
+                                <i class="fas {% if sort_column == 'AssignedToName' %}{% if sort_direction == 'ASC' %}fa-sort-up{% else %}fa-sort-down{% endif %}{% else %}fa-sort{% endif %} sw-sort-icon"></i>
+                            </a>
+                        </th>
+                        <th style="width: 150px;" class="sw-tablet-hide">
+                            <a href="?sort=CreatedAt&direction={% if sort_column == 'CreatedAt' and sort_direction == 'ASC' %}DESC{% else %}ASC{% endif %}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}&page_size={{ page_size }}" class="sw-sort-link {% if sort_column == 'CreatedAt' %}active{% endif %}">
+                                Created
+                                <i class="fas {% if sort_column == 'CreatedAt' %}{% if sort_direction == 'ASC' %}fa-sort-up{% else %}fa-sort-down{% endif %}{% else %}fa-sort{% endif %} sw-sort-icon"></i>
+                            </a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if tickets %}
+                        {% for ticket in tickets %}
+                        <tr>
+                            <td style="text-align: center; font-weight: 700; color: var(--text-muted); opacity: 0.8; font-size: 0.75rem;">
+                                {{ record_offset|add:forloop.counter }}
+                            </td>
+                            <td>
+                                <span style="font-weight: 800; color: var(--text-main); font-size: 0.8rem; letter-spacing: 0.02em;">
+                                    #{{ ticket.TicketNumber }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                {% if ticket.TicketID %}
+                                <a href="{% url 'tickets:ticket_detail' ticket.TicketID|encrypt_id %}" 
+                                   class="sw-btn sw-btn-secondary" style="width: 38px; height: 38px; padding: 0; border-radius: 50%; border: none; background: rgba(var(--sw-primary-rgb), 0.05); color: var(--sw-primary);" title="View Details">
+                                    <i class="fas fa-eye" style="font-size: 0.9rem;"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                            <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;" title="{{ ticket.Subject }}">
+                                <span style="font-weight: 700; color: var(--text-main);">{{ ticket.Subject }}</span>
+                                <span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 8px; font-weight: 600; opacity: 0.6; padding-left: 8px; border-left: 1px solid var(--border-subtle);">
+                                    {{ ticket.Sources|default:"Direct" }}
+                                </span>
+                            </td>
+                            {% if role_name == 'Super Admin' %}
+                                <td class="sw-mobile-hide">
+                                    <div class="sw-user-badge">
+                                        <div class="sw-avatar" style="background: rgba(var(--sw-primary-rgb), 0.1); color: var(--sw-primary);">
+                                            {{ ticket.SchoolName|slice:":1" }}
+                                        </div>
+                                        <span style="font-size: 0.75rem; font-weight: 600;">{{ ticket.SchoolName }}</span>
+                                    </div>
+                                </td>
+                            {% endif %}
+                            <td class="sw-tablet-hide">
+                                <span style="font-weight: 600; font-size: 0.8rem;">{{ ticket.CategoryName }}</span>
+                            </td>
+                            <td class="sw-tablet-hide">
+                                <span class="sw-badge {% if ticket.Priority == 1 %}badge-success{% elif ticket.Priority == 2 %}badge-warning{% elif ticket.Priority == 3 %}badge-danger{% else %}badge-danger{% endif %}">
+                                    {{ ticket.PriorityName }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="sw-status-pill status-{{ ticket.CurrentStatus|slugify }}">
+                                    <span class="sw-status-indicator"></span>
+                                    {{ ticket.CurrentStatus }}
+                                </div>
+                            </td>
+                            <td class="sw-mobile-hide">
+                                <div class="sw-user-badge">
+                                    <div class="sw-avatar" style="width: 26px; height: 26px; font-size: 0.7rem;">
+                                        {{ ticket.AssignedToName|default:"?"|slice:":1" }}
+                                    </div>
+                                    <span style="font-weight: 600;">{{ ticket.AssignedToName|default:"Unassigned" }}</span>
+                                </div>
+                            </td>
+                            <td class="sw-tablet-hide">
+                                <div style="font-weight: 600; font-size: 0.75rem;">{{ ticket.CreatedAt|date:"d M, Y" }}</div>
+                                <div style="font-size: 0.65rem; color: var(--text-muted);">{{ ticket.CreatedAt|date:"H:i" }}</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="100%" style="text-align: center; padding: 5rem 2rem;">
+                                <div style="opacity: 0.3; transform: scale(1.2);">
+                                    <i class="fas fa-inbox" style="font-size: 4rem; margin-bottom: 1.5rem; color: var(--sw-primary);"></i>
+                                    <h3 style="font-weight: 800; letter-spacing: -0.02em;">No Tickets Found</h3>
+                                    <p style="font-size: 0.9rem;">We couldn't find any tickets matching your clear parameters.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if total_pages > 1 %}
+        <div class="sw-pagination">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                Page {{ page }} <span style="opacity: 0.5;">/</span> {{ total_pages }}
+            </div>
+            <div style="display: flex; gap: 8px;">
+                {% if page > 1 %}
+                    <a href="?page=1&page_size={{ page_size }}&sort={{ sort_column }}&direction={{ sort_direction }}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}" 
+                       class="sw-btn sw-btn-secondary" style="padding: 0 12px; height: 32px;">First</a>
+                    <a href="?page={{ page|add:-1 }}&page_size={{ page_size }}&sort={{ sort_column }}&direction={{ sort_direction }}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}" 
+                       class="sw-btn sw-btn-secondary" style="padding: 0 12px; height: 32px;">
+                        <i class="fas fa-chevron-left" style="font-size: 0.7rem;"></i>
+                    </a>
+                {% endif %}
+                
+                <span class="sw-btn sw-btn-primary" style="padding: 0 16px; height: 32px; pointer-events: none;">{{ page }}</span>
+                
+                {% if page < total_pages %}
+                    <a href="?page={{ page|add:1 }}&page_size={{ page_size }}&sort={{ sort_column }}&direction={{ sort_direction }}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}" 
+                       class="sw-btn sw-btn-secondary" style="padding: 0 12px; height: 32px;">
+                        <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+                    </a>
+                    <a href="?page={{ total_pages }}&page_size={{ page_size }}&sort={{ sort_column }}&direction={{ sort_direction }}{% for k,v in filters.items %}{% if v %}&{{ k }}={{ v }}{% endif %}{% endfor %}" 
+                       class="sw-btn sw-btn-secondary" style="padding: 0 12px; height: 32px;">Last</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Standardized Insights Modal -->
+<div class="sw-modal-container" id="insightsModal">
+    <div class="sw-modal" style="max-width: 1000px;">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-chart-pie"></i>
+                <h2>Ticket Insights Dashboard</h2>
+            </div>
+            <button type="button" onclick="closeInsightsModal()" class="sw-modal-close-custom">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body" style="background: var(--card-bg); color: var(--text-main);">
+            <div id="insightsContent">
+                <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <i class="fas fa-circle-notch fa-spin fa-2x" style="margin-bottom: 1rem;"></i>
+                    <p>Loading school insights...</p>
+                </div>
+            </div>
+        </div>
+        <div class="sw-modal-footer">
+            <button type="button" onclick="closeInsightsModal()" class="sw-btn sw-btn-secondary">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Standardized Global Filter Modal -->
+<div class="sw-modal-container" id="filterModal">
+    <div class="sw-modal" style="max-width: 450px;">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-filter"></i>
+                <h2>Filter Tickets</h2>
+            </div>
+            <button type="button" onclick="closeFilterModal()" class="sw-modal-close-custom">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="get" action="{% url 'tickets:ticket_list' %}">
+            <div class="sw-modal-body">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Search Persistence -->
+                    {% if filters.search %}<input type="hidden" name="search" value="{{ filters.search }}">{% endif %}
+
+                    <!-- Date Range -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="sw-form-group">
+                            <label class="sw-form-label" style="font-size: 0.65rem; letter-spacing: 0.05em; margin-bottom: 3px;">FROM DATE</label>
+                            <input type="date" name="from_date" value="{{ filters.from_date|default:'' }}" class="sw-form-control" style="height: 34px; font-size: 0.8rem; border-radius: 6px;">
+                        </div>
+                        <div class="sw-form-group">
+                            <label class="sw-form-label" style="font-size: 0.65rem; letter-spacing: 0.05em; margin-bottom: 3px;">TO DATE</label>
+                            <input type="date" name="to_date" value="{{ filters.to_date|default:'' }}" class="sw-form-control" style="height: 34px; font-size: 0.8rem; border-radius: 6px;">
+                        </div>
+                    </div>
+
+                    <!-- Role-Based Filters Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        {% if role_name == 'Super Admin' or role_name == 'Support Executive' %}
+                        <div class="sw-form-group">
+                            <label class="sw-form-label" style="font-size: 0.65rem; letter-spacing: 0.05em; margin-bottom: 3px;">SCHOOL</label>
+                            <select name="school_id" class="sw-form-control" style="height: 34px; font-size: 0.8rem; border-radius: 6px;">
+                                <option value="">All Schools</option>
+                                {% for school in schools %}
+                                    <option value="{{ school.SchoolID }}" {% if filters.school_id == school.SchoolID|stringformat:"i" %}selected{% endif %}>
+                                        {{ school.DisplayName }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        {% if role_name == 'Super Admin' or role_name == 'School Admin' %}
+                        <div class="sw-form-group">
+                            <label class="sw-form-label" style="font-size: 0.65rem; letter-spacing: 0.05em; margin-bottom: 3px;">EXECUTIVE</label>
+                            <select name="assigned_to" class="sw-form-control" style="height: 34px; font-size: 0.8rem; border-radius: 6px;">
+                                <option value="">All</option>
+                                {% for exe in executives %}
+                                    <option value="{{ exe.UserID }}" {% if filters.assigned_to == exe.UserID|stringformat:"i" %}selected{% endif %}>
+                                        {{ exe.UserName }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="sw-form-group">
+                            <label class="sw-form-label" style="font-size: 0.65rem; letter-spacing: 0.05em; margin-bottom: 3px;">STATUS</label>
+                            <select name="status" class="sw-form-control" style="height: 34px; font-size: 0.8rem; border-radius: 6px;">
+                                <option value="">All</option>
+                                <option value="Open" {% if filters.status == 'Open' %}selected{% endif %}>Open</option>
+                                <option value="In Progress" {% if filters.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                <option value="Resolved" {% if filters.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                <option value="Closed" {% if filters.status == 'Closed' %}selected{% endif %}>Closed</option>
+                                <option value="Reopened" {% if filters.status == 'Reopened' %}selected{% endif %}>Reopened</option>
+                            </select>
+                        </div>
+                        <div class="sw-form-group">
+                            <label class="sw-form-label" style="font-size: 0.65rem; letter-spacing: 0.05em; margin-bottom: 3px;">PRIORITY</label>
+                            <select name="priority" class="sw-form-control" style="height: 34px; font-size: 0.8rem; border-radius: 6px;">
+                                <option value="">All</option>
+                                {% for priority in priorities %}
+                                    <option value="{{ priority.priority_id }}" {% if filters.priority == priority.priority_id|stringformat:"s" %}selected{% endif %}>
+                                        {{ priority.priority_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="sw-form-group">
+                        <label class="sw-form-label" style="font-size: 0.65rem; letter-spacing: 0.05em; margin-bottom: 3px;">CATEGORY</label>
+                        <select name="category" class="sw-form-control" style="height: 34px; font-size: 0.8rem; border-radius: 6px;">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.category_id }}" {% if filters.category == category.category_id|stringformat:"s" %}selected{% endif %}>
+                                    {{ category.category_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" onclick="resetFilters()" class="sw-btn sw-btn-secondary">
+                    <i class="fas fa-undo"></i> <span>Reset Filters</span>
+                </button>
+                <button type="submit" class="sw-btn sw-btn-primary">
+                    <i class="fas fa-check"></i> <span>Apply Filters</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_js %}
+<script>
+/**
+ * Ticket Management Dashboard Logic
+ */
+
+// Inject school data for analytics filtering (Super Admin / Support Executive only)
+window.ALL_SCHOOLS = [
+    {% for s in schools %}
+    { "id": "{{ s.SchoolID }}", "name": "{{ s.DisplayName|escapejs }}" }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+function openFilterModal() {
+    const modal = document.getElementById('filterModal');
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeFilterModal() {
+    const modal = document.getElementById('filterModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+function openInsightsModal() {
+    const modal = document.getElementById('insightsModal');
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        loadInsights();
+    }
+}
+
+function closeInsightsModal() {
+    const modal = document.getElementById('insightsModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        
+        // Safety: ensure any global loading states are cleared on the initiating button
+        const btn = document.querySelector('button[onclick="openInsightsModal()"]');
+        if (btn) {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+
+        // Handle redirection if source is dashboard
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('source') === 'dashboard') {
+            window.location.href = '{% url "dashboard" %}';
+        }
+    }
+}
+
+function resetFilters() {
+    window.location.href = '{% url "tickets:ticket_list" %}';
+}
+
+function loadInsights() {
+    let startDate = document.getElementById('insightStartDate')?.value || '';
+    let endDate = document.getElementById('insightEndDate')?.value || '';
+    let schoolId = document.getElementById('insightSchoolId')?.value || '';
+    
+    // Default to local current month start and end if not set
+    if (!startDate && !endDate) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        
+        // Local formatting helper
+        const toLocalYMD = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        
+        startDate = toLocalYMD(firstDay);
+        endDate = toLocalYMD(lastDay);
+        
+        // Update inputs if they exist
+        const startInput = document.getElementById('insightStartDate');
+        const endInput = document.getElementById('insightEndDate');
+        if (startInput) startInput.value = startDate;
+        if (endInput) endInput.value = endDate;
+    }
+    
+    let url = `{% url "tickets:api_ticket_insights" %}?start_date=${startDate}&end_date=${endDate}&school_id=${schoolId}`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderInsights(data, startDate, endDate, schoolId);
+            } else {
+                document.getElementById('insightsContent').innerHTML = 
+                    `<div style="text-align: center; padding: 2rem; color: var(--error-color);">Error: ${data.error || 'Unknown error'}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            document.getElementById('insightsContent').innerHTML = 
+                `<div style="text-align: center; padding: 2rem; color: var(--error-color);">Error loading insights: ${error.message}</div>`;
+        });
+}
+
+function renderInsights(data, initialStart = '', initialEnd = '', initialSchool = '') {
+    try {
+        const roleName = "{{ role_name }}";
+        const showSchoolFilter = roleName === 'Super Admin' || roleName === 'Support Executive';
+        
+        const stats = {
+            TotalTickets: 0, ResolvedTickets: 0, InProgressTickets: 0, OpenTickets: 0,
+            AvgResolutionHours: 0, ResolutionEfficiency: 0, CSAT: 0, FirstResponseRate: 0,
+            ...(data.stats || {})
+        };
+        const trends = data.trends ? (typeof data.trends === 'string' ? JSON.parse(data.trends) : data.trends) : [];
+        const categories = data.categories ? (typeof data.categories === 'string' ? JSON.parse(data.categories) : data.categories) : [];
+        const priorities = data.priorities ? (typeof data.priorities === 'string' ? JSON.parse(data.priorities) : data.priorities) : [];
+        const performers = data.performers ? (typeof data.performers === 'string' ? JSON.parse(data.performers) : data.performers) : [];
+    
+    // Process trends
+    const rawMax = Math.max(...trends.map(t => Math.max(t.TicketCount || 0, t.ResolvedCount || 0)), 1);
+    const maxTickets = rawMax <= 5 ? 5 : Math.ceil(rawMax / 5) * 5; // Round to nearest 5 for clean Y-axis
+    
+    let html = `
+        <!-- Compact Filter Bar -->
+        <div class="insights-filter-bar" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.25rem; padding: 0.75rem 1.25rem; background: var(--sw-card-bg); border-radius: 12px; border: 1px solid var(--sw-border-subtle); box-shadow: var(--shadow-sm);">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; flex: 1;">
+                ${showSchoolFilter ? `
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-right: 0.5rem; padding-right: 0.75rem; border-right: 1px solid var(--sw-border-subtle);">
+                    <i class="fas fa-university" style="font-size: 0.8rem; color: var(--sw-primary); opacity: 0.7;"></i>
+                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--sw-text-muted); text-transform: uppercase;">School:</span>
+                    <select id="insightSchoolId" class="sw-form-control" style="width: 170px; height: 34px; padding: 0 10px; font-size: 0.82rem; border-radius: 6px; border: 1.5px solid var(--sw-border-subtle); background: rgba(var(--sw-primary-rgb), 0.03); font-weight: 600;">
+                        <option value="">-- All Schools --</option>
+                        ${window.ALL_SCHOOLS.map(s => `<option value="${s.id}" ${s.id == initialSchool ? 'selected' : ''}>${s.name}</option>`).join('')}
+                    </select>
+                </div>
+                ` : ''}
+                
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--sw-text-muted); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Period:</span>
+                    <input type="date" id="insightStartDate" class="sw-form-control" style="width: 135px; height: 34px; padding: 0 8px; font-size: 0.82rem; border-radius: 6px;" 
+                           value="${initialStart || document.getElementById('insightStartDate')?.value || ''}">
+                    <span style="color: var(--sw-text-muted); font-size: 0.75rem; font-weight: 600;">to</span>
+                    <input type="date" id="insightEndDate" class="sw-form-control" style="width: 135px; height: 34px; padding: 0 8px; font-size: 0.82rem; border-radius: 6px;" 
+                           value="${initialEnd || document.getElementById('insightEndDate')?.value || ''}">
+                </div>
+            </div>
+            <button onclick="loadInsights()" class="sw-btn sw-btn-primary" style="height: 34px; padding: 0 1rem; font-size: 0.82rem; border-radius: 6px; font-weight: 700; white-space: nowrap;">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+        </div>
+        
+        <div class="insights-main-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+            <!-- Column 1: Efficiency & Priority -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div class="insights-stats-card" style="margin-bottom: 0;">
+                    <h3><i class="fas fa-bolt" style="color: var(--sw-primary);"></i> Support Efficiency</h3>
+                    <div class="efficiency-flex" style="display: flex; align-items: center; gap: 1.5rem; padding: 0.5rem;">
+                        <div style="position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--sw-border-subtle)" stroke-width="3" />
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--sw-primary)" stroke-width="3" stroke-dasharray="${Math.round((stats.ResolvedTickets / (stats.TotalTickets || 1)) * 100)}, 100" stroke-linecap="round" />
+                            </svg>
+                            <div style="position: absolute; display: flex; flex-direction: column; align-items: center;">
+                                <span style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">${Math.round((stats.ResolvedTickets / (stats.TotalTickets || 1)) * 100)}%</span>
+                            </div>
+                        </div>
+                        <div class="efficiency-grid" style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <div class="insight-card" style="min-height: 60px; padding: 0.5rem;">
+                                <div class="insight-number" style="font-size: 1.1rem;">${stats.TotalTickets || 0}</div>
+                                <div class="insight-label" style="font-size: 0.55rem;">Tickets</div>
+                            </div>
+                            <div class="insight-card success" style="min-height: 60px; padding: 0.5rem;">
+                                <div class="insight-number" style="font-size: 1.1rem;">${stats.ResolvedTickets || 0}</div>
+                                <div class="insight-label" style="font-size: 0.55rem;">Resolved</div>
+                            </div>
+                            <div class="insight-card" style="min-height: 60px; padding: 0.5rem;">
+                                <div class="insight-number" style="font-size: 1.1rem;">${Math.round(stats.AvgResolutionTimeHours || 0)}h</div>
+                                <div class="insight-label" style="font-size: 0.55rem;">Avg Time</div>
+                            </div>
+                            <div class="insight-card danger" style="min-height: 60px; padding: 0.5rem;">
+                                <div class="insight-number" style="font-size: 1.1rem;">${stats.CriticalTickets || 0}</div>
+                                <div class="insight-label" style="font-size: 0.55rem;">Critical</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insights-stats-card" style="margin-bottom: 0;">
+                    <h3><i class="fas fa-layer-group" style="color: var(--sw-primary);"></i> Priority Distribution</h3>
+                    <div class="priority-flex" style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-top: 1rem; padding: 0.5rem;">
+                        <div class="priority-donut" style="
+                            width: 140px; height: 140px; 
+                            border-radius: 50%; 
+                            position: relative;
+                            display: flex; align-items: center; justify-content: center;
+                            background: conic-gradient(
+                                ${priorities.length > 0 ? (() => {
+                                    let accumulated = 0;
+                                    const total = priorities.reduce((sum, p) => sum + (p.TicketCount || 0), 0) || 1;
+                                    const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']; // Critical, High, Medium, Low
+                                    return priorities.map((p, i) => {
+                                        const start = accumulated;
+                                        const percentage = ((p.TicketCount || 0) / total) * 100;
+                                        accumulated += percentage;
+                                        return `${colors[i] || 'var(--sw-primary)'} ${start}% ${accumulated}%`;
+                                    }).join(', ');
+                                })() : 'var(--sw-border-subtle) 0% 100%'}
+                            );
+                        ">
+                            <div style="
+                                width: 100px; height: 100px; 
+                                background: var(--card-bg); 
+                                border-radius: 50%;
+                                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                                box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+                            ">
+                                <span style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1.2;">
+                                    ${stats.TotalTickets || 0}
+                                </span>
+                                <span style="font-size: 0.6rem; font-weight: 700; color: var(--sw-text-muted); text-transform: uppercase;">Tickets</span>
+                            </div>
+                        </div>
+                        <div class="priority-legend" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                            ${priorities.map((p, i) => {
+                                const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+                                return `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 8px; height: 8px; border-radius: 2px; background: ${colors[i] || 'var(--sw-primary)'};"></div>
+                                            <span style="font-weight: 600; color: var(--text-main);">${p.PriorityName}</span>
+                                        </div>
+                                        <span style="font-weight: 700; color: var(--text-muted);">${p.TicketCount}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                            ${priorities.length === 0 ? '<div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No priority data</div>' : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Categories & Performers -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div class="insights-stats-card" style="margin-bottom: 0;">
+                    <h3><i class="fas fa-tags" style="color: var(--sw-primary);"></i> Category Analysis</h3>
+                    <div class="category-flex" style="display: flex; flex-direction: column; gap: 12px; margin-top: 0.5rem;">
+                        ${categories.slice(0, 5).map((cat, idx) => {
+                            const share = Math.round((cat.TicketCount / (stats.TotalTickets || 1)) * 100);
+                            const colors = [
+                                'linear-gradient(90deg, #6366f1, #818cf8)', // Indigo
+                                'linear-gradient(90deg, #ec4899, #f472b6)', // Pink
+                                'linear-gradient(90deg, #8b5cf6, #a78bfa)', // Violet
+                                'linear-gradient(90deg, #f59e0b, #fbbf24)', // Amber
+                                'linear-gradient(90deg, #06b6d4, #22d3ee)'  // Cyan
+                            ];
+                            const bgColors = ['rgba(99, 102, 241, 0.1)', 'rgba(236, 72, 153, 0.1)', 'rgba(139, 92, 246, 0.1)', 'rgba(245, 158, 11, 0.1)', 'rgba(6, 182, 212, 0.1)'];
+                            const selectedColor = colors[idx % colors.length];
+                            const selectedBg = bgColors[idx % bgColors.length];
+                            
+                            return `
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-weight: 700; color: var(--text-main);">${cat.CategoryName}</span>
+                                            <span style="font-size: 0.7rem; padding: 2px 7px; background: ${selectedBg}; color: ${selectedColor.split(',')[1].split(')')[0].trim()}; border-radius: 5px; font-weight: 800;">${share}% Share</span>
+                                        </div>
+                                        <span style="color: var(--text-muted); font-weight: 600;">${cat.TicketCount} tickets</span>
+                                    </div>
+                                    <div class="distribution-bar-wrapper" style="background: var(--sw-border-subtle); height: 8px;">
+                                        <div class="distribution-bar" style="width: ${share}%; background: ${selectedColor}; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"></div>
+                                    </div>
+                                    <div style="font-size: 0.65rem; color: #10b981; font-weight: 700; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-check-double"></i> ${cat.ResolutionRate}% Success Rate
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                        ${categories.length === 0 ? '<div style="text-align: center; color: var(--text-muted); padding: 1rem; font-style: italic;">No category data</div>' : ''}
+                    </div>
+                </div>
+
+                <div class="insights-stats-card" style="margin-bottom: 0; flex: 1;">
+                    <h3><i class="fas fa-trophy" style="color: var(--sw-primary);"></i> Top Performers</h3>
+                    <div class="performers-flex" style="display: flex; flex-direction: column; gap: 8px;">
+                        ${performers.map(p => `
+                            <div class="stat-row">
+                                <div class="sw-user-badge">
+                                    <div class="sw-avatar" style="width: 32px; height: 32px;">${p.UserName ? p.UserName.charAt(0) : '?'}</div>
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span class="stat-label" style="font-weight: 700;">${p.UserName}</span>
+                                        <span style="font-size: 0.65rem; color: var(--text-muted);">${p.AssignedTickets} Assigned</span>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div class="stat-value" style="color: var(--sw-success);">${p.ResolvedTickets} Done</div>
+                                    <div style="font-size: 0.65rem; color: var(--text-muted);">${p.ResolutionRate}% Rate</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${performers.length === 0 ? '<div style="text-align: center; color: var(--text-muted); padding: 1rem; font-style: italic;">No performance data</div>' : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Width Bottom Section (Chart Fixed) -->
+        <div class="insights-stats-card" style="margin-bottom: 0; background: var(--sw-card-bg); border: 1px solid var(--sw-border-subtle); border-radius: 16px; box-shadow: var(--shadow-sm);">
+            <div class="trend-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 10px;">
+                    <span style="width: 32px; height: 32px; background: rgba(99, 102, 241, 0.1); color: #6366f1; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chart-line"></i>
+                    </span>
+                    Ticket Volume Trend
+                </h3>
+                <div style="display: flex; gap: 1.5rem; font-size: 0.7rem; font-weight: 800; color: var(--sw-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 3px; box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);"></div>
+                        <span>Opened</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 3px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);"></div>
+                        <span>Resolved</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="position: relative; height: 300px; margin-top: 1rem; padding-bottom: 50px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--sw-border-subtle) transparent;">
+                <!-- Y-Axis Labels & Grid Lines -->
+                <div style="position: absolute; top: 15px; left: 0; right: 0; bottom: 50px; display: flex; flex-direction: column; justify-content: space-between; z-index: 1; pointer-events: none; padding-left: 35px;">
+                    <div style="border-top: 1px dashed var(--sw-border-subtle); width: 100%; opacity: 0.5; position: relative;">
+                        <span style="position: absolute; left: -35px; top: -10px; font-size: 0.65rem; font-weight: 800; color: var(--sw-text-muted);">${maxTickets}</span>
+                    </div>
+                    <div style="border-top: 1px dashed var(--sw-border-subtle); width: 100%; opacity: 0.5; position: relative;">
+                        <span style="position: absolute; left: -35px; top: -10px; font-size: 0.65rem; font-weight: 800; color: var(--sw-text-muted);">${Math.round(maxTickets * 0.75)}</span>
+                    </div>
+                    <div style="border-top: 1px dashed var(--sw-border-subtle); width: 100%; opacity: 0.5; position: relative;">
+                        <span style="position: absolute; left: -35px; top: -10px; font-size: 0.65rem; font-weight: 800; color: var(--sw-text-muted);">${Math.round(maxTickets * 0.5)}</span>
+                    </div>
+                    <div style="border-top: 1px dashed var(--sw-border-subtle); width: 100%; opacity: 0.5; position: relative;">
+                        <span style="position: absolute; left: -35px; top: -10px; font-size: 0.65rem; font-weight: 800; color: var(--sw-text-muted);">${Math.round(maxTickets * 0.25)}</span>
+                    </div>
+                    <div style="border-top: 1.5px solid var(--sw-border-subtle); width: 100%; position: relative;">
+                         <span style="position: absolute; left: -35px; top: -10px; font-size: 0.65rem; font-weight: 800; color: var(--sw-text-muted);">0</span>
+                    </div>
+                </div>
+
+                <div class="chart-container" style="height: calc(100% - 15px); display: flex; align-items: flex-end; gap: 24px; padding: 0 20px 0 35px; position: relative; z-index: 2; min-width: ${trends.length * 62}px; background: transparent; border: none; margin: 0; padding-top: 25px;">
+                    ${trends.map((t, idx) => {
+                        const total = t.TicketCount || 0;
+                        const resolved = t.ResolvedCount || 0;
+                        
+                        // Height percentages
+                        const h_opened = (total / maxTickets) * 100;
+                        const h_resolved = (resolved / maxTickets) * 100;
+                        
+                        const dateStr = new Date(t.Date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+                        const isToday = new Date(t.Date).toDateString() === new Date().toDateString();
+                        
+                        return `
+                            <div style="flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; min-width: 44px;" 
+                                 title="${t.Date}: ${total} opened, ${resolved} resolved">
+                                
+                                <!-- Grouped Bars -->
+                                <div style="display: flex; align-items: flex-end; gap: 4px; height: 100%; width: 100%; justify-content: center;">
+                                    
+                                    <!-- Opened Bar -->
+                                    <div style="width: 16px; height: ${h_opened}%; background: linear-gradient(180deg, #818cf8, #6366f1); border-radius: 4px 4px 0 0; position: relative; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);">
+                                        ${total > 0 ? `<div style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 900; color: var(--text-main); text-shadow: 0 0 10px var(--card-bg);">${total}</div>` : ''}
+                                    </div>
+                                    
+                                    <!-- Resolved Bar -->
+                                    <div style="width: 16px; height: ${h_resolved}%; background: linear-gradient(180deg, #34d399, #10b981); border-radius: 4px 4px 0 0; position: relative; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+                                        ${resolved > 0 ? `<div style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 900; color: var(--text-main); text-shadow: 0 0 10px var(--card-bg);">${resolved}</div>` : ''}
+                                    </div>
+
+                                </div>
+                                
+                                <!-- X-Axis Date -->
+                                <div style="position: absolute; bottom: -35px; width: 100%; text-align: center;">
+                                    <div style="font-size: 0.65rem; font-weight: ${isToday ? '800' : '700'}; color: ${isToday ? 'var(--sw-primary)' : 'var(--sw-text-muted)'}; transform: rotate(-45deg); white-space: nowrap; display: inline-block; margin-left: -5px;">
+                                        ${dateStr}
+                                    </div>
+                                    ${isToday ? `<div style="width: 5px; height: 5px; background: var(--sw-primary); border-radius: 50%; margin: 6px auto 0; box-shadow: 0 0 8px var(--sw-primary);"></div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        </div>
+
+
+    `;
+    
+        document.getElementById('insightsContent').innerHTML = html;
+    } catch (e) {
+        console.error('Error in renderInsights:', e);
+        document.getElementById('insightsContent').innerHTML = 
+            `<div style="text-align: center; padding: 2.5rem; background: var(--sw-card-bg); border-radius: 16px; border: 1px solid var(--sw-border-subtle);">
+                <div style="width: 60px; height: 60px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--sw-text-primary); margin-bottom: 0.5rem;">Rendering Failed</h3>
+                <p style="color: var(--sw-text-muted); font-size: 0.9rem; max-width: 300px; margin: 0 auto 1.5rem;">${e.message}</p>
+                <button onclick="loadInsights()" class="sw-btn sw-btn-sm" style="border: 1px solid var(--sw-border-subtle);">
+                    <i class="fas fa-sync-alt"></i> Try Again
+                </button>
+            </div>`;
+    }
+}
+
+// Global Event Listeners
+document.getElementById('pageSize')?.addEventListener('change', function() {
+    const url = new URL(window.location);
+    url.searchParams.set('page_size', this.value);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target.id === 'filterModal') closeFilterModal();
+    if (e.target.id === 'insightsModal') closeInsightsModal();
+});
+
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('openInsights') === '1') openInsightsModal();
+</script>
+{% endblock %}

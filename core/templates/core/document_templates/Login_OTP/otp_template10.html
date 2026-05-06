@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:linear-gradient(135deg,#8b5cf6,#6366f1);font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:50px 20px">
+<tr><td align="center">
+<table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:25px;box-shadow:0 25px 50px rgba(139,92,246,0.4)">
+<tr><td style="padding:50px 40px;text-align:center">
+<div style="width:60px;height:60px;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center">
+<span style="font-size:30px">🔐</span>
+</div>
+<h1 style="margin:0 0 10px;color:#8b5cf6;font-size:28px">Verification Code</h1>
+<p style="margin:0 0 30px;color:#999;font-size:13px">{% if school_name %}{{ school_name }}{% else %}ShikshaWave{% endif %}</p>
+<p style="margin:0 0 30px;color:#333">Hi {{ user_name }},</p>
+<div style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-radius:15px;padding:30px;margin:30px 0">
+<span style="font-size:50px;font-weight:bold;color:#8b5cf6;letter-spacing:12px;font-family:monospace">{{ otp }}</span>
+</div>
+<p style="margin:20px 0;color:#666;font-size:13px">⏱️ Expires in {{ valid_minutes }} minutes</p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>

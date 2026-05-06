@@ -1,0 +1,234 @@
+/* Floating Menu Icon - Desktop Only */
+@media (min-width: 769px) {
+    :root {
+        --hover-bg: rgba(255, 255, 255, 0.15);
+        --sidebar-bg: linear-gradient(180deg, #004aad, #0077ff);
+        --shadow: rgba(0, 0, 0, 0.08);
+    }
+
+    body.dark-mode {
+        --hover-bg: rgba(255, 255, 255, 0.08);
+        --sidebar-bg: linear-gradient(180deg, #151529, #222244);
+        --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    .floating-menu-btn {
+        position: fixed;
+        left: -25px;
+        top: 100px;
+        width: 35px;
+        height: 60px;
+        border-radius: 0 8px 8px 0;
+        background: linear-gradient(135deg, #004aad, #0077ff);
+        color: white;
+        border: none;
+        font-size: 14px;
+        cursor: move;
+        z-index: 10000;
+        box-shadow: 0 0 15px rgba(0, 119, 255, 0.6), 0 0 30px rgba(0, 119, 255, 0.4);
+        transition: left 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: glow 2s ease-in-out infinite;
+        padding-left: 8px;
+    }
+
+    .floating-menu-btn:hover {
+        left: 0;
+    }
+
+    @keyframes glow {
+        0%, 100% {
+            box-shadow: 0 0 15px rgba(0, 119, 255, 0.6), 0 0 30px rgba(0, 119, 255, 0.4);
+        }
+        50% {
+            box-shadow: 0 0 20px rgba(0, 119, 255, 0.8), 0 0 40px rgba(0, 119, 255, 0.6);
+        }
+    }
+
+    .floating-menu-btn.dragging {
+        cursor: grabbing;
+        animation: none;
+    }
+
+    /* Sidebar Overlay */
+    .menu-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .menu-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Sidebar Menu */
+    .floating-sidebar {
+        position: fixed;
+        left: -250px;
+        top: 0;
+        width: 250px;
+        height: 100vh;
+        background: var(--sidebar-bg);
+        z-index: 10001;
+        transition: left 0.3s ease;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-shadow: 2px 0 8px var(--shadow);
+        color: #fff;
+        padding: 20px 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .floating-sidebar.open {
+        left: 0;
+    }
+
+    .close-sidebar-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 12px;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .close-sidebar-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+    }
+
+    /* Menu Items */
+    .floating-sidebar .menu {
+        list-style: none;
+        padding: 0 10px;
+    }
+
+    .floating-sidebar .menu li {
+        position: relative;
+        margin-bottom: 5px;
+    }
+
+    .floating-sidebar .menu li a {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 15px;
+        border-radius: 5px;
+        transition: background 0.3s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .floating-sidebar .menu li a:hover,
+    .floating-sidebar .menu li a.active {
+        background: var(--hover-bg);
+    }
+
+    .floating-sidebar .menu li a i {
+        margin-right: 12px;
+        font-size: 18px;
+        min-width: 22px;
+        text-align: center;
+    }
+
+    .floating-sidebar .menu li a .toggle-icon {
+        margin-left: auto;
+        font-size: 12px;
+        transition: transform 0.3s ease;
+    }
+
+    .floating-sidebar .menu li.open > a .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    /* Submenu */
+    .floating-sidebar .menu li .submenu {
+        display: none;
+        padding-left: 20px;
+    }
+
+    .floating-sidebar .menu li.open .submenu {
+        display: block;
+    }
+
+    .floating-sidebar .menu li .submenu li a {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+
+    /* Scrollbar Styling */
+    .floating-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .floating-sidebar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .floating-sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+    }
+
+    .floating-sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Dark Mode Support */
+    body.dark-mode .floating-menu-btn {
+        background: linear-gradient(135deg, #6366f1, #818cf8);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.6), 0 0 30px rgba(99, 102, 241, 0.4);
+        animation: glowDark 2s ease-in-out infinite;
+    }
+
+    @keyframes glowDark {
+        0%, 100% {
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.6), 0 0 30px rgba(99, 102, 241, 0.4);
+        }
+        50% {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.8), 0 0 40px rgba(99, 102, 241, 0.6);
+        }
+    }
+
+    body.dark-mode .floating-menu-btn.dragging {
+        animation: none;
+    }
+
+    body.dark-mode .floating-sidebar {
+        background: var(--sidebar-bg);
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark-mode .floating-sidebar .menu li a:hover,
+    body.dark-mode .floating-sidebar .menu li a.active {
+        background: var(--hover-bg);
+    }
+}
+
+/* Hide on Mobile */
+@media (max-width: 768px) {
+    .floating-menu-btn,
+    .menu-overlay,
+    .floating-sidebar {
+        display: none !important;
+    }
+}

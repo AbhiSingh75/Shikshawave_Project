@@ -1,0 +1,2068 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Ticket Detail - {{ ticket.TicketNumber }} | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        /* High-Density Indigo Design Tokens (Standardized from Global Theme) */
+        --sw-primary: var(--primary-color, #4f46e5);
+        --sw-primary-rgb: var(--primary-rgb, 79, 70, 229);
+        --sw-primary-hover: var(--primary-hover, #4338ca);
+        --sw-secondary: #64748b;
+        --sw-success: #10b981;
+        --sw-warning: #f59e0b;
+        --sw-danger: #ef4444;
+        --sw-info: #3b82f6;
+        
+        /* Theme-Aware Background Tokens (Defaults for Light Mode) */
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(0, 0, 0, 0.1);
+        --thread-bg: #f8fafc;
+        --message-bubble: #ffffff;
+        --message-border: #e2e8f0;
+        
+        /* Priority Colors */
+        --p-high: #ef4444;
+        --p-medium: #f59e0b;
+        --p-low: #10b981;
+        
+        {% if ticket.PriorityName == 'High' %}
+            --accent-color: var(--p-high);
+            --accent-glow: rgba(239, 68, 68, 0.1);
+        {% elif ticket.PriorityName == 'Medium' %}
+            --accent-color: var(--p-medium);
+            --accent-glow: rgba(245, 158, 11, 0.1);
+        {% else %}
+            --accent-color: var(--p-low);
+            --accent-glow: rgba(16, 185, 129, 0.1);
+        {% endif %}
+    }
+
+    /* Dark Mode Theme Overrides */
+    body.dark-mode {
+        --glass-bg: rgba(15, 23, 42, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --thread-bg: var(--bg-main, #020617);
+        --message-bubble: rgba(255, 255, 255, 0.03);
+        --message-border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+        margin: 0;
+        background-color: var(--bg-color); /* Correctly follows global body background */
+        color: var(--text-main);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Immersive Radial Background (Dark Mode only) */
+    body.dark-mode {
+        background-image: 
+            radial-gradient(circle at 0% 0%, rgba(var(--sw-primary-rgb), 0.12) 0%, transparent 50%),
+            radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.08) 0%, transparent 50%);
+    }
+
+    .sw-dashboard {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.25rem;
+        display: block; /* Reverting flex to ensure standard block layout for sticky children */
+        min-height: 100vh;
+    }
+
+    /* Unified Sticky Header (Following Global Design) */
+    .sw-sticky-header {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0.75rem; /* Hovering inside main content */
+        z-index: 1050;
+        background: var(--card-bg);
+        border: 2px solid var(--border-color); /* Matching global sw-controls-row */
+        border-radius: 14px;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-md);
+        display: block;
+        transition: all 0.3s ease;
+    }
+    
+    /* Premium Blur Effect on Scroll */
+    .sw-sticky-header.scrolled {
+        background: rgba(var(--card-bg-rgb), 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    .sw-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: nowrap; /* Prevent identity vs actions from stacking */
+    }
+    .sw-header-identity {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        flex: 1;
+        min-width: 0; /* Important for ellipsis to work in flex */
+    }
+    /* --- Page Standard Sections Padding --- */
+    .sw-dashboard > *:not(.sw-sticky-header) {
+        margin-bottom: 1.25rem;
+    }
+
+    .sw-id-badge {
+        background: rgba(var(--sw-primary-rgb), 0.08);
+        color: var(--sw-primary);
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 800;
+        font-size: 0.8rem;
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1.5px solid rgba(var(--sw-primary-rgb), 0.15);
+        display: inline-flex;
+        align-items: center;
+    }
+    .sw-subject-group {
+        display: flex;
+        flex-direction: column; /* 2-row approach */
+        align-items: flex-start;
+        gap: 6px;
+        min-width: 0;
+        flex: 1;
+    }
+    .sw-main-subject {
+        font-size: 1.2rem !important; /* Prominent size for 2nd row approch */
+        font-weight: 800 !important;
+        color: var(--text-main) !important;
+        margin: 0 !important;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%; /* Take full space */
+    }
+    .sw-sub-meta {
+        display: flex;
+        gap: 1.25rem;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        opacity: 0.85;
+        padding-top: 2px;
+    }
+    .sw-sub-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .sw-sub-meta i {
+        color: var(--sw-primary);
+        font-size: 0.75rem;
+    }
+
+    .sw-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0; /* Actions should never shrink/wrap */
+    }
+    .sw-action-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .sw-pill-btn {
+        height: 34px;
+        padding: 0 1.25rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .sw-pill-btn.btn-warning { background: var(--sw-warning); color: #fff; box-shadow: 0 4px 10px rgba(245,158,11,0.3); }
+    .sw-pill-btn.btn-success { background: var(--sw-success); color: #fff; box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
+    .sw-pill-btn.btn-danger { background: var(--sw-danger); color: #fff; box-shadow: 0 4px 10px rgba(239,68,68,0.3); }
+    .sw-pill-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+
+    .sw-back-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        background: var(--bg-hover);
+        color: var(--text-main);
+        text-decoration: none;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1.5px solid var(--border-color);
+        transition: all 0.2s;
+    }
+    .sw-back-btn:hover { background: var(--border-color); transform: translateX(-2px); }
+
+    /* --- Horizontal Information Grid --- */
+    .sw-info-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .sw-info-card {
+        flex: 1;
+        min-width: 140px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Top-Tier Immersive Hub */
+    .sw-immersive-hub {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .sw-hub-meta-row {
+        background: rgba(var(--sw-primary-rgb), 0.04);
+        padding: 1.25rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+    .sw-hub-meta-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+    }
+    .sw-hub-meta-divider {
+        width: 1px;
+        height: 38px;
+        background: var(--border-color);
+        opacity: 0.6;
+    }
+    .sw-hub-label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .sw-hub-label i { color: var(--sw-primary); font-size: 0.75rem; }
+    .sw-hub-value {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .sw-status-capsule {
+        padding: 3px 12px;
+        border-radius: 100px;
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .sw-hub-body {
+        padding: 2rem;
+    }
+    .sw-hub-body h4 {
+        font-size: 0.85rem;
+        font-weight: 900;
+        color: var(--text-main); /* Standard text colour */
+        margin: 0 0 1.25rem 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .sw-hub-body h4::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border-color);
+    }
+    .sw-hub-description {
+        font-size: 1rem;
+        line-height: 1.8;
+        color: var(--text-main);
+        white-space: pre-wrap;
+    }
+
+    @media (max-width: 992px) {
+        .sw-hub-meta-row {
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        .sw-hub-meta-divider { display: none; }
+    }
+
+    /* --- Functional Sections (Assignment, Activity, Discussion) --- */
+    .sw-section-card {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* High-Density Assignment Section */
+    .sw-assign-container {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .sw-assign-action-header {
+        background: rgba(var(--sw-primary-rgb), 0.03);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 800;
+        color: var(--sw-primary);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .sw-assign-form-row {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        background: var(--card-bg);
+    }
+    .sw-assign-input {
+        background: rgba(var(--sw-primary-rgb), 0.015) !important;
+        border: 1.5px solid var(--border-color) !important;
+        border-radius: 10px !important;
+        padding: 0.75rem 1rem !important;
+        color: var(--text-main) !important;
+        font-size: 0.9rem !important;
+        transition: all 0.2s ease !important;
+        outline: none !important;
+    }
+    .sw-assign-input:focus {
+        border-color: var(--sw-primary) !important;
+        background: var(--card-bg) !important;
+        box-shadow: 0 0 0 4px rgba(var(--sw-primary-rgb), 0.1) !important;
+    }
+    .sw-assign-input::placeholder {
+        color: var(--text-muted);
+        opacity: 0.6;
+    }
+    body.dark-mode .sw-assign-input::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+    .sw-assign-submit {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: var(--sw-primary);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(var(--sw-primary-rgb), 0.2);
+    }
+    .sw-assign-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(var(--sw-primary-rgb), 0.3);
+        background: var(--sw-primary-hover);
+    }
+
+    .sw-assign-row select { flex: 1; }
+    .sw-assign-row input { flex: 2; }
+
+    /* High-Density Vertical Activity Timeline */
+    .sw-activity-container {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .sw-activity-header {
+        background: rgba(var(--sw-primary-rgb), 0.03);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 800;
+        color: var(--sw-primary);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .sw-timeline-list {
+        padding: 1.5rem 2rem;
+        position: relative;
+    }
+    .sw-timeline-list::before {
+        content: "";
+        position: absolute;
+        left: 2.35rem;
+        top: 2rem;
+        bottom: 2rem;
+        width: 2px;
+        background: var(--border-color);
+        opacity: 0.6;
+    }
+    .sw-timeline-item {
+        position: relative;
+        padding-left: 2rem;
+        padding-bottom: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1.25rem;
+    }
+    .sw-timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    .sw-timeline-node {
+        position: absolute;
+        left: -0.45rem;
+        top: 0.15rem;
+        width: 28px;
+        height: 28px;
+        background: var(--card-bg);
+        border: 2px solid var(--sw-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        color: var(--sw-primary);
+        z-index: 2;
+        box-shadow: 0 0 0 4px var(--card-bg);
+    }
+    .sw-timeline-content {
+        font-size: 0.875rem;
+        color: var(--text-main);
+        line-height: 1.5;
+        flex: 1;
+    }
+    .sw-timeline-meta {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+        font-weight: 500;
+    }
+    .sw-timeline-comment {
+        font-size: 0.8rem;
+        font-style: italic;
+        color: var(--sw-primary);
+        opacity: 0.8;
+        background: rgba(var(--sw-primary-rgb), 0.04);
+        padding: 6px 12px;
+        border-radius: 8px;
+        margin-top: 8px;
+        display: inline-block;
+        border-left: 3px solid var(--sw-primary);
+    }
+
+    /* --- High-Density Discussion Hub & WhatsApp Design (Dark Mode Hardened) --- */
+    .sw-discussion-outer-wrapper { margin-top: 1rem; }
+    .sw-hub-header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; padding-bottom: 4px; }
+    
+    .sw-discussion-container {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        margin-top: 6px;
+    }
+    
+    .sw-chat-main {
+        background: #efe7de; /* Authentic WhatsApp light beige */
+        padding: 0.35rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        overflow-y: auto;
+        height: 280px;
+        background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+        background-repeat: repeat;
+        background-size: 400px;
+        background-blend-mode: overlay;
+        scroll-behavior: smooth;
+    }
+    body.dark-mode .sw-chat-main { 
+        background: #0b141a !important; 
+        background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png') !important;
+        background-blend-mode: color-dodge !important;
+        opacity: 0.98 !important; 
+    }
+    
+    .whatsapp-wrapper { display: flex; flex-direction: column; width: 100%; position: relative; padding: 0 0.2rem; }
+    
+    .activity-inline-node {
+        align-self: center;
+        background: rgba(0, 0, 0, 0.05);
+        color: #54656f;
+        font-size: 0.52rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        margin: 0.15rem 0;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+    }
+    body.dark-mode .activity-inline-node {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #8696a0 !important;
+        box-shadow: none !important;
+    }
+    
+    .whatsapp-bubble {
+        max-width: 88%;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        line-height: 1.35;
+        box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        word-wrap: break-word;
+        position: relative;
+        margin-bottom: 0.1rem;
+    }
+    .whatsapp-bubble:hover .reply-btn { visibility: visible; }
+    
+    .bubble-left { align-self: flex-start; background: #ffffff; color: #111b21; border-top-left-radius: 0; }
+    body.dark-mode .bubble-left { background: #202c33 !important; color: #e9edef !important; }
+    .bubble-left::before { content: ""; position: absolute; top: 0; left: -6px; width: 0; height: 0; border-top: 6px solid #ffffff; border-left: 6px solid transparent; }
+    body.dark-mode .bubble-left::before { border-top-color: #202c33 !important; }
+
+    .bubble-right { align-self: flex-end; background: #dcf8c6; color: #111b21; border-top-right-radius: 0; }
+    body.dark-mode .bubble-right { background: #005c4b !important; color: #e9edef !important; }
+    .bubble-right::before { content: ""; position: absolute; top: 0; right: -6px; width: 0; height: 0; border-top: 6px solid #dcf8c6; border-right: 6px solid transparent; }
+    body.dark-mode .bubble-right::before { border-top-color: #005c4b !important; }
+
+    .reply-context {
+        background: rgba(var(--sw-primary-rgb), 0.05);
+        border-left: 3px solid var(--sw-primary);
+        border-radius: 4px;
+        padding: 4px 8px;
+        margin-bottom: 4px;
+        font-size: 0.6rem;
+        cursor: pointer;
+        color: inherit;
+        transition: 0.2s;
+    }
+    .reply-context:hover { background: rgba(var(--sw-primary-rgb), 0.1); }
+    body.dark-mode .reply-context { background: rgba(255,255,255,0.05) !important; color: #e9edef !important; }
+    
+    @keyframes jumpFlash {
+        0% { background: rgba(var(--sw-primary-rgb), 0.3); }
+        100% { background: transparent; }
+    }
+    .jump-highlight { animation: jumpFlash 1s ease-out; border-radius: 8px; }
+    .reply-context-user { font-weight: 800; color: #34b7f1; display: block; font-size: 0.55rem; }
+    body.dark-mode .reply-context-user { color: #00a884 !important; }
+    .reply-context-text { display: block; opacity: 0.7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+    
+    .whatsapp-wrapper:hover .reply-btn { opacity: 1; pointer-events: all; transform: translateX(0); }
+    
+    .reply-btn {
+        position: absolute; top: 50%; right: 10px; transform: translateY(-50%) translateX(10px); 
+        background: rgba(var(--sw-primary-rgb), 0.1); border: none; color: #8696a0; 
+        cursor: pointer; opacity: 0; pointer-events: none; font-size: 0.8rem; padding: 6px;
+        border-radius: 50%; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 5;
+    }
+    .bubble-right ~ .reply-btn { left: 10px; right: auto; transform: translateY(-50%) translateX(-10px); }
+    .whatsapp-wrapper:hover .bubble-right ~ .reply-btn { transform: translateY(-50%) translateX(0); }
+    .reply-btn:hover { background: rgba(var(--sw-primary-rgb), 0.2); color: var(--sw-primary); }
+
+    .bubble-time { font-size: 0.45rem; text-align: right; opacity: 0.5; margin-top: 0px; display: block; }
+    .bubble-author { font-size: 0.58rem; font-weight: 900; color: #3b82f6; margin-bottom: 0px; display: block; }
+
+    .sw-chat-input-pill {
+        display: flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.5rem;
+        background: #f0f2f5; border-top: 1px solid var(--border-color);
+    }
+    body.dark-mode .sw-chat-input-pill { background: #202c33 !important; border-top-color: #2a3942 !important; }
+    
+    .pill-input { 
+        flex: 1; background: #ffffff; border-radius: 12px; padding: 0.28rem 0.6rem; 
+        border: none; font-size: 0.78rem; outline: none; transition: 0.2s;
+    }
+    body.dark-mode .pill-input { background: #2a3942 !important; color: #e9edef !important; }
+    .pill-input:focus { background: #f8f9fa; }
+    body.dark-mode .pill-input:focus { background: #32444f !important; }
+    .pill-input::placeholder { color: #8696a0; opacity: 1; }
+    body.dark-mode .pill-input::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+    
+    .emoji-drawer {
+        position: absolute; bottom: 75px; left: 0; width: 320px; max-height: 380px;
+        background: #202c33; border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px; display: none; flex-direction: column;
+        z-index: 1000; box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+        animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        overflow: hidden;
+    }
+    body:not(.dark-mode) .emoji-drawer { background: #ffffff; border-color: #e9edef; box-shadow: 0 12px 48px rgba(0,0,0,0.1); }
+    
+    .emoji-body::-webkit-scrollbar { width: 6px; }
+    .emoji-body::-webkit-scrollbar-thumb { background: rgba(134,150,160,0.3); border-radius: 3px; }
+    .emoji-body::-webkit-scrollbar-track { background: transparent; }
+    
+    .emoji-header { display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    body:not(.dark-mode) .emoji-header { border-bottom-color: #f0f2f5; }
+    .emoji-cat-icon { color: #8696a0; font-size: 1.1rem; cursor: pointer; transition: 0.2s; opacity: 0.6; }
+    .emoji-cat-icon:hover, .emoji-cat-icon.active { color: #00a884; opacity: 1; }
+    
+    .emoji-search-container { padding: 8px 12px; }
+    .emoji-search-input { 
+        width: 100%; background: #111b21; border: none; border-radius: 8px; 
+        padding: 8px 12px; color: #d1d7db; font-size: 0.85rem; outline: none;
+    }
+    body:not(.dark-mode) .emoji-search-input { background: #f0f2f5; color: #111b21; }
+
+    .emoji-body { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px 14px; scroll-behavior: smooth; }
+    .emoji-section-title { font-size: 0.65rem; color: #8696a0; text-transform: uppercase; font-weight: 800; margin: 12px 0 8px 4px; display: block; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+    .emoji-item {
+        font-size: 1.4rem; cursor: pointer; transition: transform 0.2s;
+        aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px;
+    }
+    .emoji-item:hover { background: rgba(255,255,255,0.05); transform: scale(1.2); }
+    body:not(.dark-mode) .emoji-item:hover { background: rgba(0,0,0,0.05); }
+    
+    .sw-discussion-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+    }
+    .circle-send:active { transform: scale(0.9); }
+    .circle-send i { font-size: 0.7rem; }
+
+    /* Reply Preview Bar */
+    .reply-preview-bar {
+        display: none; background: rgba(var(--sw-primary-rgb), 0.04); border-top: 1px solid var(--border-color);
+        padding: 4px 0.75rem; align-items: center; gap: 0.5rem;
+    }
+    body.dark-mode .reply-preview-bar { background: rgba(255,255,255,0.05) !important; border-top-color: #2a3942 !important; }
+    .reply-preview-content { border-left: 2px solid var(--sw-primary); padding-left: 6px; flex: 1; min-width: 0; }
+    .reply-preview-title { font-weight: 800; color: var(--sw-primary); font-size: 0.6rem; display: block; }
+    .reply-preview-text { font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .reply-cancel { color: var(--text-muted); cursor: pointer; padding: 2px; font-size: 0.7rem; }
+
+    /* Date Divider (WhatsApp Style) */
+    .sw-date-divider {
+        display: flex;
+        justify-content: center;
+        margin: 0.5rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .sw-date-divider span {
+        background: #ffffff;
+        color: #54656f;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 8px;
+        box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        text-transform: uppercase;
+    }
+    body.dark-mode .sw-date-divider span {
+        background: #182229 !important;
+        color: #8696a0 !important;
+        box-shadow: none !important;
+    }
+
+    /* Selected File Pill in Input */
+    .selected-file-pill {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        background: rgba(var(--sw-primary-rgb), 0.1);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.58rem;
+        font-weight: 700;
+        color: var(--sw-primary);
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 5px;
+    }
+    .selected-file-pill i { cursor: pointer; color: var(--text-muted); font-size: 0.6rem; }
+    body.dark-mode .selected-file-pill { background: rgba(255,255,255,0.1) !important; color: #8696a0 !important; }
+
+    /* Size Hint and Toast Styling */
+    .size-hint { font-size: 0.5rem; color: #ef4444; font-weight: 700; margin-left: 2px; display: none; }
+
+    /* Image Preview in Chat Bubble */
+    .chat-attachment-img {
+        margin-top: 8px;
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.1);
+        max-width: 200px;
+        cursor: pointer;
+    }
+    .chat-attachment-img img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.3s;
+    }
+    .chat-attachment-img:hover img { transform: scale(1.05); }
+    .chat-img-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.5));
+        padding: 5px 8px;
+        color: white;
+        font-size: 0.55rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sw-chat-input-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #202c33;
+        border-radius: 24px;
+        padding: 6px 16px;
+        min-height: 48px;
+        border: none;
+    }
+    body:not(.dark-mode) .sw-chat-input-pill { background: #ffffff; border: 1px solid #e9edef; }
+    
+    .sw-chat-input-pill label { color: #8696a0; cursor: pointer; display: flex; align-items: center; font-size: 1.1rem; }
+    .sw-chat-input-pill .far.fa-smile { color: #8696a0; font-size: 1.2rem; cursor: pointer; }
+    
+    .pill-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #e9edef;
+        font-size: 0.95rem;
+        padding: 8px 0;
+    }
+    body:not(.dark-mode) .pill-input { color: #111b21; }
+
+    .mic-icon-st { color: #8696a0; font-size: 1.15rem; cursor: pointer; margin: 0 4px; }
+    
+    .selected-file-pill {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0, 168, 132, 0.2);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #00a884;
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .selected-file-pill i { cursor: pointer; font-size: 0.7rem; }
+
+    /* --- Thread View --- */
+    .sw-thread {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .sw-message {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .sw-message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 0.5rem;
+    }
+
+    .sw-author {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sw-avatar-sm {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--sw-primary), var(--sw-secondary));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; font-weight: 700; color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .sw-message-bubble {
+        padding: 1rem 1.5rem;
+        background: var(--message-bubble);
+        border: 1.5px solid var(--message-border);
+        border-radius: 16px;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+        color: var(--text-main);
+        transition: var(--transition);
+    }
+
+    .initial-request {
+        background: var(--primary-light);
+        border: 1.5px solid rgba(var(--sw-primary-rgb), 0.2);
+        border-left: 4px solid var(--sw-primary);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .initial-request {
+        background: rgba(var(--sw-primary-rgb), 0.1);
+        border-color: rgba(var(--sw-primary-rgb), 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .sw-system-event {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 0.5rem 0;
+    }
+
+    .sw-system-event::before, .sw-system-event::after {
+        content: ''; flex: 1; height: 1px; background: var(--glass-border);
+    }
+
+    .sw-event-pill {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        background: var(--card-bg);
+        padding: 6px 16px;
+        border-radius: 30px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* --- Properties Sidebar --- */
+    .sw-ticket-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        height: 100%;
+        position: relative !important; /* Force override any global fixed positioning */
+        left: auto !important;
+        width: auto !important;
+    }
+
+    .sw-properties-pane {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .sw-prop-group h4 {
+        font-size: 0.65rem;
+        font-weight: 900;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sw-prop-card {
+        padding: 0.75rem 1rem;
+        background: var(--bg-hover);
+        border-radius: 16px;
+        border: 1.5px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+    .sw-prop-card:hover { border-color: var(--sw-primary); background: var(--bg-hover); transform: translateX(5px); }
+
+    .sw-prop-icon { 
+        width: 36px; height: 36px; 
+        border-radius: 12px; 
+        background: rgba(var(--sw-primary-rgb), 0.1); 
+        display: flex; align-items: center; justify-content: center;
+        color: var(--sw-primary);
+        font-size: 1rem;
+    }
+
+    .sw-prop-info div:first-child { 
+        font-size: 0.65rem; 
+        font-weight: 800;
+        color: var(--text-muted); 
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 2px; 
+    }
+    .sw-prop-info div:last-child { 
+        font-size: 0.875rem; 
+        font-weight: 700; 
+        color: var(--text-main);
+    }
+
+    /* --- Reply Interface --- */
+    .sw-reply-area {
+        position: sticky;
+        bottom: 0;
+        padding-top: 1rem;
+        background: linear-gradient(to top, #020617 80%, transparent);
+    }
+
+    .sw-reply-box {
+        background: var(--glass-bg);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 1.25rem;
+        box-shadow: 0 -20px 50px rgba(0,0,0,0.4);
+    }
+
+    .sw-reply-box textarea {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        font-size: 1rem;
+        resize: none;
+        min-height: 80px;
+        font-family: inherit;
+        padding: 0.5rem;
+    }
+    .sw-reply-box textarea:focus { outline: none; }
+
+    .sw-reply-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--glass-border);
+    }
+
+    /* Premium Indigo Buttons */
+    .sw-btn {
+        height: 38px;
+        padding: 0 1.25rem;
+        border-radius: 10px;
+        font-size: 0.813rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .sw-btn-primary {
+        background: linear-gradient(135deg, var(--sw-primary), #818cf8);
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(var(--sw-primary-rgb), 0.2);
+    }
+
+    .sw-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(var(--sw-primary-rgb), 0.3);
+        filter: brightness(1.05);
+    }
+
+    .sw-btn-secondary {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-main) !important;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .sw-btn-secondary:hover {
+        background: var(--bg-hover);
+        border-color: var(--primary-color);
+        color: var(--primary-color) !important;
+        transform: translateY(-2px);
+    }
+
+    .sw-btn-ghost { 
+        background: transparent; 
+        color: var(--text-muted) !important; 
+        border: 1px solid var(--glass-border); 
+    }
+    .sw-btn-ghost:hover { 
+        background: rgba(255,255,255,0.05); 
+        color: white !important;
+        border-color: rgba(255,255,255,0.2);
+    }
+
+    /* Custom Checkbox */
+    .sw-check-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        transition: color 0.2s;
+    }
+    .sw-check-label:hover { color: white; }
+    .sw-check-label input { 
+        width: 18px; 
+        height: 18px; 
+        accent-color: var(--sw-primary); 
+        cursor: pointer;
+    }
+
+    /* Responsive Adaptations */
+    @media (max-width: 1024px) {
+        .sw-dashboard {
+            grid-template-columns: 1fr;
+            height: auto;
+            overflow: visible;
+        }
+        .sw-main-scroller {
+            height: auto;
+            max-height: 800px;
+            padding-right: 0;
+        }
+        .sw-ticket-sidebar {
+            height: auto;
+        }
+    }
+
+    @media (max-width: 768px) {
+        /* Sticky Header Stacking & Separation */
+        .sw-sticky-header {
+            padding: 0.75rem 1rem !important;
+            height: auto !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 100 !important;
+        }
+        .sw-header-content {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+        }
+        .sw-header-identity {
+            width: 100% !important;
+            gap: 10px !important;
+        }
+        .sw-id-badge {
+            font-size: 0.7rem !important;
+            padding: 4px 8px !important;
+            height: auto !important;
+        }
+        .sw-main-subject {
+            font-size: 1.1rem !important;
+            line-height: 1.3 !important;
+        }
+        .sw-sub-meta {
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+            font-size: 0.65rem !important;
+        }
+        
+        /* Action Row Realignment */
+        .sw-header-actions {
+            width: 100% !important;
+            justify-content: space-between !important;
+            padding-top: 8px !important;
+            border-top: 1px solid var(--border-color) !important;
+            margin-top: 4px !important;
+            gap: 10px !important;
+        }
+        .sw-header-actions div[style*="width: 1px"] {
+            display: none !important;
+        }
+        .sw-action-group {
+            flex: 1 !important;
+            display: flex !important;
+            gap: 8px !important;
+            overflow-x: auto !important;
+            padding-bottom: 2px !important;
+            scrollbar-width: none !important;
+        }
+        .sw-action-group::-webkit-scrollbar { display: none; }
+        
+        .sw-pill-btn {
+            height: 36px !important;
+            padding: 0 12px !important;
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+        }
+        .sw-back-btn {
+            height: 36px !important;
+            padding: 0 12px !important;
+            font-size: 0.75rem !important;
+            background: rgba(var(--sw-primary-rgb), 0.1) !important;
+            border-radius: 10px !important;
+        }
+
+        /* Hub Meta Grid Realignment */
+        .sw-immersive-hub {
+            padding: 1rem !important;
+            border-radius: 0 0 20px 20px !important;
+            margin: 0 !important;
+        }
+        .sw-hub-meta-row {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 1rem !important;
+            padding: 0.5rem 0 !important;
+        }
+        .sw-hub-meta-divider {
+            display: none !important;
+        }
+        .sw-hub-meta-group {
+            border: 1px solid var(--border-color) !important;
+            padding: 10px !important;
+            border-radius: 12px !important;
+            background: rgba(255,255,255,0.02) !important;
+        }
+
+        /* Hub Body Adjustment */
+        .sw-hub-body {
+            padding: 1.5rem 0 0.5rem 0 !important;
+        }
+        .sw-hub-body div[style*="display: flex; gap: 2rem"] {
+            flex-direction: column !important;
+            gap: 1rem !important;
+            padding: 1rem !important;
+        }
+
+        /* Assignment & Activity Containers */
+        .sw-assign-container, .sw-activity-container, .sw-chat-container {
+            border-radius: 20px !important;
+            padding: 1.25rem 1rem !important;
+            margin: 0.75rem 0 !important;
+        }
+        .sw-assign-form-row {
+            flex-direction: column !important;
+            gap: 12px !important;
+        }
+        .sw-assign-submit {
+            height: 48px !important;
+            width: 100% !important;
+            border-radius: 14px !important;
+        }
+
+        /* Chat Input Hardening & Spacing */
+        .sw-chat-footer {
+            padding: 0.75rem 0.6rem !important;
+            gap: 10px !important;
+        }
+        .sw-chat-input-pill {
+            padding: 4px 6px 4px 14px !important;
+            border-radius: 22px !important;
+            gap: 8px !important;
+            min-height: 48px !important;
+        }
+        .sw-chat-input-pill .sw-check-label {
+            min-width: 48px !important;
+            gap: 4px !important;
+            padding-right: 4px !important;
+        }
+        .sw-chat-input-pill .sw-check-label span {
+            font-size: 0.65rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.02em !important;
+        }
+        .sw-chat-send-btn {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+        }
+
+        /* Message Bubble Density */
+        .sw-message-bubble {
+            max-width: 94% !important;
+            padding: 1rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Timeline Meta Wrapping */
+        .sw-timeline-content {
+            font-size: 0.85rem !important;
+        }
+        .sw-timeline-meta {
+            margin-top: 4px !important;
+        }
+    }
+    /* Global Overlay Enforcement */
+    .swal2-container {
+        z-index: 2000000 !important; /* Above everything */
+    }
+
+    /* --- Premium Elite Modals (ShikshaWave Elite Glassmorphism - HARDENED) --- */
+    .sw-elite-modal {
+        background: rgba(255, 255, 255, 0.9) !important; /* Increased opacity for reliability */
+        backdrop-filter: blur(10px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
+        border: 2px solid rgba(243, 156, 18, 0.4) !important; /* Elite Orange Border */
+        border-radius: 28px !important;
+        box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3) !important;
+        padding: 2.5rem 1.5rem !important;
+        max-width: 92% !important; 
+        width: 420px !important;
+        pointer-events: auto !important;
+    }
+    body.dark-mode .sw-elite-modal {
+        background: rgba(15, 23, 42, 0.98) !important;
+        border-color: rgba(243, 156, 18, 0.4) !important;
+    }
+    .sw-elite-modal .swal2-title {
+        color: var(--text-main) !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 850 !important;
+        font-size: 1.6rem !important;
+        margin-bottom: 0.75rem !important;
+        letter-spacing: -0.03em !important;
+    }
+    .sw-elite-modal .swal2-html-container {
+        color: var(--text-muted) !important;
+        font-size: 1rem !important;
+        font-weight: 500 !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Hardened Action Buttons (Full Interaction Precision) */
+    .confirm-btn-elite {
+        height: 52px !important;
+        min-width: 180px !important;
+        background: #f39c12 !important; /* Elite Orange Hardcoded for stability */
+        color: #ffffff !important;
+        border-radius: 16px !important;
+        border: none !important;
+        font-weight: 800 !important;
+        font-size: 1.05rem !important;
+        cursor: pointer !important;
+        margin: 10px !important;
+        transition: all 0.2s !important;
+        box-shadow: 0 10px 25px -6px rgba(243, 156, 18, 0.5) !important;
+    }
+    .confirm-btn-elite:hover {
+        transform: translateY(-2px) !important;
+        filter: brightness(1.1);
+    }
+    .cancel-btn-elite {
+        height: 52px !important;
+        min-width: 130px !important;
+        background: #f1f5f9 !important;
+        color: #475569 !important;
+        border-radius: 16px !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 750 !important;
+        font-size: 1rem !important;
+        cursor: pointer !important;
+        margin: 10px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sw-dashboard">
+    <!-- Unified Sticky Header -->
+    <div class="sw-sticky-header">
+        <div class="sw-header-content">
+            <!-- Left: ID & Subject Group -->
+            <div class="sw-header-identity">
+                <div class="sw-id-badge">{{ ticket.TicketNumber }}</div>
+                <div class="sw-subject-group">
+                    <h1 class="sw-main-subject">{{ ticket.Subject }}</h1>
+                    <div class="sw-sub-meta">
+                        <span title="Created By"><i class="far fa-user"></i> {{ ticket.CreatedByName }}</span>
+                        <span title="Created At"><i class="far fa-calendar-alt"></i> {{ ticket.CreatedAt|date:"d M Y, H:i" }}</span>
+                        <span title="School"><i class="fas fa-university"></i> {{ ticket.SchoolName }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Actions & Navigation -->
+            <div class="sw-header-actions">
+                <!-- Status Update Buttons -->
+                <div class="sw-action-group">
+                    {% for action in available_actions %}
+                        <form id="status-form-{{ action.status }}" action="{% url 'tickets:ticket_update_status' %}" method="POST" style="display: contents;">
+                            {% csrf_token %}
+                            <input type="hidden" name="ticket_id" value="{{ ticket.TicketID }}">
+                            <input type="hidden" name="new_status" value="{{ action.status }}">
+                            <input type="hidden" name="comment" class="action-comment-field">
+                            <button type="button" class="sw-pill-btn btn-{{ action.class }}" onclick="confirmAction(event, 'status-form-{{ action.status }}', '{{ action.label }}')">
+                                {{ action.label }}
+                            </button>
+                        </form>
+                    {% endfor %}
+                </div>
+                
+                <div style="width: 1px; height: 32px; background: var(--border-color); margin: 0 0.5rem; opacity: 0.5;"></div>
+                
+                <a href="{% url 'tickets:ticket_list' %}" class="sw-back-btn">
+                    <i class="fas fa-arrow-left"></i> <span>Back</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Immersive Hub -->
+    <div class="sw-immersive-hub">
+        <!-- High-Density Meta Bar -->
+        <div class="sw-hub-meta-row">
+            <!-- Status Item -->
+            <div class="sw-hub-meta-group">
+                <div class="sw-hub-label"><i class="fas fa-check-circle"></i> Status</div>
+                <div class="sw-hub-value">
+                    <span class="sw-status-capsule" style="background: rgba(var(--sw-primary-rgb), 0.08); color: var(--sw-primary);">{{ ticket.CurrentStatus }}</span>
+                </div>
+            </div>
+
+            <div class="sw-hub-meta-divider"></div>
+
+            <!-- Priority Item -->
+            <div class="sw-hub-meta-group">
+                <div class="sw-hub-label"><i class="fas fa-bolt"></i> Priority</div>
+                <div class="sw-hub-value">
+                    <span class="sw-status-capsule" style="background: var(--accent-glow); color: var(--accent-color);">{{ ticket.PriorityName }}</span>
+                </div>
+            </div>
+
+            <div class="sw-hub-meta-divider"></div>
+
+            <!-- Category Item -->
+            <div class="sw-hub-meta-group">
+                <div class="sw-hub-label"><i class="fas fa-tag"></i> Category</div>
+                <div class="sw-hub-value" style="font-size: 0.85rem;">{{ ticket.CategoryName }}</div>
+            </div>
+
+            <div class="sw-hub-meta-divider"></div>
+
+            <!-- Ownership Item -->
+            <div class="sw-hub-meta-group">
+                <div class="sw-hub-label"><i class="fas fa-user-shield"></i> Handled By</div>
+                <div class="sw-hub-value" style="color: var(--text-main); font-size: 0.85rem;">
+                    {{ ticket.AssignedToName|default:"Unassigned" }}
+                </div>
+            </div>
+
+            <div class="sw-hub-meta-divider"></div>
+
+            <!-- Channel Item -->
+            <div class="sw-hub-meta-group">
+                <div class="sw-hub-label"><i class="fas fa-paper-plane"></i> Point of Origin</div>
+                <div class="sw-hub-value" style="font-size: 0.85rem;">
+                    <i class="{% if ticket.Source == 'Mobile' %}fas fa-mobile-alt{% else %}fas fa-globe{% endif %}" style="margin-right: 4px; font-size: 0.8rem; opacity: 0.6;"></i>
+                    {{ ticket.Source|default:"Web Portal" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 2: Primary Content Area (Clean White) -->
+        <div class="sw-hub-body">
+            <h4><i class="fas fa-file-alt"></i> Original Request Detail</h4>
+            <div class="sw-hub-description">{{ ticket.Description }}</div>
+            
+            <!-- Floating Activity Context -->
+            <div style="margin-top: 2rem; padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 12px; display: flex; gap: 2rem; background: var(--bg-color); font-size: 0.8rem;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; background: rgba(var(--sw-primary-rgb), 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--sw-primary);">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted);">Ticket Created</div>
+                        <div style="font-weight: 700;">{{ ticket.CreatedAt|date:"d M Y, H:i" }}</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; background: rgba(var(--action-info), 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--action-info);">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted);">Latest Interaction</div>
+                        <div style="font-weight: 700;">{{ ticket.UpdatedAt|date:"d M Y, H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Integrated Assignment Section -->
+    {% if role_name == 'Super Admin' or role_name == 'Support Executive' %}
+    <div class="sw-assign-container">
+        <div class="sw-assign-action-header">
+            <i class="fas fa-user-plus"></i> Delegate Ticket & Add Context
+        </div>
+        <form action="{% url 'tickets:ticket_assign' %}" method="POST" class="sw-assign-form-row">
+            {% csrf_token %}
+            <input type="hidden" name="ticket_id" value="{{ ticket.TicketID }}">
+            
+            <div style="flex: 1.2;">
+                <select name="assign_to_user_id" class="sw-assign-input" style="width: 100%;" required>
+                    <option value="">Choose Executive...</option>
+                    {% for exec in executives %}
+                        <option value="{{ exec.UserID }}" {% if ticket.AssignedToUserID == exec.UserID %}selected{% endif %}>
+                            {{ exec.UserName }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="flex: 2;">
+                <input type="text" name="comment" class="sw-assign-input" style="width: 100%;" placeholder="Add assignment context or internal note (optional)...">
+            </div>
+
+            <button type="submit" class="sw-assign-submit" title="Confirm Assignment">
+                <i class="fas fa-check"></i>
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- New Integrated Activity Timeline Section -->
+    <div class="sw-activity-container">
+        <div class="sw-activity-header">
+            <i class="fas fa-history"></i> Audit Trail & Engagement Timeline
+        </div>
+        <div class="sw-timeline-list">
+            {% for entry in timeline %}
+                {% if entry.type == 'activity' %}
+                    <div class="sw-timeline-item">
+                        <div class="sw-timeline-node">
+                            <i class="fas {% if entry.data.ActionType == 'Created' %}fa-plus{% elif entry.data.ActionType == 'Assigned' %}fa-user-tag{% else %}fa-sync-alt{% endif %}"></i>
+                        </div>
+                        <div class="sw-timeline-content">
+                            <strong style="color: var(--sw-primary);">{{ entry.data.ActionByName }}</strong>
+                            {% if entry.data.ActionType == 'Created' %}
+                                initiated this request
+                            {% elif entry.data.ActionType == 'Assigned' %}
+                                delegated assignment to <strong>{{ entry.data.NewAssigneeName }}</strong>
+                            {% elif entry.data.ActionType == 'StatusChanged' %}
+                                updated status to <strong>{{ entry.data.NewStatus }}</strong>
+                            {% else %}
+                                performed {{ entry.data.ActionType }}
+                            {% endif %}
+                            
+                            <div class="sw-timeline-meta">
+                                <i class="far fa-clock" style="margin-right: 4px; opacity: 0.6;"></i> {{ entry.data.Timestamp|date:"d M, H:i" }}
+                            </div>
+
+                            {% if entry.data.Comment %}
+                                <div class="sw-timeline-comment">
+                                    "{{ entry.data.Comment }}"
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Ultra-Compact Discussion Section -->
+    <div class="sw-discussion-outer-wrapper" style="margin-top: 1rem;">
+        <div class="sw-hub-header-row">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 28px; height: 28px; background: rgba(var(--sw-primary-rgb), 0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--sw-primary);">
+                    <i class="fas fa-comments" style="font-size: 0.8rem;"></i>
+                </div>
+                <h3 style="font-size: 0.85rem; font-weight: 800; margin: 0; color: var(--text-color);">Discussion Hub</h3>
+                <span class="activity-inline-node" style="margin: 0; opacity: 1; letter-spacing: 0;">Live Thread</span>
+            </div>
+            <div style="font-size: 0.55rem; font-weight: 700; color: var(--text-muted); opacity: 0.5;">
+                <i class="far fa-clock"></i> Active
+            </div>
+        </div>
+        
+        <div class="sw-discussion-container">
+            <div class="sw-chat-main">
+                {% for entry in timeline %}
+                    {% ifchanged entry.time|date:"Y-m-d" %}
+                        <div class="sw-date-divider">
+                            <span>
+                                {% if entry.time|date:"Y-m-d" == today|date:"Y-m-d" %}
+                                    Today
+                                {% elif entry.time|date:"Y-m-d" == yesterday|date:"Y-m-d" %}
+                                    Yesterday
+                                {% else %}
+                                    {{ entry.time|date:"d F Y" }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% endifchanged %}
+                    {% if entry.type == 'comment' %}
+                        <div class="whatsapp-wrapper" id="comment-{{ entry.data.CommentID }}" style="position: relative;">
+                            <div class="whatsapp-bubble {% if entry.data.CommentByUserID|add:'0' == user_id|add:'0' %}bubble-right{% else %}bubble-left{% endif %}">
+                                {% if entry.data.CommentByUserID|add:"0" != user_id|add:"0" %}
+                                    <span class="bubble-author">{{ entry.data.CommentByName }}</span>
+                                {% endif %}
+                                {% if entry.data.ReplyToCommentID %}
+                                    <div class="reply-context" onclick="scrollToComment('{{ entry.data.ReplyToCommentID }}')">
+                                        <span class="reply-context-user">{{ entry.data.ReplyToUserName }}</span>
+                                        <span class="reply-context-text">{{ entry.data.ReplyToText }}</span>
+                                    </div>
+                                {% endif %}
+                                {{ entry.data.CommentText|linebreaksbr }}
+                                {% if entry.data.AttachmentURL %}
+                                    {% if entry.data.IsImage %}
+                                        <div class="chat-attachment-img" onclick="window.open('{{ entry.data.AttachmentURL }}', '_blank')">
+                                            <img src="{{ entry.data.AttachmentURL }}" alt="{{ entry.data.AttachmentName }}">
+                                            <div class="chat-img-overlay">
+                                                <span>{{ entry.data.AttachmentName|truncatechars:15 }}</span>
+                                                <i class="fas fa-expand"></i>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div style="margin-top: 5px; padding: 5px 8px; background: rgba(0,0,0,0.04); border-radius: 6px; display: flex; align-items: center; gap: 8px; border: 1px dashed rgba(0,0,0,0.1);">
+                                            <i class="fas fa-file-download" style="color: var(--sw-primary); font-size: 0.8rem;"></i>
+                                            <a href="{{ entry.data.AttachmentURL }}" target="_blank" style="font-size: 0.65rem; color: var(--sw-primary); text-decoration: none; font-weight: 700;">
+                                                {{ entry.data.AttachmentName|truncatechars:25 }}
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                                <span class="bubble-time">
+                                    {{ entry.data.CreatedAt|date:"H:i" }}
+                                    {% if entry.data.CommentByUserID|add:'0' == user_id|add:'0' %}
+                                        <i class="fas fa-check-double" style="margin-left: 2px; font-size: 0.5rem; color: #34b7f1;"></i>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <button class="reply-btn" onclick="setReply('{{ entry.data.CommentID }}', '{{ entry.data.CommentByName }}', '{{ entry.data.CommentText|truncatechars:30|escapejs }}')">
+                                <i class="fas fa-reply"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Reply Preview Bar -->
+            <div class="reply-preview-bar" id="replyPreview">
+                <div class="reply-preview-content">
+                    <span class="reply-preview-title" id="replyToUser"></span>
+                    <span class="reply-preview-text" id="replyToText"></span>
+                </div>
+                <div class="reply-cancel" onclick="cancelReply()"><i class="fas fa-times"></i></div>
+            </div>
+
+            <!-- Vertical Emoji Drawer -->
+            <div id="emojiDrawer" class="emoji-drawer">
+                <div class="emoji-header">
+                    <i class="far fa-clock emoji-cat-icon active" onclick="jumpToEmoji('recent')" title="Recent"></i>
+                    <i class="far fa-smile emoji-cat-icon" onclick="jumpToEmoji('smileys')" title="Smileys"></i>
+                    <i class="fas fa-leaf emoji-cat-icon" onclick="jumpToEmoji('nature')" title="Nature"></i>
+                    <i class="fas fa-hamburger emoji-cat-icon" onclick="jumpToEmoji('food')" title="Food"></i>
+                    <i class="fas fa-basketball-ball emoji-cat-icon" onclick="jumpToEmoji('activities')" title="Activities"></i>
+                    <i class="fas fa-car emoji-cat-icon" onclick="jumpToEmoji('travel')" title="Travel"></i>
+                    <i class="fas fa-lightbulb emoji-cat-icon" onclick="jumpToEmoji('objects')" title="Objects"></i>
+                    <i class="fas fa-flag emoji-cat-icon" onclick="jumpToEmoji('flags')" title="Flags"></i>
+                </div>
+                <div class="emoji-search-container">
+                    <input type="text" class="emoji-search-input" id="emojiSearch" placeholder="Search emoji..." autocomplete="off">
+                </div>
+                <div class="emoji-body" id="emojiBody">
+                    <!-- Sections will be injected here -->
+                </div>
+            </div>
+
+            <form action="{% url 'tickets:ticket_add_comment' %}" method="POST" enctype="multipart/form-data" id="commentForm">
+                {% csrf_token %}
+                <input type="hidden" name="ticket_id" value="{{ ticket.TicketID }}">
+                <input type="hidden" name="reply_to_comment_id" id="replyToId" value="">
+                <div class="sw-chat-input-pill">
+                    <label for="chat_file" title="Attach (Max 1MB)">
+                        <i class="fas fa-plus"></i>
+                        <input type="file" name="attachment" id="chat_file" style="display: none;" accept=".pdf,.png,.jpg,.jpeg">
+                    </label>
+                    
+                    <i class="far fa-smile" id="emojiToggle" title="Emojis"></i>
+
+                    <div class="selected-file-pill" id="filePill">
+                        <span id="fileName"></span>
+                        <i class="fas fa-times" onclick="clearFile()"></i>
+                    </div>
+
+                    <input type="text" name="comment_text" class="pill-input" placeholder="Type a message..." required autocomplete="off">
+                    
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; border-right: 1px solid rgba(134,150,160,0.3); padding-right: 8px; margin-right: 4px;">
+                            <input type="checkbox" name="is_internal" id="int_ch_ws" style="scale: 0.8; cursor: pointer;">
+                            <label for="int_ch_ws" style="font-size: 0.55rem; font-weight: 800; color: #8696a0; cursor: pointer; margin-left: 3px;">INT</label>
+                        </div>
+                        <i class="fas fa-microphone mic-icon-st" title="Voice Message (Decorative)"></i>
+                        <button type="submit" class="circle-send" style="background: none; color: #8696a0; border: none; padding: 0;">
+                            <i class="fas fa-paper-plane" style="font-size: 1.1rem; color: #00a884;"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle form submission animation
+    const replyForm = document.querySelector('.sw-chat-input-pill');
+    if (replyForm) {
+        replyForm.addEventListener('submit', function() {
+            const btn = this.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+            }
+        });
+    }
+
+    // Smooth scroll to bottom of chat area if URL contains #chat-section
+    if (window.location.hash === '#chat-section') {
+        const chatSection = document.querySelector('.sw-chat-main');
+        if (chatSection) {
+            chatSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // Attachment Management logic
+    const fileInput = document.getElementById('chat_file');
+    const filePill = document.getElementById('filePill');
+    const fileNameDisplay = document.getElementById('fileName');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const maxSize = 1 * 1024 * 1024; // 1MB matches backend
+                
+                if (file.size > maxSize) {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'File Too Large',
+                            text: 'Please select a file smaller than 1MB.',
+                            confirmButtonColor: 'var(--sw-primary)',
+                            background: document.body.classList.contains('dark-mode') ? '#182229' : '#fff',
+                            color: document.body.classList.contains('dark-mode') ? '#fff' : '#000'
+                        });
+                    } else {
+                        alert('File too large. Maximum size is 1MB.');
+                    }
+                    this.value = '';
+                    return;
+                }
+
+                fileNameDisplay.innerText = file.name;
+                filePill.style.display = 'flex';
+                this.parentElement.style.color = 'var(--sw-primary)';
+            }
+        });
+    }
+
+    function clearFile() {
+        if (fileInput) {
+            fileInput.value = '';
+            filePill.style.display = 'none';
+            fileInput.parentElement.style.color = '#8696a0';
+        }
+    }
+
+    // Sticky Header Scroll Support
+    const stickyHeader = document.querySelector('.sw-sticky-header');
+    const mainContent = document.querySelector('.sw-main-content');
+    if (stickyHeader && mainContent) {
+        mainContent.addEventListener('scroll', function() {
+            if (this.scrollTop > 20) {
+                stickyHeader.classList.add('scrolled');
+                stickyHeader.style.transform = 'translateY(1px)';
+                stickyHeader.style.boxShadow = '0 8px 30px rgba(0,0,0,0.12)';
+            } else {
+                stickyHeader.classList.remove('scrolled');
+                stickyHeader.style.transform = 'translateY(0)';
+                stickyHeader.style.boxShadow = 'var(--shadow-md)';
+            }
+        });
+    }
+    // Action Interceptor (Elite Premium Modals - ABSOLUTE RELIABILITY HUB)
+    async function confirmAction(event, formId, actionLabel) {
+        if (!event || !formId) return;
+        event.preventDefault();
+        
+        const form = document.getElementById(formId);
+        if (!form) return;
+
+        // Capture button immediately using currentTarget for most reliable reference
+        const clickedBtn = event.currentTarget;
+        const isDark = document.body.classList.contains('dark-mode');
+        
+        // Elite Orange hardcoded for absolute reliability
+        const themeColor = '#f39c12'; 
+        
+        // Only require remark for "Reopen Ticket"
+        if (actionLabel === 'Reopen Ticket') {
+            const { value: text } = await Swal.fire({
+                title: 'Reopen Ticket',
+                input: 'textarea',
+                inputLabel: 'Why are you reopening this request?',
+                inputPlaceholder: 'Add your internal note or remark here...',
+                background: isDark ? 'rgba(15, 23, 42, 0.98)' : '#ffffff',
+                color: isDark ? '#f1f5f9' : '#0f172a',
+                confirmButtonColor: themeColor,
+                showCancelButton: true,
+                confirmButtonText: 'Confirm & Reopen',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'sw-elite-modal' 
+                },
+                inputValidator: (value) => {
+                    if (!value || value.trim().length < 5) {
+                        return 'Please provide a meaningful reason (min 5 chars)!'
+                    }
+                }
+            });
+
+            if (text) {
+                if (clickedBtn) {
+                    clickedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    clickedBtn.disabled = true;
+                }
+                form.querySelector('.action-comment-field').value = text;
+                form.submit();
+            }
+        } else {
+            // Standard confirmation for other actions (Absolute Native Bridge)
+            Swal.fire({
+                title: `${actionLabel}?`,
+                text: "Proceed with this ticket status update?",
+                icon: 'question',
+                iconColor: themeColor,
+                background: isDark ? '#ffffff' : '#ffffff', 
+                color: '#1e293b',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Proceed',
+                cancelButtonText: 'No, Cancel',
+                confirmButtonColor: themeColor,
+                cancelButtonColor: '#94a3b8',
+                customClass: {
+                    popup: 'sw-elite-modal'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (clickedBtn) {
+                        clickedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                        clickedBtn.disabled = true;
+                    }
+                    
+                    // Final Logic Bridge: Direct submission after slight visual delay
+                    setTimeout(() => { 
+                        if (form) form.submit(); 
+                    }, 100);
+                }
+            });
+        }
+    }
+</script>
+    <script>
+        // High-Density Chat Management
+        function setReply(id, name, text) {
+            const preview = document.getElementById('replyPreview');
+            const toUser = document.getElementById('replyToUser');
+            const toText = document.getElementById('replyToText');
+            const toId = document.getElementById('replyToId');
+            
+            toId.value = id;
+            toUser.innerText = 'Replying to ' + name;
+            toText.innerText = text;
+            preview.style.display = 'flex';
+            
+            document.querySelector('.pill-input').focus();
+        }
+
+        function cancelReply() {
+            const preview = document.getElementById('replyPreview');
+            const toId = document.getElementById('replyToId');
+            toId.value = '';
+            preview.style.display = 'none';
+        }
+
+        function scrollToComment(id) {
+            const el = document.getElementById('comment-' + id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('jump-highlight');
+                el.style.transform = 'scale(1.02)';
+                el.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                setTimeout(() => { 
+                    el.style.transform = 'scale(1)'; 
+                    setTimeout(() => el.classList.remove('jump-highlight'), 1000);
+                }, 500);
+            }
+        }
+
+        // Specialized WhatsApp Emoji Data
+        const emojiCategories = {
+            'smileys': { title: 'Smileys & People', emojis: ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','👹','👺','🤡','👻','💀','☠️','👽','👾','🤖','🎃','😺','😸','😻','😼','😽','🙀','😿','😾','🙌','👐','🤲','👏','🙏','🤝','👍','👎','👊','✊','🤛','🤜','🤞','✌️','🤘','🤟','👌','👈','👉','👆','👇','☝️'] },
+            'nature': { title: 'Animals & Nature', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🦁','🐯','🐨','🐒','🐵','🙊','🙉','🙈','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷','🕸','🦂','🐢','🐍','🦎','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🐐','🦌','🐕','🐩','🐈','🐓','🦃','🕊','🐇', '🌿','🌵','🎄','🌲','🌳','🌴','🌱','☘️','🍀','🎍','🎋','🍃','🍂','🍁','🍄','🌾','💐','🌷','🌹','🥀','🌺','🌸','🌼','🌻','🌞','🌝','🌛','🌜','🌚','🌕','🌖','🌗','🌘','🌑','🌒','🌓','🌔','🌙','🌍','🌎','🌏','🪐','💫','⭐','🌟','✨','⚡','☄️','💥','🔥','🌪','🌈','☀️','🌤','⛅','🌦','☁️','🌧','⛈','🌩','🌨','❄️','☃️','⛄','🌬','💨','💧','💦','🌊','🌫'] },
+            'food': { title: 'Food & Drink', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌽','🥕','🥔','🍠','🥐','🍞','🥖','🥨','🥯','🧀','🥚','🍳','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🥪','🥙','🌮','🌯','🥗','🥘','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🍤','🍙','🍚','🍘','🍥','🥠','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🥛','☕','🍵','🥤','🍶','🍺','🍻','🍷','🥃','🍸','🍹','🍹','🍾'] },
+            'activities': { title: 'Activities', emojis: ['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥅','🏒','🏑','🏏','⛳','🏹','🎣','🛶','🚣','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤺','⛸','🎿','🏂','⛷','🚣','🛀','🏄','🏇','🏊','🤽','🏋️'] },
+            'travel': { title: 'Travel & Places', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎','🚓','🚑','🚒','🚐','🚚','🚛','🚜','🛴','🚲','🛵','🏍','🚨','🚔','🚍','🚘','🚖','🚡','🚠','🚟','🚃','🚋','🚞','🚝','🚄','🚅','🚈','🚂','🚆','🚇','🚊','🚉','✈️','🛫','🛬','🛩','💺','🛰','🚀','🛸','🚁','🛶','⛵','🚤','🛥','🛳','⛴','🚢','⚓','⛽','🚧','🚦','🚥','🚏','🗺','🗿','🗽','🗼','🏰','🏯','🏟','🎡','🎢','🎠','⛲','⛱','🏖','🏝','🏜','🌋','⛰','🏔','🗻','🏕','⛺','🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏭'] },
+            'objects': { title: 'Objects', emojis: ['⌚','📱','📲','💻','⌨️','🖥','🖨','🖱','🕹','🗜','💽','💾','💿','📀','📼','📷','📸','📹','🎥','📽','🎞','📞','☎️','📟','📠','📺','📻','🎙','🎚','🎛','🧭','⏱','⏲','⏰','🕰','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯','🪔','🏮','📔','📕','📖','📗','📘','📙','📚','📓','📒','📃','📜','📄','📰','🗞','📑','🔖','🏷','💰','💴','💵','💶','💷','💸','💳','💹','💱','💲','✉️','📧','📨','📩','📤','📥','📦','📫','📪','📬','📭','📮','🗳','✏️','✒️','🖋','🖊','🖌','🖍','📝','💼','📁','📂','🗂','📅','📆','🗒','🗓','📇','📈','📉','📊','📋','📌','📍','📎','🖇','📏','📐','✂️','🗃','🗄','🗑','🔒','🔓','🔏','🔐','🔑','🗝','🔨','⛏','⚒','🛠','🗡','⚔️','🔫','🏹','🛡','🔧','🔩','⚙️','🗜','⚖️','🦯','🔗','⛓','🧰','🧲','⚗️','🧪','🧫','🧬','🔬','🔭','📡','💉','🩸','💊','🩹','🩺','🚪','🛏','🛋','🪑','🚽','🚿','🛁','🪒','🧴','🧼','🧽','🧹','🧺','🧻','🧼','🧽','🧴','🧴'] },
+            'flags': { title: 'Flags', emojis: ['🏁','🚩','🎌','🏴','🏳️','🏳️‍🌈','🏴‍☠️','🇦🇫','🇦🇽','🇦🇱','🇩🇿','🇦🇸','🇦🇩','🇦🇴','🇦🇮','🇦🇶','🇦🇬','🇦🇷','🇦🇲','🇦🇼','🇦🇺','🇦🇹','🇦🇿','🇧🇸','🇧🇭','🇧🇩','🇧🇧','🇧🇾','🇧🇪','🇧🇿','🇧🇯','🇧🇲','🇧🇹','🇧🇴','🇧🇦','🇧🇼','🇧🇷','🇮🇴','🇻🇬','🇧🇳','🇧🇬','🇧🇫','🇧🇮','🇰🇭','🇨🇲','🇨🇦','🇮🇨','🇨🇻','🇧🇶','🇰🇾','🇨🇫','🇹🇩','🇨🇱','🇨🇳','🇨🇽','🇨🇨','🇨🇴','🇰🇲','🇨🇬','🇨🇩','🇨🇰','🇨🇷','🇨🇮','🇭🇷','🇨🇺','🇨🇼','🇨🇾','🇨🇿','🇩🇰','🇩🇯','🇩🇲','🇩🇴','🇪🇨','🇪🇬','🇸🇻','🇬🇶','🇪🇷','🇪🇪','🇸🇿','🇪🇹','🇪🇺','🇫🇰','🇫🇴','🇫🇯','🇫🇮','🇫🇷','🇬🇫','🇵🇫','🇹🇫','🇬🇦','🇬🇲','🇬🇪','🇩🇪','🇬🇭','🇬🇮','🇬🇷','🇬🇱','🇬🇩','🇬🇵','🇬🇺','🇬🇹','🇬🇬','🇬🇳','🇬🇼','🇬🇾','🇭🇹','🇭🇳','🇭🇰','🇭🇺','🇮🇸','🇮🇳','🇮🇩','🇮🇷','🇮🇶','🇮🇪','🇮🇲','🇮🇱','🇮🇹','🇯🇲','🇯🇵','🇯🇪','🇯🇴','🇰🇿','🇰🇪','🇰🇮','🇽🇰','🇰🇼','🇰🇬','🇱🇦','🇱🇻','🇱🇧','🇱🇸','🇱🇷','🇱🇾','🇱🇮','🇱🇹','🇱🇺','🇲🇴','🇲🇬','🇲🇼','🇲🇾','🇲🇻','🇲🇱','🇲🇹','🇲🇭','🇲🇶','🇲🇷','🇲🇺','🇾🇹','🇲🇽','🇫🇲','🇲🇩','🇲🇨','🇲🇳','🇲🇪','🇲🇸','🇲🇦','🇲🇿','🇲🇲','🇳🇦','🇳🇷','🇳🇵','🇳🇱','🇳🇨','🇳🇿','🇳🇮','🇳🇪','🇳🇬','🇳🇺','🇳🇫','🇰🇵','🇲🇰','🇲🇵','🇳🇴','🇴🇲','🇵🇰','🇵🇼','🇵🇸','🇵🇦','🇵🇬','🇵🇾','🇵🇪','🇵🇭','🇵🇳','🇵🇱','🇵🇹','🇵🇷','🇶🇦','🇷🇪','🇷🇴','🇷🇺','🇷🇼','🇼🇸','🇸🇲','🇸🇦','🇸🇳','🇷🇸','🇸🇨','🇸🇱','🇸🇬','🇸🇽','🇸🇰','🇸🇮','🇬🇸','🇸🇧','🇸🇴','🇿🇦','🇰🇷','🇸🇸','🇪🇸','🇱🇰','🇧🇱','🇸🇭','🇰🇳','🇱🇨','🇵🇲','🇻🇨','🇸🇩','🇸🇷','🇸🇪','🇨🇭','🇸🇾','🇹🇼','🇹🇯','🇹🇿','🇹🇭','🇹🇱','🇹🇬','🇹🇰','🇹🇴','🇹🇹','🇹🇳','🇹🇷','🇹🇲','🇹🇨','🇹🇻','🇻🇮','🇺🇬','🇺🇦','🇦🇪','🇬🇧','🏴󠁧󠁢󠁥󠁮󠁧󠁿','🏴󠁧󠁢󠁳󠁣󠁴󠁿','🏴󠁧󠁢󠁷󠁬󠁳󠁿','🇺🇸','🇺🇾','🇺🇿','🇻🇺','🇻🇦','🇻🇪','🇻🇳','🇼🇫','🇪🇭','🇾🇪','🇿🇲','🇿🇼'] }
+        };
+
+        const drawer = document.getElementById('emojiDrawer');
+        const toggle = document.getElementById('emojiToggle');
+        const input = document.querySelector('.pill-input');
+        const body = document.getElementById('emojiBody');
+        const search = document.getElementById('emojiSearch');
+
+        function renderEmojis(filter = '') {
+            body.innerHTML = '';
+            for (const [key, cat] of Object.entries(emojiCategories)) {
+                const filtered = cat.emojis.filter(e => !filter || e.includes(filter));
+                if (filtered.length === 0) continue;
+
+                const section = document.createElement('div');
+                section.id = `cat-${key}`;
+                section.innerHTML = `<span class="emoji-section-title">${cat.title}</span>`;
+                
+                const grid = document.createElement('div');
+                grid.className = 'emoji-grid';
+                grid.innerHTML = filtered.map(e => `<span class="emoji-item" data-emoji="${e}">${e}</span>`).join('');
+                
+                section.appendChild(grid);
+                body.appendChild(section);
+            }
+        }
+
+        body.onclick = (e) => {
+            const emoji = e.target.closest('.emoji-item');
+            if (emoji) {
+                const val = emoji.getAttribute('data-emoji');
+                const start = input.selectionStart;
+                const end = input.selectionEnd;
+                input.value = input.value.substring(0, start) + val + input.value.substring(end);
+                input.selectionStart = input.selectionEnd = start + val.length;
+                input.focus();
+                // Removed drawer closing logic!
+            }
+        };
+
+        window.jumpToEmoji = (cat) => {
+            const el = document.getElementById('cat-' + cat);
+            if (el) el.scrollIntoView();
+            document.querySelectorAll('.emoji-cat-icon').forEach(i => i.classList.remove('active'));
+            event.target.classList.add('active');
+        };
+
+        search.oninput = (e) => renderEmojis(e.target.value);
+        
+        // Initial render
+        renderEmojis();
+
+        // Toggle logic
+        toggle.onclick = (e) => {
+            e.stopPropagation();
+            drawer.style.display = drawer.style.display === 'flex' ? 'none' : 'flex';
+            if (drawer.style.display === 'flex') search.focus();
+        };
+
+        // Close on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') drawer.style.display = 'none';
+        });
+
+        // Click outside dismiss
+        document.addEventListener('click', (e) => {
+            if (!drawer.contains(e.target) && e.target !== toggle) {
+                drawer.style.display = 'none';
+            }
+        });
+
+        // AJAX Form Submission
+        const chatForm = document.getElementById('commentForm');
+        const chatMain = document.querySelector('.sw-chat-main');
+        
+        // Robust Auto-scroll to bottom on load
+        function scrollToLatest() {
+            if (chatMain) {
+                chatMain.scrollTop = chatMain.scrollHeight;
+                // Double-check after a tiny delay for image rendering
+                setTimeout(() => { chatMain.scrollTop = chatMain.scrollHeight; }, 100);
+            }
+        }
+        
+        window.addEventListener('load', scrollToLatest);
+        scrollToLatest(); // Initial attempt
+
+        if (chatForm) {
+            chatForm.onsubmit = function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('.circle-send');
+                const submitIcon = submitBtn.querySelector('i');
+                
+                // Loading state
+                submitBtn.style.opacity = '0.5';
+                submitBtn.disabled = true;
+                submitIcon.className = 'fas fa-spinner fa-spin';
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        appendNewComment(data.comment);
+                        this.reset();
+                        clearFile();
+                        cancelReply();
+                        if (chatMain) {
+                            setTimeout(() => {
+                                chatMain.scrollTo({
+                                    top: chatMain.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            }, 50);
+                        }
+                    } else {
+                        alert(data.error || 'Error sending message');
+                    }
+                })
+                .catch(err => {
+                    console.error('Submission error:', err);
+                    alert('Connection error. Please try again.');
+                })
+                .finally(() => {
+                    submitBtn.style.opacity = '1';
+                    submitBtn.disabled = false;
+                    submitIcon.className = 'fas fa-paper-plane';
+                });
+            };
+        }
+
+        function appendNewComment(c) {
+            if (!chatMain) return;
+            
+            let replyHtml = '';
+            if (c.reply_to) {
+                replyHtml = `
+                    <div class="reply-context" onclick="scrollToComment('${c.reply_to.id}')">
+                        <span class="reply-context-user">${c.reply_to.name}</span>
+                        <span class="reply-context-text">${c.reply_to.text}</span>
+                    </div>
+                `;
+            }
+
+            let attachmentHtml = '';
+            if (c.attachment_url) {
+                if (c.is_image) {
+                    attachmentHtml = `
+                        <div class="chat-attachment-img" onclick="window.open('${c.attachment_url}', '_blank')">
+                            <img src="${c.attachment_url}" alt="${c.attachment_name}">
+                            <div class="chat-img-overlay">
+                                <span>${c.attachment_name}</span>
+                                <i class="fas fa-expand"></i>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    attachmentHtml = `
+                        <div style="margin-top: 5px; padding: 5px 8px; background: rgba(0,0,0,0.04); border-radius: 6px; display: flex; align-items: center; gap: 8px; border: 1px dashed rgba(0,0,0,0.1);">
+                            <i class="fas fa-file-download" style="color: var(--sw-primary); font-size: 0.8rem;"></i>
+                            <a href="${c.attachment_url}" target="_blank" style="font-size: 0.65rem; color: var(--sw-primary); text-decoration: none; font-weight: 700;">
+                                ${c.attachment_name}
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+
+            const bubbleHtml = `
+                <div class="whatsapp-wrapper" id="comment-${c.id}" style="animation: slideUp 0.3s ease-out; position: relative;">
+                    <div class="whatsapp-bubble bubble-right">
+                        ${replyHtml}
+                        ${c.text.replace(/\n/g, '<br>')}
+                        ${attachmentHtml}
+                        <span class="bubble-time">${c.time} <i class="fas fa-check-double" style="margin-left: 2px; font-size: 0.55rem; color: #53bdeb;"></i></span>
+                    </div>
+                    <button class="reply-btn" onclick="setReply('${c.id}', '${c.user_name}', '${c.text.substring(0, 30)}')">
+                        <i class="fas fa-reply"></i>
+                    </button>
+                </div>
+            `;
+            
+            chatMain.insertAdjacentHTML('beforeend', bubbleHtml);
+        }
+    </script>
+{% endblock %}

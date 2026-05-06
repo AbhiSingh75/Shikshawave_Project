@@ -1,0 +1,305 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Timetable Templates | ShikshaWave ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --border-color: #e5e7eb;
+        --header-height: 80px;
+        --controls-height: 70px;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --text-light: #d1d5db;
+        --light-gray: #374151;
+        --border-color: #4b5563;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+        background-color: #e8eaf0;
+        padding-top: var(--header-height);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body.dark-mode {
+        background-color: var(--secondary-color);
+    }
+
+    .container {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Unified Controls Row Pattern */
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        position: sticky;
+        top: var(--header-height);
+        z-index: 999;
+        height: var(--controls-height);
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--secondary-color);
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .controls-left h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--primary-color);
+    }
+
+    .tab-bar {
+        display: flex;
+        background: var(--light-gray);
+        padding: 4px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+    }
+
+    .bar-tab {
+        padding: 8px 16px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-light);
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border: none;
+        background: none;
+    }
+
+    .bar-tab.active {
+        background: white;
+        color: var(--primary-color);
+        box-shadow: var(--card-shadow);
+    }
+
+    body.dark-mode .bar-tab.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .templates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .template-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 2px solid var(--border-color);
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    body.dark-mode .template-card {
+        background: var(--light-gray);
+    }
+
+    .template-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .template-preview {
+        width: 100%;
+        height: 180px;
+        background: var(--light-gray);
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--text-light);
+    }
+
+    .template-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 8px;
+    }
+
+    .template-desc {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-bottom: 15px;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+        border: none;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+    }
+
+    @media (max-width: 1024px) {
+        .container {
+            padding: 12px;
+            padding-top: calc(var(--header-height) + 10px);
+        }
+
+        .controls-row {
+            flex-direction: column;
+            height: auto;
+            gap: 15px;
+            align-items: stretch;
+            padding: 15px;
+            position: static;
+        }
+
+        .controls-left {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .tab-bar {
+            width: 100%;
+        }
+
+        .bar-tab {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .templates-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Timetable Management</h3>
+            <div class="tab-bar">
+                <button class="bar-tab" onclick="window.location.href='/timetable/management/?tab=periods'">
+                    <i class="fas fa-clock"></i> Periods
+                </button>
+                <button class="bar-tab" onclick="window.location.href='/timetable/management/?tab=view'">
+                    <i class="fas fa-list"></i> Rosters
+                </button>
+                <button class="bar-tab active">
+                    <i class="fas fa-print"></i> Templates
+                </button>
+            </div>
+        </div>
+        <div class="controls-right">
+            <button class="btn-primary"
+                style="padding: 10px 20px; border-radius: 8px; font-weight: 600; justify-content: center; display: flex; align-items: center; gap: 8px;"
+                onclick="window.location.href='/timetable/management/?tab=create'">
+                <i class="fas fa-plus"></i> New Roster
+            </button>
+        </div>
+    </div>
+
+    <div class="templates-grid">
+        <div class="template-card" onclick="selectTemplate('standard')">
+            <div class="template-preview">📅</div>
+            <div class="template-name">Standard Layout</div>
+            <div class="template-desc">Classic grid layout with all days and periods. Best for general use.</div>
+            <button class="btn btn-primary"><i class="fas fa-check"></i> Use Template</button>
+        </div>
+
+        <div class="template-card" onclick="selectTemplate('compact')">
+            <div class="template-preview">📊</div>
+            <div class="template-name">Compact Layout</div>
+            <div class="template-desc">Condensed view with smaller fonts. Ideal for printing on A4 paper.</div>
+            <button class="btn btn-primary"><i class="fas fa-check"></i> Use Template</button>
+        </div>
+
+        <div class="template-card" onclick="selectTemplate('detailed')">
+            <div class="template-preview">📝</div>
+            <div class="template-name">Detailed Layout</div>
+            <div class="template-desc">Includes room numbers and notes. Perfect for administrative use.</div>
+            <button class="btn btn-primary"><i class="fas fa-check"></i> Use Template</button>
+        </div>
+
+        <div class="template-card" onclick="selectTemplate('teacher')">
+            <div class="template-preview">👨‍🏫</div>
+            <div class="template-name">Teacher View</div>
+            <div class="template-desc">Organized by teacher schedule. Useful for faculty planning.</div>
+            <button class="btn btn-primary"><i class="fas fa-check"></i> Use Template</button>
+        </div>
+
+        <div class="template-card" onclick="selectTemplate('weekly')">
+            <div class="template-preview">📆</div>
+            <div class="template-name">Weekly Overview</div>
+            <div class="template-desc">Week-at-a-glance format. Great for wall displays.</div>
+            <button class="btn btn-primary"><i class="fas fa-check"></i> Use Template</button>
+        </div>
+
+        <div class="template-card" onclick="selectTemplate('custom')">
+            <div class="template-preview">⚙️</div>
+            <div class="template-name">Custom Layout</div>
+            <div class="template-desc">Create your own template with custom fields and styling.</div>
+            <button class="btn btn-primary"><i class="fas fa-check"></i> Use Template</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectTemplate(templateType) {
+        // Store selected template in localStorage
+        localStorage.setItem('selectedTemplate', templateType);
+
+        // Redirect to timetable list to select which timetable to print
+        window.location.href = '/timetable/management/?tab=view&template=' + templateType;
+    }
+</script>
+{% endblock %}

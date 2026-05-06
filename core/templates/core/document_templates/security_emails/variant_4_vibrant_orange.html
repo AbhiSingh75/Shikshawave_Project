@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; }
+        .stripe { height: 10px; background-color: #1976D2; }
+        .main-container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; }
+        
+        .hero { background-color: #f8fafc; padding: 20px 25px; text-align: center; border-bottom: 1px solid #f1f5f9; }
+        .hero-icon { font-size: 30px; margin-bottom: 8px; }
+        .hero h2 { font-size: 26px; font-weight: 800; color: #1e293b; margin: 0; letter-spacing: -0.5px; }
+        .hero-badge { display: inline-block; background-color: #1976D2; color: #ffffff; padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-top: 15px; }
+        .hero-badge.warning { background-color: #dc2626; }
+        .hero-badge.success { background-color: #4CAF50; }
+        
+        .body-content { padding: 30px 35px; }
+        .greeting { font-size: 17px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+        .main-text { font-size: 15px; color: #475569; line-height: 1.5; }
+        
+        .otp-container { background-color: #f8fafc; border-radius: 16px; padding: 30px; text-align: center; border: 2px dashed #e2e8f0; margin: 25px 0; }
+        .otp-number { font-family: 'Courier New', monospace; font-size: 48px; font-weight: 900; color: #1976D2; letter-spacing: 12px; }
+        
+        .audit-list { 
+            width: 100%;
+            background-color: #f8fafc; 
+            border-radius: 12px; 
+            margin-top: 25px; 
+            border-collapse: collapse;
+        }
+        .audit-title { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 15px 20px 8px 20px; display: block; }
+        
+        .audit-row td {
+            padding: 10px 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .row-label { font-size: 13px; color: #64748b; font-weight: 600; text-align: left; }
+        .row-val { font-size: 13px; color: #1e293b; font-weight: 700; text-align: right; word-break: break-all; overflow-wrap: break-word; }
+        
+        .action-button { background-color: #1976D2; color: #ffffff !important; padding: 15px 30px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-block; margin-top: 25px; }
+        
+        .footer { padding: 25px; text-align: center; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 11px; color: #64748b; }
+        .brand-accent { color: #1976D2; font-weight: 700; }
+        
+        @media screen and (max-width: 480px) {
+            .hero { padding: 25px 20px; }
+            .body-content { padding: 25px 20px; }
+            .otp-number { font-size: 36px; letter-spacing: 6px; }
+            .main-container { margin: 20px 10px; border-radius: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stripe"></div>
+    <div class="main-container">
+        <div class="hero">
+            <div class="hero-icon">
+                {% if code == 'ACCOUNT_BLOCKED' %}🔒{% elif code == 'PASSWORD_CHANGED' or code == 'PASSWORD_CHANGED_NOTIFICATION' %}✅{% elif code == 'NEW_LOGIN_ALERT' %}📡{% else %}🔑{% endif %}
+            </div>
+            
+            <div class="logo-box" style="margin-bottom: 15px; background: white; padding: 8px 16px; display: inline-block; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <div style="font-weight: 900; color: #1976D2; font-size: 26px; letter-spacing: 0.5px; text-transform: uppercase;">{{ school_name }}</div>
+            </div>
+            {% if code == 'LOGIN_OTP' or code == 'PASSWORD_RESET_OTP' %}
+                <h2>{{ header_title|default:"Identity Verification" }}</h2>
+                <div class="hero-badge">Token Validation</div>
+            {% elif code == 'ACCOUNT_BLOCKED' %}
+                <h2 style="color: #dc2626;">{{ header_title|default:"Access Suspended" }}</h2>
+                <div class="hero-badge warning">Security Lockdown</div>
+            {% elif code == 'PASSWORD_CHANGED' or code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+                <h2>{{ header_title|default:"Credentials Synced" }}</h2>
+                <div class="hero-badge success">Update Successful</div>
+            {% elif code == 'NEW_LOGIN_ALERT' %}
+                <h2>{{ header_title|default:"Access Detection" }}</h2>
+                <div class="hero-badge">New Login Detected</div>
+            {% else %}
+                <h2>{{ header_title|default:"Security Notification" }}</h2>
+            {% endif %}
+        </div>
+
+        <div class="body-content">
+            <div class="greeting">Hello {{ user_name }},</div>
+            
+            {% if code == 'LOGIN_OTP' or code == 'PASSWORD_RESET_OTP' %}
+                <p class="main-text">Your security session requires immediate verification. Use the unique <b>access token</b> below to validate your identity on the ShikshaWave platform.</p>
+                <div class="otp-container"><div class="otp-number">{{ otp }}</div></div>
+                <p class="main-text" style="font-size: 14px; font-style: italic;">Valid for {{ valid_minutes | default:15 }} minutes. Generated at {{ timestamp }}.</p>
+                
+            {% elif code == 'ACCOUNT_BLOCKED' %}
+                <p class="main-text">Multiple failed sign-in attempts were detected. As a result, your account (<b>{{ login_id }}</b>) has been locked for a 24-hour cooling-off period.</p>
+                <p class="main-text"><b>Process Direction:</b> To manually restore access and reset your security factors, please contact your institutional IT department immediately.</p>
+                
+            {% elif code == 'PASSWORD_CHANGED' or code == 'PASSWORD_CHANGED_NOTIFICATION' %}
+                <p class="main-text">This notification confirms that your ShikshaWave account password was successfully updated recently.</p>
+                <p style="color: #dc2626; font-weight: 700;">If this change was not made by you, please alert your administrator immediately to secure your data.</p>
+                
+            {% elif code == 'NEW_LOGIN_ALERT' %}
+                <p class="main-text">We noticed a successful login to your account from a new location or device. If this was you, please ignore this notice.</p>
+                <div style="text-align: center;"><a href="#" class="action-button">I did not recognize this activity</a></div>
+            {% endif %}
+
+            <table class="audit-list">
+                <tr><td colspan="2"><span class="audit-title">Security Event Audit</span></td></tr>
+                <tr class="audit-row"><td class="row-label">Identity ID</td><td class="row-val">{{ login_id | default:user_name }}</td></tr>
+                <tr class="audit-row"><td class="row-label">Network IP</td><td class="row-val">{{ ip_address }}</td></tr>
+                <tr class="audit-row"><td class="row-label">Access Role</td><td class="row-val">{{ profile | default:"Institutional User" }}</td></tr>
+                <tr class="audit-row"><td class="row-label">Timestamp</td><td class="row-val">{{ timestamp }}</td></tr>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2026 <strong>ShikshaWave</strong>. Empowering Education.</p>
+        </div>
+    </div>
+</body>
+</html>

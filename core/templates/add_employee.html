@@ -1,0 +1,3969 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Add Teacher/Staff | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="icon" href="{% static 'images/ShikshaWave_Logo.png' %}" type="image/x-icon">
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.5">
+<style>
+    /* Custom page-specific overrides if needed */
+    /* Custom page-specific overrides if needed */
+    .form-actions-footer {
+        padding: 24px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        background: var(--card-bg);
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .form-actions-footer .btn {
+        min-width: 120px;
+    }
+
+    .btn-cancel { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
+    .btn-reset { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+    .btn-save { background: var(--primary-color); color: white; border: none; }
+
+    body.dark-mode .btn-cancel { background: #374151; color: #d1d5db; border-color: #4b5563; }
+    body.dark-mode .btn-reset { background: rgba(234, 88, 12, 0.1); color: #fb923c; border-color: rgba(234, 88, 12, 0.2); }
+
+    @media (max-width: 768px) {
+        .form-actions-footer {
+            flex-direction: column;
+            padding: 16px;
+            gap: 10px;
+        }
+
+        .form-actions-footer .btn {
+            width: 100%;
+            min-height: 48px;
+            font-size: 1rem;
+        }
+    }
+
+    .controls-row {
+        margin-bottom: 20px !important;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 10px 12px;
+            gap: 12px;
+        }
+
+        .controls-row {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 15px;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .controls-left h3 {
+            font-size: 1.1rem;
+            justify-content: center;
+            width: 100%;
+            text-align: center;
+        }
+
+        .controls-right {
+            width: 100%;
+        }
+
+        .control-buttons {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+
+        #schoolSelect {
+            width: 100% !important;
+        }
+    }
+
+    /* Keep the form-specific styles but remove what's now in list.css */
+    .form-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        position: relative;
+        box-sizing: border-box;
+    }
+
+    body.dark-mode .form-container {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+
+    .form-section {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        box-sizing: border-box;
+    }
+
+    @media (max-width: 768px) {
+        .form-section {
+            padding: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .form-section {
+            padding: 0.75rem;
+        }
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 2px solid var(--primary-color);
+    }
+
+    .section-icon {
+        background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.8rem;
+        font-size: 1.1rem;
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .section-header {
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+
+        .section-icon {
+            width: 35px;
+            height: 35px;
+            font-size: 1rem;
+            margin-right: 0.6rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .section-header {
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .section-icon {
+            width: 30px;
+            height: 30px;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+        }
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.2rem;
+        margin-bottom: 1.5rem;
+        box-sizing: border-box;
+    }
+
+    /* 4 columns when sidebar is collapsed */
+    .sidebar-collapsed .form-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    @media (max-width: 1024px) {
+        .form-grid, .sidebar-collapsed .form-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 650px) {
+        .form-grid, .sidebar-collapsed .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 3fr;
+        gap: 1.2rem;
+        margin-bottom: 1.5rem;
+        width: 100%;
+        box-sizing: border-box;
+        grid-column: 1 / -1;
+    }
+
+    .form-row .form-group {
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-row .form-textarea {
+        height: 48px;
+        resize: vertical;
+        overflow-y: auto;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 48px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0.5rem;
+        box-sizing: border-box;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.3rem;
+        font-size: 0.9rem;
+    }
+
+    .required {
+        color: var(--error-color);
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--input-border);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all var(--transition-speed);
+        background: white;
+        color: var(--text-color);
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Mobile form input optimizations */
+    @media (max-width: 768px) {
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 0.7rem 0.9rem;
+            font-size: 1rem;
+            /* Prevent zoom on iOS */
+            min-height: 44px;
+            /* Minimum touch target size */
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid var(--input-border);
+        }
+    }
+
+    @media (max-width: 480px) {
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            min-height: 48px;
+            /* Larger touch target for small screens */
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid var(--input-border);
+        }
+    }
+
+    body.dark-mode .form-input,
+    body.dark-mode .form-select,
+    body.dark-mode .form-textarea {
+        background: var(--secondary-color);
+        border-color: var(--input-border);
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--input-border-focus);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        background: white;
+    }
+
+    body.dark-mode .form-input:focus,
+    body.dark-mode .form-select:focus,
+    body.dark-mode .form-textarea:focus {
+        background: var(--secondary-color);
+        border-color: var(--input-border-focus);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 60px;
+    }
+
+    /* Compact Salary Structure Design */
+    .salary-subsection {
+        margin-bottom: 16px;
+    }
+
+    .subsection-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .subsection-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: currentColor;
+    }
+
+    .subsection-header.earnings {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(16, 185, 129, 0.08));
+        color: #059669;
+        border: 1px solid rgba(34, 197, 94, 0.15);
+    }
+
+    .subsection-header.deductions {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.08));
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+
+    .subsection-header i {
+        margin-right: 8px;
+        font-size: 1rem;
+    }
+
+    .subsection-toggle {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .subsection-toggle:hover {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Dark mode subsection headers */
+    body.dark-mode .subsection-header.earnings {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.15));
+        color: #34d399;
+    }
+
+    body.dark-mode .subsection-header.deductions {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+        color: #f87171;
+    }
+
+    /* Compact Salary Grid - 3 per row on desktop (4 when collapsed) */
+    .salary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .sidebar-collapsed .salary-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    /* Mobile salary grid optimizations */
+    @media (max-width: 768px) {
+        .salary-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .salary-summary {
+            grid-template-columns: 1fr;
+            gap: 8px;
+            padding: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .salary-grid {
+            grid-template-columns: 1fr;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .salary-summary {
+            padding: 10px;
+            gap: 6px;
+        }
+
+        .summary-item {
+            padding: 8px 6px;
+        }
+    }
+
+    .salary-item {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid rgba(79, 70, 229, 0.1);
+        border-radius: 10px;
+        padding: 12px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Mobile salary item optimizations */
+    @media (max-width: 768px) {
+        .salary-item {
+            padding: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .salary-item {
+            padding: 8px;
+        }
+    }
+
+    body.dark-mode .salary-item {
+        background: linear-gradient(145deg, rgba(31, 41, 55, 0.9) 0%, rgba(17, 24, 39, 0.9) 100%);
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .salary-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, #004aad, #7c3aed);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .salary-item.deduction::before {
+        background: linear-gradient(90deg, #ef4444, #f97316);
+    }
+
+    .salary-item:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    }
+
+    .salary-item.deduction:hover {
+        border-color: var(--error-color);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+    }
+
+    .salary-item:hover::before {
+        transform: scaleX(1);
+    }
+
+    .salary-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .salary-icon {
+        background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+
+    .salary-item.deduction .salary-icon {
+        background: linear-gradient(135deg, var(--error-color), #f97316);
+    }
+
+    .salary-base {
+        display: none;
+        /* Hide base amount display */
+    }
+
+    .salary-input-section {
+        margin-bottom: 0;
+    }
+
+    .salary-label {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: var(--text-light);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .salary-control {
+        position: relative;
+    }
+
+    .salary-value {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+        text-align: right;
+        color: var(--text-color);
+    }
+
+    .salary-value:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    body.dark-mode .salary-value {
+        background: rgba(31, 41, 55, 0.8);
+        border-color: rgba(99, 102, 241, 0.3);
+        color: #e5e7eb;
+    }
+
+    body.dark-mode .salary-value:focus {
+        background: rgba(31, 41, 55, 1);
+        border-color: var(--primary-color);
+    }
+
+    /* Quick Action Buttons */
+    .salary-quick-actions {
+        display: flex;
+        gap: 4px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+    }
+
+    .quick-action-btn {
+        background: rgba(79, 70, 229, 0.1);
+        border: 1px solid rgba(79, 70, 229, 0.2);
+        color: var(--primary-color);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.6rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        min-width: 20px;
+    }
+
+    .quick-action-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .salary-item.deduction .quick-action-btn {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.2);
+        color: var(--error-color);
+    }
+
+    .salary-item.deduction .quick-action-btn:hover {
+        background: var(--error-color);
+        color: white;
+    }
+
+
+
+    /* Enhanced Salary Summary */
+    .salary-summary {
+        background: linear-gradient(145deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+        border: 1px solid rgba(79, 70, 229, 0.1);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .salary-summary {
+        background: linear-gradient(145deg, rgba(99, 102, 241, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .summary-item {
+        text-align: center;
+        padding: 12px 8px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid rgba(79, 70, 229, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .summary-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, #004aad, #7c3aed);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .summary-item:hover::before {
+        transform: scaleX(1);
+    }
+
+    body.dark-mode .summary-item {
+        background: var(--secondary-color);
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .summary-item.total {
+        background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+        color: white;
+        border-color: var(--primary-color);
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .summary-item.total::before {
+        background: linear-gradient(90deg, #ffffff, #e0e7ff);
+    }
+
+    .summary-label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        opacity: 0.8;
+    }
+
+    .summary-amount {
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .summary-item.total .summary-amount {
+        font-size: 1.3rem;
+    }
+
+    /* ==========================================
+       Modern Document Section Design 
+       ========================================== */
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    /* 3 columns when sidebar is collapsed */
+    .sidebar-collapsed .documents-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 1024px) {
+        .documents-grid, .sidebar-collapsed .documents-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+    }
+
+    .document-modern-card {
+        background: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .document-modern-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 8px rgba(79, 70, 229, 0.1);
+    }
+
+    .document-modern-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 3px;
+        height: 100%;
+        background: var(--primary-color);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .document-modern-card.mandatory::before {
+        opacity: 1;
+    }
+
+    .document-modern-card.file-selected {
+        border-color: var(--success-color);
+        background: rgba(34, 197, 94, 0.01);
+    }
+
+    .doc-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .doc-badge-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .doc-type-title {
+        font-weight: 700;
+        color: var(--text-color);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .doc-mandatory-badge {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--primary-color);
+        letter-spacing: 0.5px;
+    }
+
+    .doc-actions-top {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-remove-doc {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: none;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+    }
+
+    .btn-remove-doc:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .upload-modern-zone {
+        border: 2px dashed rgba(79, 70, 229, 0.15);
+        border-radius: 10px;
+        padding: 12px 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        background: rgba(79, 70, 229, 0.01);
+        min-height: 100px;
+    }
+
+    .upload-modern-zone:hover {
+        border-color: var(--primary-color);
+        background: rgba(79, 70, 229, 0.03);
+    }
+
+    .upload-modern-zone i {
+        font-size: 1.4rem;
+        color: var(--primary-color);
+        margin-bottom: 2px;
+    }
+
+    .upload-modern-zone span {
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--text-color);
+    }
+
+    .upload-modern-zone small {
+        color: var(--text-light);
+        font-size: 0.65rem;
+    }
+
+    .preview-modern-wrapper {
+        position: relative;
+        width: 100%;
+        height: 110px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f8fafc;
+        display: none; /* Shown when file selected */
+        border: 1px solid var(--border-color);
+    }
+
+    .preview-modern-wrapper.visible {
+        display: block;
+    }
+
+    .preview-modern-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        padding: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+    }
+
+    .filename-pill {
+        font-size: 0.7rem;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        padding: 2px 8px;
+        border-radius: 20px;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .status-success-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #10b981;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .doc-type-select-modern {
+        width: 100%;
+        background: var(--secondary-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    body.dark-mode .preview-modern-wrapper {
+        background: #1e293b;
+    }
+
+    /* Cleanup orphaned/redundant styles and fix lint issues */
+    .doc-status-icon.uploaded {
+        display: inline-block;
+        color: var(--success-color);
+    }
+
+    .preview-thumb {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        object-fit: cover;
+        border: 1px solid var(--border-color);
+        background: var(--light-gray);
+        display: none;
+    }
+
+    .preview-thumb.visible {
+        display: block;
+    }
+
+    .doc-actions .btn-remove-row {
+        color: var(--error-color);
+        background: none;
+        border: 1px solid transparent;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .doc-actions .btn-remove-row:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--error-color);
+    }
+
+    /* Mobile Overrides */
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 1.8rem;
+        }
+
+        .container {
+            padding: 15px 10px;
+        }
+
+        .form-section {
+            padding: 1.25rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Ensure modern grid is single column on mobile */
+        .documents-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+        }
+
+        .compact-doc-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            padding: 12px;
+            position: relative;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
+
+        .doc-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .doc-type-label {
+            margin-bottom: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .doc-actions {
+            position: static;
+            display: flex;
+            align-items: center;
+        }
+
+        .doc-file-input-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .doc-file-label {
+            width: 100%;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 40px;
+            border-radius: 8px;
+            background: var(--bg-color);
+        }
+
+        .doc-file-label span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+
+        .doc-status-icon {
+            position: static !important;
+            transform: none !important;
+            font-size: 1rem;
+            margin-left: 5px;
+            flex-shrink: 0;
+        }
+
+        .doc-preview-container {
+            margin-top: 5px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .preview-thumb {
+            width: 100%;
+            max-width: 120px;
+            height: auto;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    .preview-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+    }
+
+    /* Dark mode for compact doc rows */
+    body.dark-mode .compact-doc-row {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    body.dark-mode .compact-doc-row:hover {
+        background: #374151;
+    }
+
+    body.dark-mode .doc-file-label {
+        background: #374151;
+        border-color: #4b5563;
+        color: #d1d5db;
+    }
+
+    body.dark-mode .doc-file-label:hover:not(.disabled) {
+        background: #4b5563;
+        color: #fff;
+    }
+
+    body.dark-mode .doc-file-label.file-selected {
+        background-color: rgba(16, 185, 129, 0.2);
+        border-color: var(--success-color);
+        color: #e5e7eb;
+    }
+
+
+    .btn-remove {
+        background: var(--error-color);
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        font-weight: 600;
+        transition: all var(--transition-speed);
+        white-space: nowrap;
+    }
+
+    .btn-remove:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-remove:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    .form-actions {
+        background: transparent;
+        border-top: 1px solid rgba(79, 70, 229, 0.1);
+        padding: 1.5rem 0;
+        margin: 0 auto;
+        max-width: 1200px;
+        width: 90%;
+        box-sizing: border-box;
+    }
+
+    body.dark-mode .form-actions {
+        background: transparent;
+        border-top-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .form-actions-container {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding: 0 2rem;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .btn {
+        padding: 0.6rem 1.2rem;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 36px;
+        min-width: 100px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    /* Mobile form actions optimizations */
+    @media (max-width: 768px) {
+        .form-actions {
+            padding: 1rem 0;
+            width: 95%;
+        }
+
+        .form-actions-container {
+            padding: 0 1rem;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            min-height: 32px;
+            min-width: 90px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .form-actions {
+            padding: 0.75rem 0;
+            width: 100%;
+        }
+
+        .form-actions-container {
+            flex-direction: row;
+            padding: 0 1rem;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            min-height: 32px;
+            flex: 1;
+            justify-content: center;
+            min-width: auto;
+        }
+    }
+
+    /* Compact Button Styles - High Specificity */
+    .form-actions .btn-cancel {
+        background: #ef4444 !important;
+        color: white !important;
+        border: 1px solid #dc2626 !important;
+    }
+
+    .form-actions .btn-cancel:hover {
+        background: #dc2626 !important;
+        color: white !important;
+        border: 1px solid #b91c1c !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .form-actions .btn-cancel:active {
+        background: #b91c1c !important;
+        transform: translateY(0);
+        box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
+    }
+
+    .form-actions .btn-reset {
+        background: #6b7280 !important;
+        color: white !important;
+        border: 1px solid #4b5563 !important;
+    }
+
+    .form-actions .btn-reset:hover {
+        background: #4b5563 !important;
+        color: white !important;
+        border: 1px solid #374151 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+    }
+
+    .form-actions .btn-reset:active {
+        background: #374151 !important;
+        transform: translateY(0);
+        box-shadow: 0 1px 4px rgba(107, 114, 128, 0.2);
+    }
+
+    .form-actions .btn-save {
+        background: #10b981 !important;
+        color: white !important;
+        border: 1px solid #059669 !important;
+    }
+
+    .form-actions .btn-save:hover {
+        background: #059669 !important;
+        color: white !important;
+        border: 1px solid #047857 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .form-actions .btn-save:active {
+        background: #047857 !important;
+        transform: translateY(0);
+        box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Button Icons */
+    .btn i {
+        font-size: 0.9rem;
+        transition: transform 0.2s ease;
+    }
+
+    .btn:hover i {
+        transform: scale(1.05);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border-left: 4px solid;
+    }
+
+    .alert-error {
+        background: #fef2f2;
+        border-color: var(--error-color);
+        color: #991b1b;
+    }
+
+    body.dark-mode .alert-error {
+        background: #7f1d1d;
+        color: #fecaca;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border-color: var(--success-color);
+        color: #166534;
+    }
+
+    body.dark-mode .alert-success {
+        background: #14532d;
+        color: #bbf7d0;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .spinner {
+        border: 3px solid var(--border-color);
+        border-top: 3px solid var(--primary-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    /* Password Field Styles */
+    .password-field {
+        position: relative;
+    }
+
+    .password-input-container {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .password-input-with-icons {
+        padding-right: 40px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .password-icons-container {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .password-icons-container>* {
+        pointer-events: auto;
+    }
+
+    .password-field .toggle-password {
+        cursor: pointer;
+        color: var(--text-light);
+        font-size: 0.7rem;
+        transition: color 0.3s ease;
+        padding: 1px;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+    }
+
+    .password-field .toggle-password:hover {
+        color: var(--primary-color);
+        background: rgba(79, 70, 229, 0.1);
+    }
+
+    .generate-password-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        border: none;
+        border-radius: 2px;
+        padding: 1px;
+        cursor: pointer;
+        font-size: 0.6rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        min-width: 16px;
+    }
+
+    .generate-password-btn:hover {
+        background: linear-gradient(135deg, var(--primary-hover), #3730a3);
+        transform: scale(1.05);
+    }
+
+    .generate-password-btn i {
+        font-size: 0.6rem;
+    }
+
+    .password-strength {
+        margin-top: 8px;
+    }
+
+    .strength-bar {
+        height: 4px;
+        background: var(--border-color);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 4px;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+
+    .strength-fill.weak {
+        background: var(--error-color);
+        width: 25%;
+    }
+
+    .strength-fill.fair {
+        background: var(--warning-color);
+        width: 50%;
+    }
+
+    .strength-fill.good {
+        background: #3b82f6;
+        width: 75%;
+    }
+
+    .strength-fill.strong {
+        background: var(--success-color);
+        width: 100%;
+    }
+
+    .strength-text {
+        font-size: 0.8rem;
+        color: var(--text-light);
+    }
+
+    .password-suggestions-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 8px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+    }
+
+    body.dark-mode .password-suggestions-overlay {
+        background: rgba(31, 41, 55, 0.98);
+    }
+
+    .suggestions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+        padding: 8px;
+        width: 100%;
+        max-width: 280px;
+    }
+
+    .suggestion-item {
+        background: rgba(79, 70, 229, 0.1);
+        border: 1px solid rgba(79, 70, 229, 0.2);
+        border-radius: 4px;
+        padding: 4px 6px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
+    .suggestion-item:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        transform: scale(1.02);
+    }
+
+    body.dark-mode .suggestion-item {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    body.dark-mode .suggestion-item:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    /* Validation Message Styles */
+    .validation-message {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+        font-size: 0.8rem;
+        color: var(--error-color);
+        animation: slideDown 0.3s ease;
+    }
+
+    .validation-message i {
+        font-size: 0.9rem;
+    }
+
+    .form-input.error {
+        border-color: var(--error-color);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    .form-input.valid {
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    /* National ID Validation Styles */
+    .validation-message.available {
+        color: var(--success-color);
+    }
+
+    .validation-message.available i {
+        color: var(--success-color);
+    }
+
+    .validation-message.unavailable {
+        color: var(--error-color);
+    }
+
+    .validation-message.unavailable i {
+        color: var(--error-color);
+    }
+
+    .validation-message.checking {
+        color: #6b7280;
+    }
+
+    .validation-message.checking i {
+        color: #6b7280;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Education Input Container */
+    .education-input-container {
+        position: relative;
+    }
+
+    .education-text-input {
+        margin-top: 8px;
+        animation: slideDown 0.3s ease;
+    }
+
+    /* Tablet optimizations */
+    @media (min-width: 768px) and (max-width: 1199px) {
+        .form-grid, .sidebar-collapsed .form-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .form-grid, .sidebar-collapsed .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+            padding: 0;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+        }
+
+        /* Reset textarea height on mobile for better usability */
+        .form-row .form-textarea {
+            height: auto;
+            min-height: 48px;
+            resize: vertical;
+            /* Allow vertical resize on mobile */
+            max-height: 120px;
+            /* Limit maximum height on mobile */
+        }
+
+        .salary-grid, .sidebar-collapsed .salary-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .salary-item {
+            padding: 1.25rem;
+            min-height: auto;
+        }
+
+        .salary-title {
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .salary-icon {
+            width: 24px;
+            height: 24px;
+            font-size: 0.8rem;
+        }
+
+        .salary-value {
+            font-size: 1.1rem;
+            padding: 10px 12px;
+        }
+
+        .salary-label {
+            font-size: 0.75rem;
+            margin-bottom: 6px;
+        }
+
+        .quick-action-btn {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            min-width: 45px;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+        }
+
+        .container {
+            padding: 15px 10px;
+        }
+
+        #document-rows {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+
+        .document-card {
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+
+        .upload-zone {
+            padding: 10px 8px;
+        }
+
+        .doc-header {
+            gap: 6px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+        }
+
+        .doc-header i {
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+        }
+
+        .doc-header h4 {
+            font-size: 0.8rem;
+        }
+
+        .preview-content {
+            padding: 6px;
+            gap: 6px;
+        }
+
+        .preview-content img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .preview-content i {
+            font-size: 0.9rem;
+        }
+
+        .file-name {
+            font-size: 0.75rem;
+        }
+
+        .btn-remove {
+            padding: 3px 6px;
+            font-size: 0.65rem;
+        }
+
+        .form-section {
+            padding: 1.25rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .salary-summary {
+            display: flex;
+            flex-direction: column;
+            padding: 1.25rem 1rem;
+            gap: 12px;
+            background: linear-gradient(145deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 10px 0;
+            background: transparent;
+            border-radius: 0;
+            border: none;
+            border-bottom: 1px dashed var(--border-color);
+            text-align: left;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-item::before {
+            display: none;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+            color: var(--text-color);
+        }
+
+        .summary-amount {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .summary-item.total {
+            background: rgba(79, 70, 229, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-bottom: none;
+            margin-top: 5px;
+        }
+
+        .summary-item.total .summary-label {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .summary-item.total .summary-amount {
+            font-size: 1.35rem;
+            color: var(--primary-color);
+        }
+
+        body.dark-mode .summary-item.total {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        body.dark-mode .summary-item.total .summary-label,
+        body.dark-mode .summary-item.total .summary-amount {
+            color: #a5b4fc;
+        }
+    }
+
+    /* Small mobile optimizations */
+    @media (max-width: 480px) {
+        .form-grid {
+            gap: 0.6rem;
+            padding: 0 5px;
+        }
+
+        .salary-grid {
+            gap: 6px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .container {
+            padding: 10px 5px;
+        }
+
+        #document-rows {
+            gap: 10px !important;
+        }
+
+        .document-card {
+            padding: 6px;
+            margin-bottom: 6px;
+        }
+
+        .upload-zone {
+            padding: 8px 6px;
+        }
+
+        .doc-header {
+            gap: 4px;
+            margin-bottom: 4px;
+            padding-bottom: 3px;
+        }
+
+        .doc-header i {
+            width: 18px;
+            height: 18px;
+            font-size: 0.6rem;
+        }
+
+        .doc-header h4 {
+            font-size: 0.75rem;
+        }
+
+        .upload-content i {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .upload-content p {
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+        }
+
+        .upload-content small {
+            font-size: 0.65rem;
+        }
+
+        .preview-content {
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .preview-content img {
+            width: 35px;
+            height: 35px;
+        }
+
+        .preview-content i {
+            font-size: 0.8rem;
+        }
+
+        .file-name {
+            font-size: 0.7rem;
+        }
+
+        .btn-remove {
+            padding: 2px 4px;
+            font-size: 0.6rem;
+        }
+
+        .form-section {
+            padding: 0.75rem 5px;
+        }
+
+        .salary-subsection {
+            margin-bottom: 15px;
+        }
+
+        .subsection-header {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .subsection-header i {
+            font-size: 0.9rem;
+            margin-right: 6px;
+        }
+    }
+
+    /* Success Modal Styles */
+    .success-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .success-modal-content {
+        background: white;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: modalScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    body.dark-mode .success-modal-content {
+        background: var(--light-gray);
+        color: white;
+    }
+
+    @keyframes modalScale {
+        0% {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .success-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        margin: 0 auto 20px;
+        border: 2px solid #10b981;
+    }
+
+    .success-modal-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        color: #111827;
+    }
+
+    body.dark-mode .success-modal-title {
+        color: white;
+    }
+
+    .success-modal-text {
+        color: #4b5563;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        line-height: 1.5;
+    }
+
+    body.dark-mode .success-modal-text {
+        color: #d1d5db;
+    }
+
+    .success-modal-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-modal {
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-modal-primary {
+        background: linear-gradient(135deg, #004aad, #7c3aed);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-modal-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-modal-secondary {
+        background: transparent;
+        color: #4b5563;
+        border: 2px solid #e5e7eb;
+    }
+
+    body.dark-mode .btn-modal-secondary {
+        border-color: #4b5563;
+        color: #d1d5db;
+    }
+
+    .btn-modal-secondary:hover {
+        background: #f9fafb;
+    }
+
+    body.dark-mode .btn-modal-secondary:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Compact Subject Specialization UI */
+    .subject-specialization-container {
+        position: relative;
+        width: 100%;
+    }
+
+    .compact-select-field {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        min-height: 42px;
+        background: var(--secondary-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        cursor: text;
+        transition: all 0.3s ease;
+        position: relative;
+        padding-right: 35px;
+        /* Space for arrow */
+    }
+
+    .compact-select-field:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .subject-chips-inline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .active-chips-inline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .subject-chip-compact {
+        background: #eef2ff;
+        color: var(--primary-color);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+    }
+
+    body.dark-mode .subject-chip-compact {
+        background: rgba(79, 70, 229, 0.1);
+        border-color: rgba(79, 70, 229, 0.3);
+    }
+
+    .remove-chip-small {
+        cursor: pointer;
+        opacity: 0.7;
+        font-size: 0.7rem;
+        transition: opacity 0.2s;
+    }
+
+    .remove-chip-small:hover {
+        opacity: 1;
+    }
+
+    .subject-search-inline {
+        flex: 1;
+        min-width: 50px;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        box-shadow: none !important;
+        height: 28px;
+    }
+
+    .subject-search-inline::placeholder {
+        color: var(--text-light);
+        opacity: 0.7;
+    }
+
+    .dropdown-arrow {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+        pointer-events: none;
+        transition: transform 0.3s ease;
+    }
+
+    .compact-select-field.active .dropdown-arrow {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .subject-dropdown-compact {
+        position: absolute;
+        top: calc(100% + 5px);
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+        animation: slideDown 0.2s ease-out;
+    }
+
+    body.dark-mode .subject-dropdown-compact {
+        background: var(--light-gray);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .subject-option-compact {
+        padding: 8px 15px;
+        cursor: pointer;
+        color: var(--text-color);
+        font-size: 0.9rem;
+        transition: background 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .subject-option-compact:hover {
+        background: rgba(79, 70, 229, 0.08);
+    }
+
+    .subject-option-compact.selected {
+        display: none;
+    }
+
+    .no-results-compact {
+        padding: 12px;
+        text-align: center;
+        color: var(--text-light);
+        font-style: italic;
+        font-size: 0.85rem;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3><i class="fas fa-user-plus"></i> Add Teacher/Staff</h3>
+        </div>
+        <div class="controls-right">
+            {% if is_super_admin %}
+            <div class="control-buttons">
+                <label for="schoolSelect" style="font-weight: 600; color: var(--text-color);">School:</label>
+                <select id="schoolSelect" class="form-select" style="width: 250px;" onchange="changeSchool(this.value)">
+                    <option value="">-- Select School --</option>
+                    {% for school in schools %}
+                    <option value="{{ school.EncryptedSchoolID }}" {% if school.SchoolID == selected_school_id %}selected{% endif %}>{{ school.SchoolName }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <form id="employeeForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="school_id"
+            value="{{ selected_encrypted_school_id|default:selected_school_id|default:'' }}">
+
+        <div class="form-container">
+            <!-- Section 1: Employee Information -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h2 class="section-title">Employee Information</h2>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="employeeName" class="form-label">Employee Name <span
+                                class="required">*</span></label>
+                        <input type="text" id="employeeName" name="employeeName" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profileId" class="form-label">Profile/Role <span class="required">*</span></label>
+                        <select id="profileId" name="profileId" class="form-select" required
+                            onchange="toggleCoreSubjects()">
+                            <option value="">Select Profile/Role</option>
+                            {% for profile in profile_roles %}
+                            <option value="{{ profile.ProfileID }}">{{ profile.ProfileName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="coreSubjectsGroup" style="display: none;">
+                        <label class="form-label">Subject Specialization <span class="required">*</span></label>
+                        <div class="subject-specialization-container">
+                            <div class="compact-select-field" id="subjectSelectField">
+                                <div class="active-chips-inline" id="activeChipsInline">
+                                    <!-- Chips will appear here -->
+                                </div>
+                                <input type="text" id="subjectSearch" class="subject-search-inline"
+                                    placeholder="Select subjects..." autocomplete="off">
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+
+                                <div id="subjectDropdown" class="subject-dropdown-compact">
+                                    {% for subject in subjects %}
+                                    <div class="subject-option-compact" data-id="{{ subject.SubjectID }}"
+                                        data-name="{{ subject.SubjectName }}">
+                                        <span>{{ subject.SubjectName }}</span>
+                                        <i class="fas fa-plus" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                                    </div>
+                                    {% endfor %}
+                                    <div id="noSubjectsFound" class="no-results-compact" style="display: none;">No
+                                        subjects found</div>
+                                </div>
+                            </div>
+                            <!-- Hidden select for form submission -->
+                            <select id="coreSubjects" name="coreSubjects" multiple style="display: none;"></select>
+                        </div>
+                        <small class="text-muted">Click to select subjects. Search to filter.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dateOfJoining" class="form-label">Date of Joining <span
+                                class="required">*</span></label>
+                        <input type="date" id="dateOfJoining" name="dateOfJoining" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employmentType" class="form-label">Employment Type <span
+                                class="required">*</span></label>
+                        <select id="employmentType" name="employmentType" class="form-select" required>
+                            <option value="">Select Employment Type</option>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Guest">Guest</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group password-field">
+                        <label for="password" class="form-label">Password <span class="required">*</span></label>
+                        <div class="password-input-container">
+                            <input type="password" id="password" name="password"
+                                class="form-input password-input-with-icons" required placeholder="Enter password">
+                            <div class="password-icons-container">
+                                <span class="toggle-password" onclick="togglePassword('password')"
+                                    title="Show/Hide Password">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                                <button type="button" class="generate-password-btn"
+                                    onclick="togglePasswordSuggestions()" title="Generate Unique Password">
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mobileNo" class="form-label">Mobile Number</label>
+                        <input type="tel" id="mobileNo" name="mobileNo" class="form-input" maxlength="10"
+                            pattern="[0-9]{10}" placeholder="10-digit mobile number">
+                        <div class="validation-message" id="mobileValidation" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Please enter a valid 10-digit mobile number</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-input" placeholder="example@domain.com">
+                        <div class="validation-message" id="emailValidation" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Please enter a valid email address</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                        <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fatherOrHusbandName" class="form-label">Father/Husband Name</label>
+                        <input type="text" id="fatherOrHusbandName" name="fatherOrHusbandName" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nationalId" class="form-label">National ID</label>
+                        <input type="text" id="nationalId" name="nationalId" class="form-input"
+                            placeholder="Enter National ID">
+                        <div id="nationalIdValidation" class="validation-message" style="display: none;">
+                            <i class="fas fa-check-circle"></i>
+                            <span class="validation-text"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender" class="form-label">Gender</label>
+                        <select id="gender" name="gender" class="form-select">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="religion" class="form-label">Religion</label>
+                        <select id="religion" name="religion" class="form-select">
+                            <option value="">Select</option>
+                            <option value="Hindu">Hindu</option>
+                            <option value="Muslim">Muslim</option>
+                            <option value="Christian">Christian</option>
+                            <option value="Sikh">Sikh</option>
+                            <option value="Buddhist">Buddhist</option>
+                            <option value="Jain">Jain</option>
+                            <option value="Parsi">Parsi</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="education" class="form-label">Education</label>
+                        <div class="education-input-container">
+                            <select id="educationSelect" class="form-select" onchange="handleEducationChange()">
+                                <option value="">Select Education Level</option>
+                                <option value="Primary (1st - 5th)">Primary (1st - 5th)</option>
+                                <option value="Upper Primary (6th - 8th)">Upper Primary (6th - 8th)</option>
+                                <option value="Secondary (9th - 10th)">Secondary (9th - 10th)</option>
+                                <option value="Higher Secondary (11th - 12th)">Higher Secondary (11th - 12th)</option>
+                                <option value="Diploma">Diploma</option>
+                                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                <option value="Master's Degree">Master's Degree</option>
+                                <option value="M.Phil">M.Phil</option>
+                                <option value="Ph.D">Ph.D</option>
+                                <option value="Post Graduate Diploma">Post Graduate Diploma</option>
+                                <option value="Professional Degree (B.Tech, B.E, MBBS, etc.)">Professional Degree
+                                    (B.Tech, B.E, MBBS, etc.)</option>
+                                <option value="Professional Master's (M.Tech, M.E, MD, etc.)">Professional Master's
+                                    (M.Tech, M.E, MD, etc.)</option>
+                                <option value="Other">Other (Specify)</option>
+                            </select>
+                            <input type="text" id="education" name="education" class="form-input education-text-input"
+                                placeholder="Enter custom education details" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bloodGroup" class="form-label">Blood Group</label>
+                        <select id="bloodGroup" name="bloodGroup" class="form-select">
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country" class="form-label">Country</label>
+                        <select id="country" name="country_name" class="form-select">
+                            <option value="">Select Country</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="state" class="form-label">State</label>
+                        <select id="state" name="state_name" class="form-select">
+                            <option value="">Select State</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="district" class="form-label">District</label>
+                        <select id="district" name="district_name" class="form-select">
+                            <option value="">Select District</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pincode" class="form-label">Pincode</label>
+                            <input type="text" id="pincode" name="pincode" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="homeAddress" class="form-label">Home Address</label>
+                            <textarea id="homeAddress" name="homeAddress" class="form-textarea" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="experience" class="form-label">Experience</label>
+                        <textarea id="experience" name="experience" class="form-textarea" rows="2"
+                            placeholder="Describe previous work experience..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Salary Structure -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h2 class="section-title">Salary Structure</h2>
+                </div>
+
+                <!-- Earnings Subsection -->
+                <div class="salary-subsection">
+                    <div class="subsection-header earnings">
+                        <div>
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Earnings</span>
+                        </div>
+                        <button type="button" class="subsection-toggle" onclick="toggleSubsection('earnings')"
+                            title="Toggle Section">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="salary-grid" id="earnings-grid">
+                        {% for component in salary_components %}
+                        {% if component.ComponentType == 'Earning' %}
+                        <div class="salary-item" data-component-id="{{ component.ComponentID }}">
+                            <div class="salary-title">
+                                <div class="salary-icon">
+                                    <i class="fas fa-rupee-sign"></i>
+                                </div>
+                                {{ component.ComponentName }}
+                            </div>
+                            <div class="salary-base">₹0</div>
+                            <div class="salary-input-section">
+                                <div class="salary-label">Enter Amount</div>
+                                <div class="salary-control">
+                                    <input type="number" name="salaryComponents[{{ component.ComponentID }}][amount]"
+                                        class="salary-value" min="0" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="salary-quick-actions">
+                                    <button type="button" class="quick-action-btn"
+                                        onclick="setQuickAmount(this, 1000)">1K</button>
+                                    <button type="button" class="quick-action-btn"
+                                        onclick="setQuickAmount(this, 5000)">5K</button>
+                                    <button type="button" class="quick-action-btn"
+                                        onclick="setQuickAmount(this, 10000)">10K</button>
+                                    <button type="button" class="quick-action-btn"
+                                        onclick="setQuickAmount(this, 0)">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Deductions Subsection -->
+                <div class="salary-subsection">
+                    <div class="subsection-header deductions">
+                        <div>
+                            <i class="fas fa-minus-circle"></i>
+                            <span>Deductions</span>
+                        </div>
+                        <button type="button" class="subsection-toggle" onclick="toggleSubsection('deductions')"
+                            title="Toggle Section">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="salary-grid" id="deductions-grid">
+                        {% for component in salary_components %}
+                        {% if component.ComponentType == 'Deduction' %}
+                        <div class="salary-item deduction" data-component-id="{{ component.ComponentID }}">
+                            <div class="salary-title">
+                                <div class="salary-icon">
+                                    <i class="fas fa-minus-circle"></i>
+                                </div>
+                                {{ component.ComponentName }}
+                            </div>
+                            <div class="salary-base">₹0</div>
+                            <div class="salary-input-section">
+                                <div class="salary-label">Enter Amount</div>
+                                <div class="salary-control">
+                                    <input type="number" name="salaryComponents[{{ component.ComponentID }}][amount]"
+                                        class="salary-value" min="0" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="salary-quick-actions">
+                                    <button type="button" class="quick-action-btn"
+                                        onclick="setQuickAmount(this, 500)">500</button>
+                                    <button type="button" class="quick-action-btn"
+                                        onclick="setQuickAmount(this, 1000)">1K</button>
+                                    <button type="button" class="quick-action-btn"
+                                        onclick="setQuickAmount(this, 2000)">2K</button>
+                                    <button type="button" class="quick-action-btn"
+                                        onclick="setQuickAmount(this, 0)">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Salary Summary -->
+                <div class="salary-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Total Earnings:</span>
+                        <span class="summary-amount" id="totalEarnings">₹0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Total Deductions:</span>
+                        <span class="summary-amount" id="totalDeductions">₹0</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span class="summary-label">Net Salary:</span>
+                        <span class="summary-amount" id="netSalary">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Employee Documents -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h2 class="section-title">Employee Documents</h2>
+                </div>
+
+                <div class="documents-grid" id="document-grid">
+                    <!-- Mandatory Photo Card -->
+                    <div class="document-modern-card mandatory">
+                        <div class="doc-card-header">
+                            <div class="doc-badge-group">
+                                <span class="doc-mandatory-badge">Required</span>
+                                <h4 class="doc-type-title">Passport Photo</h4>
+                                <input type="hidden" name="docType[]" value="Employee Passport Photo">
+                            </div>
+                            <div class="doc-actions-top">
+                                <i class="fas fa-camera" style="color: var(--primary-color);"></i>
+                            </div>
+                        </div>
+
+                        <div class="upload-modern-zone" id="employeePhoto-zone" onclick="document.getElementById('employeePhoto').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Upload Photo</span>
+                            <small>JPG, PNG up to 5MB</small>
+                            <input type="file" id="employeePhoto" name="docFile[]" accept=".jpg,.jpeg,.png" required
+                                style="display: none;"
+                                onchange="updateModernFileName(this, 'employeePhoto-card', 'employeePhoto-preview', 'employeePhoto-name')">
+                        </div>
+
+                        <div class="preview-modern-wrapper" id="employeePhoto-preview-wrapper">
+                            <img id="employeePhoto-preview" class="preview-modern-img" alt="Preview">
+                            <div class="preview-overlay">
+                                <div class="filename-pill" id="employeePhoto-name">photo.jpg</div>
+                                <div class="status-success-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Verified</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Cards Container -->
+                    <div id="dynamic-documents-wrapper" style="display: contents;"></div>
+
+                    <!-- Empty State Placeholder -->
+                    <div id="empty-docs-placeholder" class="document-modern-card" style="border-style: dashed; background: transparent; justify-content: center; align-items: center; opacity: 0.6; min-height: 100px; padding: 10px;">
+                        <i class="fas fa-file-alt" style="font-size: 1.2rem; margin-bottom: 6px; color: var(--text-light);"></i>
+                        <p style="font-size: 0.75rem; color: var(--text-light); text-align: center; margin: 0;">No additional documents added.<br>Add more documents if needed.</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                    <button type="button" class="btn btn-save btn-sm" id="add-document-row" style="background: var(--primary-color); padding: 10px 20px; border-radius: 10px;">
+                        <i class="fas fa-plus"></i> Add New Document
+                    </button>
+                    <small class="text-muted">Maximum 5MB per file (PDF, JPG, PNG)</small>
+                </div>
+            </div>
+
+
+            <!-- Form Actions -->
+            <div class="form-actions-footer">
+                <button type="button" class="btn btn-cancel" onclick="cancelForm()">
+                    <i class="fas fa-times"></i>
+                    <span>Cancel</span>
+                </button>
+                <button type="button" class="btn btn-reset" onclick="resetForm()">
+                    <i class="fas fa-undo"></i>
+                    <span>Reset</span>
+                </button>
+                <button type="submit" class="btn btn-save">
+                    <i class="fas fa-save"></i>
+                    <span>Save Employee</span>
+                </button>
+            </div>
+        </div>
+        <!-- Success Modal -->
+        <div id="successModal" class="success-modal">
+            <div class="success-modal-content">
+                <div class="success-icon-wrapper">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h2 class="success-modal-title">Success!</h2>
+                <p class="success-modal-text" id="successModalText">Employee has been added successfully to the system.
+                </p>
+                <div class="success-modal-actions">
+                    <button type="button" id="btnPrintJobLetter" class="btn-modal btn-modal-primary">
+                        <i class="fas fa-print"></i> Print Job Letter
+                    </button>
+                    <button type="button" id="btnAddNewEmployee" class="btn-modal btn-modal-secondary"
+                        onclick="resetFormForNew()">
+                        <i class="fas fa-user-plus"></i> Add Another Employee
+                    </button>
+                    <a href="{% url 'view_teachers' %}" class="btn-modal btn-modal-secondary">
+                        <i class="fas fa-list"></i> Go to Staff List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Loading indicator -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Adding employee...</p>
+    </div>
+</div>
+
+<script>
+    // Change school (Super Admin)
+    window.changeSchool = function (schoolId) {
+        const url = new URL(window.location.href);
+        if (schoolId) {
+            url.searchParams.set('school_id', schoolId);
+        } else {
+            url.searchParams.delete('school_id');
+        }
+        window.location.href = url.toString();
+    };
+
+    // Global variables
+    let docRowCount = 0;
+    const documentRows = document.getElementById('document-rows');
+    const addDocRowButton = document.getElementById('add-document-row');
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function () {
+        loadCountries();
+        initializeSalaryCalculation();
+        initializeDocumentManagement();
+        initializeMobileOptimizations();
+        initializeProgressBar();
+    });
+
+    // Mobile optimizations
+    function initializeMobileOptimizations() {
+        // Prevent zoom on input focus for iOS
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (input.type !== 'range' && input.type !== 'checkbox' && input.type !== 'radio') {
+                input.addEventListener('focus', function () {
+                    if (window.innerWidth <= 768) {
+                        // Small delay to prevent zoom
+                        setTimeout(() => {
+                            this.style.fontSize = '16px';
+                        }, 100);
+                    }
+                });
+            }
+        });
+
+        // Improve touch interactions
+        const buttons = document.querySelectorAll('.btn, .remove-doc-btn, .btn-remove');
+        buttons.forEach(button => {
+            button.addEventListener('touchstart', function () {
+                this.style.transform = 'scale(0.98)';
+            });
+
+            button.addEventListener('touchend', function () {
+                this.style.transform = 'scale(1)';
+            });
+        });
+
+        // Optimize document upload zones for mobile
+        const uploadZones = document.querySelectorAll('.upload-zone');
+        uploadZones.forEach(zone => {
+            zone.addEventListener('touchstart', function () {
+                this.style.transform = 'scale(0.98)';
+            });
+
+            zone.addEventListener('touchend', function () {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    }
+
+    // Load countries
+    async function loadCountries() {
+        try {
+            const response = await fetch('/api/geo/countries/');
+            const data = await response.json();
+            const countrySelect = document.getElementById('country');
+
+            data.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.id;
+                option.textContent = country.name;
+                countrySelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading countries:', error);
+        }
+    }
+
+    // Load states when country changes
+    document.getElementById('country').addEventListener('change', function () {
+        const countryId = this.value;
+        const stateSelect = document.getElementById('state');
+        const districtSelect = document.getElementById('district');
+
+        // Clear states and districts
+        stateSelect.innerHTML = '<option value="">Select State</option>';
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+
+        if (countryId) {
+            loadStates(countryId);
+        }
+    });
+
+    // Load districts when state changes
+    document.getElementById('state').addEventListener('change', function () {
+        const stateId = this.value;
+        const districtSelect = document.getElementById('district');
+
+        // Clear districts
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+
+        if (stateId) {
+            loadDistricts(stateId);
+        }
+    });
+
+    // Load states
+    async function loadStates(countryId) {
+        try {
+            const response = await fetch(`/api/geo/states/?country_id=${countryId}`);
+            const data = await response.json();
+            const stateSelect = document.getElementById('state');
+
+            data.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state.id;
+                option.textContent = state.name;
+                stateSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading states:', error);
+        }
+    }
+
+    // Load districts
+    async function loadDistricts(stateId) {
+        try {
+            const response = await fetch(`/api/geo/districts/?state_id=${stateId}`);
+            const data = await response.json();
+            const districtSelect = document.getElementById('district');
+
+            data.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district.id;
+                option.textContent = district.name;
+                districtSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading districts:', error);
+        }
+    }
+
+    // Initialize salary calculation
+    function initializeSalaryCalculation() {
+        const salaryInputs = document.querySelectorAll('.salary-value');
+
+        salaryInputs.forEach(input => {
+            input.addEventListener('input', function () {
+                updateSalaryItem(this);
+                updateSalarySummary();
+            });
+        });
+
+        // Initial calculation
+        updateSalarySummary();
+    }
+
+    // Update individual salary item
+    function updateSalaryItem(input) {
+        // Final amount display removed - only update summary
+        // Individual item updates are no longer needed
+    }
+
+    // Update salary summary
+    function updateSalarySummary() {
+        let totalEarnings = 0;
+        let totalDeductions = 0;
+
+        document.querySelectorAll('.salary-item').forEach(item => {
+            const amount = parseFloat(item.querySelector('.salary-value').value) || 0;
+
+            if (item.classList.contains('deduction')) {
+                totalDeductions += amount;
+            } else {
+                totalEarnings += amount;
+            }
+        });
+
+        const netSalary = totalEarnings - totalDeductions;
+
+        document.getElementById('totalEarnings').textContent = `₹${totalEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        document.getElementById('totalDeductions').textContent = `₹${totalDeductions.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        document.getElementById('netSalary').textContent = `₹${netSalary.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    }
+
+    // ==========================================
+    // Modern Document Management Logic
+    // ==========================================
+
+    // Update file card with preview and status
+    window.updateModernFileName = function(input, cardId, previewId, nameId) {
+        const card = input.closest('.document-modern-card');
+        const previewWrapper = document.getElementById(previewId + '-wrapper');
+        const previewImg = document.getElementById(previewId);
+        const namePill = document.getElementById(nameId);
+        const uploadZone = card ? card.querySelector('.upload-modern-zone') : null;
+
+        if (input.files && input.files.length > 0) {
+            const file = input.files[0];
+            card.classList.add('file-selected');
+            if (namePill) namePill.textContent = file.name;
+
+            // Image/PDF Preview
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block'; // Hide broken icon if previous was non-image
+                    previewWrapper.classList.add('visible');
+                    if (uploadZone) uploadZone.style.display = 'none';
+                    
+                    // Reset success badge
+                    const overlay = previewWrapper.querySelector('.status-success-badge');
+                    if (overlay) overlay.innerHTML = '<i class="fas fa-check-circle"></i> <span>Selected</span>';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // For PDFs or other files, show an icon placeholder
+                previewImg.style.display = 'none'; // Hide the image element to prevent broken icon
+                previewWrapper.classList.add('visible');
+                if (uploadZone) uploadZone.style.display = 'none';
+                
+                // Set a PDF/File icon in the overlay
+                const overlay = previewWrapper.querySelector('.status-success-badge');
+                if (overlay) {
+                    const icon = file.type.includes('pdf') ? 'fa-file-pdf' : 'fa-file-alt';
+                    overlay.innerHTML = `<i class="fas ${icon}"></i> <span>Ready</span>`;
+                }
+            }
+        } else {
+            card.classList.remove('file-selected');
+            if (previewWrapper) previewWrapper.classList.remove('visible');
+            if (uploadZone) uploadZone.style.display = 'flex';
+        }
+    };
+
+    // Add a new modern document card
+    const addDocumentRow = () => {
+        const wrapper = document.getElementById('dynamic-documents-wrapper');
+        const placeholder = document.getElementById('empty-docs-placeholder');
+        if (!wrapper) return;
+
+        // Hide placeholder
+        if (placeholder) placeholder.style.display = 'none';
+
+        const rowId = 'doc-' + Date.now();
+        const div = document.createElement('div');
+        div.className = 'document-modern-card';
+        div.id = `card-${rowId}`;
+        div.innerHTML = `
+            <div class="doc-card-header">
+                <div class="doc-badge-group">
+                    <select class="doc-type-select-modern" name="docType[]" onchange="validateDocSelectionModern(this)">
+                        <option value="">Select Type</option>
+                        <option value="PAN Card">PAN Card</option>
+                        <option value="Aadhaar Card">Aadhaar Card</option>
+                        <option value="Passport">Passport</option>
+                        <option value="Driving License">Driving License</option>
+                        <option value="Voter ID">Voter ID</option>
+                        <option value="Bank Passbook">Bank Passbook</option>
+                        <option value="Salary Slip">Salary Slip</option>
+                        <option value="Experience Certificate">Experience Certificate</option>
+                        <option value="Education Certificate">Education Certificate</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="doc-actions-top">
+                    <button type="button" class="btn-remove-doc" title="Remove" onclick="removeModernCard('${rowId}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="upload-modern-zone" id="zone-${rowId}" onclick="document.getElementById('file-${rowId}').click()" style="pointer-events: none; opacity: 0.5;">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Choose type first</span>
+                <small>PDF, JPG, PNG up to 5MB</small>
+                <input type="file" id="file-${rowId}" name="docFile[]" style="display:none;"
+                       accept=".pdf,.jpg,.jpeg,.png"
+                       onchange="updateModernFileName(this, 'card-${rowId}', 'preview-${rowId}', 'name-${rowId}')">
+            </div>
+
+            <div class="preview-modern-wrapper" id="preview-${rowId}-wrapper">
+                <img id="preview-${rowId}" class="preview-modern-img" alt="Preview">
+                <div class="preview-overlay">
+                    <div class="filename-pill" id="name-${rowId}">document.pdf</div>
+                    <div class="status-success-badge">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Selected</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        wrapper.appendChild(div);
+    };
+
+    window.removeModernCard = function(id) {
+        const card = document.getElementById(`card-${id}`);
+        const wrapper = document.getElementById('dynamic-documents-wrapper');
+        const placeholder = document.getElementById('empty-docs-placeholder');
+        
+        if (card) {
+            card.remove();
+            // Show placeholder if no cards left in dynamic wrapper
+            if (wrapper && wrapper.children.length === 0) {
+                if (placeholder) placeholder.style.display = 'flex';
+            }
+        }
+    };
+
+    window.validateDocSelectionModern = function(select) {
+        const card = select.closest('.document-modern-card');
+        const zone = card.querySelector('.upload-modern-zone');
+        const allSelects = document.querySelectorAll('.doc-type-select-modern');
+        
+        if (select.value) {
+            // Check for duplicates
+            let count = 0;
+            allSelects.forEach(s => { if (s.value === select.value) count++; });
+            
+            if (count > 1) {
+                alert('This document type is already selected.');
+                select.value = '';
+                zone.style.pointerEvents = 'none';
+                zone.style.opacity = '0.5';
+                zone.querySelector('span').textContent = 'Choose type first';
+            } else {
+                zone.style.pointerEvents = 'auto';
+                zone.style.opacity = '1';
+                zone.querySelector('span').textContent = 'Upload File';
+            }
+        } else {
+            zone.style.pointerEvents = 'none';
+            zone.style.opacity = '0.5';
+            zone.querySelector('span').textContent = 'Choose type first';
+        }
+    };
+
+    // Initialize document management
+    function initializeDocumentManagement() {
+        const addDocBtn = document.getElementById('add-document-row');
+        if (addDocBtn) {
+            addDocBtn.addEventListener('click', addDocumentRow);
+        }
+    }
+
+
+    // Cancel form
+    function cancelForm() {
+        if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+            window.history.back();
+        }
+    }
+
+    // Reset form
+    function resetForm() {
+        if (confirm('Are you sure you want to reset the form? All data will be lost.')) {
+            document.getElementById('employeeForm').reset();
+
+            // Reset salary calculations
+            document.querySelectorAll('.salary-value').forEach(input => {
+                input.value = '';
+                updateSalaryItem(input);
+            });
+            updateSalarySummary();
+
+            // Reset mandatory photo label
+            const photoNameSpan = document.getElementById('employeePhoto-name');
+            if (photoNameSpan) photoNameSpan.textContent = 'Click to upload photo...';
+            const photoLabelEl = document.querySelector('label[for="employeePhoto"]');
+            if (photoLabelEl) photoLabelEl.classList.remove('file-selected');
+            const photoPreview = document.getElementById('employeePhoto-preview');
+            if (photoPreview) {
+                photoPreview.classList.remove('visible');
+                photoPreview.src = '';
+            }
+            const photoStatusIcon = document.getElementById('employeePhoto-status');
+            if (photoStatusIcon) photoStatusIcon.classList.remove('uploaded');
+
+            // Remove all dynamically added document rows
+            const dynamicContainer = document.getElementById('dynamic-docs-container');
+            if (dynamicContainer) {
+                dynamicContainer.innerHTML = '';
+            }
+        }
+    }
+
+
+    // Initialize progress bar
+    function initializeProgressBar() {
+        const form = document.getElementById('employeeForm');
+        const progressBar = document.getElementById('form-progress');
+        const progressText = document.getElementById('progress-percentage');
+
+        if (form && progressBar && progressText) {
+            const updateProgress = () => {
+                let filledFields = 0;
+                let totalFields = 0;
+
+                // Count regular input fields (text, email, tel, date, number, password)
+                const regularInputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"], input[type="password"]');
+                regularInputs.forEach(input => {
+                    if (!input.disabled && input.required) {
+                        totalFields++;
+                        if (input.value.trim()) {
+                            filledFields++;
+                        }
+                    }
+                });
+
+                // Count select fields
+                const selects = form.querySelectorAll('select');
+                selects.forEach(select => {
+                    if (!select.disabled && select.required) {
+                        totalFields++;
+                        if (select.value) {
+                            filledFields++;
+                        }
+                    }
+                });
+
+                // Count textarea fields
+                const textareas = form.querySelectorAll('textarea');
+                textareas.forEach(textarea => {
+                    if (!textarea.disabled && textarea.required) {
+                        totalFields++;
+                        if (textarea.value.trim()) {
+                            filledFields++;
+                        }
+                    }
+                });
+
+                // Count salary components
+                const salaryInputs = form.querySelectorAll('.salary-value');
+                salaryInputs.forEach(input => {
+                    if (!input.disabled) {
+                        totalFields++;
+                        if (input.value && parseFloat(input.value) > 0) {
+                            filledFields++;
+                        }
+                    }
+                });
+
+                // Count document uploads
+                const documentCards = form.querySelectorAll('.document-card');
+                documentCards.forEach(card => {
+                    const fileInput = card.querySelector('input[type="file"]');
+                    const select = card.querySelector('.doc-type');
+
+                    if (fileInput && !fileInput.disabled) {
+                        if (card.classList.contains('mandatory-doc')) {
+                            // Mandatory document
+                            totalFields++;
+                            if (fileInput.files.length > 0) {
+                                filledFields++;
+                            }
+                        } else if (select && select.value) {
+                            // Optional document with type selected
+                            totalFields++;
+                            if (fileInput.files.length > 0) {
+                                filledFields++;
+                            }
+                        }
+                    }
+                });
+
+                const progress = totalFields > 0 ? (filledFields / totalFields) * 100 : 0;
+                progressBar.style.width = `${Math.min(progress, 100)}%`;
+                progressText.textContent = `${Math.round(Math.min(progress, 100))}%`;
+            };
+
+            // Throttled progress update for better performance
+            let progressTimeout;
+            const throttledUpdateProgress = () => {
+                clearTimeout(progressTimeout);
+                progressTimeout = setTimeout(updateProgress, 100);
+            };
+
+            form.addEventListener('input', throttledUpdateProgress);
+            form.addEventListener('change', throttledUpdateProgress);
+
+            // Update progress when dropdowns are populated
+            const observer = new MutationObserver(updateProgress);
+            observer.observe(form, { childList: true, subtree: true });
+
+            updateProgress(); // Initial calculation
+        }
+    }
+
+    // Password toggle functionality
+    window.togglePassword = function (id) {
+        const input = document.getElementById(id);
+        const icon = input.parentElement.querySelector('.toggle-password i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    };
+
+    // --- Compact Subject Specialization (Tags Input) Logic ---
+    const subjectSelectField = document.getElementById('subjectSelectField');
+    const subjectSearch = document.getElementById('subjectSearch');
+    const subjectDropdown = document.getElementById('subjectDropdown');
+    const activeChipsInline = document.getElementById('activeChipsInline');
+    const hiddenSubjectsSelect = document.getElementById('coreSubjects');
+    const subjectOptions = document.querySelectorAll('.subject-option-compact');
+    const noResults = document.getElementById('noSubjectsFound');
+
+    let selectedSubjectIds = new Set();
+
+    // Toggle dropdown on field click
+    subjectSelectField.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-chip-small')) return;
+
+        subjectSearch.focus();
+        subjectSelectField.classList.add('active');
+        subjectDropdown.style.display = 'block';
+    });
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+        if (!subjectSelectField.contains(e.target)) {
+            subjectSelectField.classList.remove('active');
+            subjectDropdown.style.display = 'none';
+        }
+    });
+
+    // Search/Filter logic
+    subjectSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        let visibleCount = 0;
+
+        subjectOptions.forEach(option => {
+            const name = option.dataset.name.toLowerCase();
+            const id = option.dataset.id;
+
+            // Show if name matches AND not already selected
+            if (name.includes(term) && !selectedSubjectIds.has(id)) {
+                option.style.display = 'flex';
+                visibleCount++;
+            } else {
+                option.style.display = 'none';
+            }
+        });
+
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        subjectDropdown.style.display = 'block';
+        subjectSelectField.classList.add('active');
+    });
+
+    // Keyboard navigation (Backspace to remove last chip)
+    subjectSearch.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && subjectSearch.value === '' && selectedSubjectIds.size > 0) {
+            const lastChip = activeChipsInline.lastElementChild;
+            if (lastChip) {
+                removeSubjectChip(lastChip.dataset.id, lastChip);
+            }
+        }
+    });
+
+    // Selection logic
+    subjectOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            addSubjectChip(option.dataset.id, option.dataset.name);
+            subjectSearch.value = '';
+            subjectSearch.focus();
+
+            // Re-filter dropdown
+            updateDropdownList();
+
+            // If all selected, close dropdown
+            if (Array.from(subjectOptions).every(opt => selectedSubjectIds.has(opt.dataset.id))) {
+                subjectDropdown.style.display = 'none';
+                subjectSelectField.classList.remove('active');
+            }
+        });
+    });
+
+    function updateDropdownList() {
+        const term = subjectSearch.value.toLowerCase();
+        let visibleCount = 0;
+
+        subjectOptions.forEach(option => {
+            if (!selectedSubjectIds.has(option.dataset.id) && option.dataset.name.toLowerCase().includes(term)) {
+                option.style.display = 'flex';
+                visibleCount++;
+            } else {
+                option.style.display = 'none';
+            }
+        });
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function addSubjectChip(id, name) {
+        if (selectedSubjectIds.has(id)) return;
+        selectedSubjectIds.add(id);
+
+        // Update hidden select
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.selected = true;
+        hiddenSubjectsSelect.appendChild(opt);
+
+        // Create compact chip
+        const chip = document.createElement('div');
+        chip.className = 'subject-chip-compact';
+        chip.dataset.id = id;
+        chip.innerHTML = `
+            <span>${name}</span>
+            <span class="remove-chip-small" title="Remove">
+                <i class="fas fa-times"></i>
+            </span>
+        `;
+
+        chip.querySelector('.remove-chip-small').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeSubjectChip(id, chip);
+        });
+
+        activeChipsInline.appendChild(chip);
+    }
+
+    function removeSubjectChip(id, chipElement) {
+        selectedSubjectIds.delete(id);
+
+        // Remove from hidden select
+        const opt = hiddenSubjectsSelect.querySelector(`option[value="${id}"]`);
+        if (opt) opt.remove();
+
+        // Remove from UI
+        chipElement.remove();
+
+        // Update list
+        updateDropdownList();
+    }
+
+    // Toggle Core Subjects visibility
+    window.toggleCoreSubjects = function () {
+        const profileSelect = document.getElementById('profileId');
+        const subjectsGroup = document.getElementById('coreSubjectsGroup');
+        const selectedText = profileSelect.options[profileSelect.selectedIndex]?.text || '';
+
+        if (selectedText.toLowerCase().includes('teacher')) {
+            subjectsGroup.style.display = 'block';
+        } else {
+            subjectsGroup.style.display = 'none';
+            // Reset state
+            selectedSubjectIds.clear();
+            activeChipsInline.innerHTML = '';
+            hiddenSubjectsSelect.innerHTML = '';
+            subjectSearch.value = '';
+        }
+    };
+
+    // Generate unique password
+    window.togglePasswordSuggestions = function () {
+        const passwordInput = document.getElementById('password');
+
+        // Generate a unique password each time
+        const generatedPassword = generateUniquePassword();
+
+        // Set the generated password
+        passwordInput.value = generatedPassword;
+
+        // Check password strength
+        checkPasswordStrength(generatedPassword);
+
+        // Show a brief success message
+        showPasswordGeneratedMessage();
+    };
+
+    // Generate unique password function
+    function generateUniquePassword() {
+        const adjectives = ['Smart', 'Bright', 'Quick', 'Strong', 'Swift', 'Bold', 'Sharp', 'Fast', 'Cool', 'Wise'];
+        const nouns = ['Tiger', 'Eagle', 'Lion', 'Wolf', 'Bear', 'Fox', 'Hawk', 'Shark', 'Falcon', 'Panther'];
+        const numbers = Math.floor(Math.random() * 9000) + 1000; // 4-digit random number
+        const specialChars = ['@', '#', '$', '!', '%', '&', '*', '+', '=', '?'];
+
+        // Randomly select adjective, noun, and special character
+        const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+        const noun = nouns[Math.floor(Math.random() * nouns.length)];
+        const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
+
+        // Create unique password: Adjective + Noun + Numbers + SpecialChar
+        return adjective + noun + numbers + specialChar;
+    }
+
+    // Show password generated message
+    function showPasswordGeneratedMessage() {
+        const passwordInput = document.getElementById('password');
+        const originalPlaceholder = passwordInput.placeholder;
+
+        // Temporarily change placeholder to show success
+        passwordInput.placeholder = '✓ Password generated!';
+        passwordInput.style.borderColor = 'var(--success-color)';
+
+        // Reset after 2 seconds
+        setTimeout(() => {
+            passwordInput.placeholder = originalPlaceholder;
+            passwordInput.style.borderColor = '';
+        }, 2000);
+    }
+
+    // Password generation is now handled by the magic wand button directly
+
+    // Salary Structure Functions
+    function toggleSubsection(sectionType) {
+        const grid = document.getElementById(sectionType + '-grid');
+        const toggle = event.target.closest('.subsection-toggle');
+        const icon = toggle.querySelector('i');
+
+        if (grid.style.display === 'none') {
+            grid.style.display = 'grid';
+            icon.classList.remove('fa-chevron-right');
+            icon.classList.add('fa-chevron-down');
+        } else {
+            grid.style.display = 'none';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-right');
+        }
+    }
+
+    function setQuickAmount(button, amount) {
+        const salaryItem = button.closest('.salary-item');
+        const input = salaryItem.querySelector('.salary-value');
+
+        input.value = amount;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Visual feedback
+        button.style.background = 'var(--primary-color)';
+        button.style.color = 'white';
+        setTimeout(() => {
+            button.style.background = '';
+            button.style.color = '';
+        }, 200);
+    }
+
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        const strengthBar = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+        const strengthContainer = document.getElementById('passwordStrength');
+
+        // Check if elements exist before accessing them
+        if (!strengthBar || !strengthText || !strengthContainer) {
+            return;
+        }
+
+        let score = 0;
+        let feedback = '';
+
+        // Length check
+        if (password.length >= 8) score += 1;
+        if (password.length >= 12) score += 1;
+
+        // Character variety checks
+        if (/[a-z]/.test(password)) score += 1;
+        if (/[A-Z]/.test(password)) score += 1;
+        if (/[0-9]/.test(password)) score += 1;
+        if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+        // Update strength indicator
+        strengthBar.className = 'strength-fill';
+        if (score <= 2) {
+            strengthBar.classList.add('weak');
+            feedback = 'Weak password';
+        } else if (score <= 3) {
+            strengthBar.classList.add('fair');
+            feedback = 'Fair password';
+        } else if (score <= 4) {
+            strengthBar.classList.add('good');
+            feedback = 'Good password';
+        } else {
+            strengthBar.classList.add('strong');
+            feedback = 'Strong password';
+        }
+
+        strengthText.textContent = feedback;
+        strengthContainer.style.display = 'block';
+    }
+
+    // National ID validation function
+    let nationalIdTimeout;
+    async function validateNationalId(nationalId) {
+        const validationDiv = document.getElementById('nationalIdValidation');
+        const nationalIdInput = document.getElementById('nationalId');
+        const validationText = validationDiv.querySelector('.validation-text');
+        const validationIcon = validationDiv.querySelector('i');
+
+        if (!nationalId || nationalId.length < 3) {
+            validationDiv.style.display = 'none';
+            nationalIdInput.classList.remove('error', 'valid');
+            return;
+        }
+
+        // Show checking state
+        validationDiv.style.display = 'flex';
+        validationDiv.className = 'validation-message checking';
+        validationIcon.className = 'fas fa-spinner';
+        validationText.textContent = 'Checking availability...';
+        nationalIdInput.classList.remove('error', 'valid');
+
+        try {
+            const formData = new FormData();
+            formData.append('national_id', nationalId);
+            const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfEl) {
+                formData.append('csrfmiddlewaretoken', csrfEl.value);
+            }
+            // Include school_id for Super Admin (not in session)
+            const schoolIdEl = document.querySelector('input[name="school_id"]');
+            if (schoolIdEl && schoolIdEl.value) {
+                formData.append('school_id', schoolIdEl.value);
+            }
+
+            const response = await fetch('/employees/check-national-id/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfEl ? csrfEl.value : ''
+                }
+            });
+
+            console.log('National ID check response status:', response.status, response.url);
+
+            if (!response.ok) {
+                console.error('National ID check failed with status:', response.status);
+                const text = await response.text();
+                console.error('Response body:', text.substring(0, 500));
+                validationDiv.className = 'validation-message unavailable';
+                validationIcon.className = 'fas fa-exclamation-triangle';
+                validationText.textContent = 'Error checking National ID (HTTP ' + response.status + ')';
+                nationalIdInput.classList.add('error');
+                nationalIdInput.classList.remove('valid');
+                return;
+            }
+
+            const result = await response.json();
+            console.log('National ID check result:', result);
+
+            if (result.status === 'SUCCESS') {
+                if (result.available) {
+                    // National ID is available
+                    validationDiv.className = 'validation-message available';
+                    validationIcon.className = 'fas fa-check-circle';
+                    validationText.textContent = 'National ID is available';
+                    nationalIdInput.classList.add('valid');
+                    nationalIdInput.classList.remove('error');
+                } else {
+                    // National ID already exists
+                    validationDiv.className = 'validation-message unavailable';
+                    validationIcon.className = 'fas fa-times-circle';
+                    validationText.textContent = 'National ID already exists';
+                    nationalIdInput.classList.add('error');
+                    nationalIdInput.classList.remove('valid');
+                }
+            } else {
+                // Server returned an error message
+                console.error('National ID check server error:', result.message || result);
+                validationDiv.className = 'validation-message unavailable';
+                validationIcon.className = 'fas fa-exclamation-triangle';
+                validationText.textContent = result.message || 'Error checking National ID';
+                nationalIdInput.classList.add('error');
+                nationalIdInput.classList.remove('valid');
+            }
+        } catch (error) {
+            console.error('Error validating National ID:', error);
+            validationDiv.className = 'validation-message unavailable';
+            validationIcon.className = 'fas fa-exclamation-triangle';
+            validationText.textContent = 'Error checking National ID';
+            nationalIdInput.classList.add('error');
+            nationalIdInput.classList.remove('valid');
+        }
+    }
+
+    // Add password strength checking to password input
+    document.addEventListener('DOMContentLoaded', function () {
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function () {
+                if (this.value.length > 0) {
+                    checkPasswordStrength(this.value);
+                } else {
+                    const strengthContainer = document.getElementById('passwordStrength');
+                    if (strengthContainer) {
+                        strengthContainer.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // National ID validation
+        const nationalIdInput = document.getElementById('nationalId');
+        if (nationalIdInput) {
+            nationalIdInput.addEventListener('input', function () {
+                const nationalId = this.value.trim();
+
+                // Clear previous timeout
+                if (nationalIdTimeout) {
+                    clearTimeout(nationalIdTimeout);
+                }
+
+                // Set new timeout for debounced validation
+                nationalIdTimeout = setTimeout(() => {
+                    validateNationalId(nationalId);
+                }, 500); // Wait 500ms after user stops typing
+            });
+        }
+
+        // Set default current date for Date of Joining
+        const dateOfJoiningInput = document.getElementById('dateOfJoining');
+        if (dateOfJoiningInput && !dateOfJoiningInput.value) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const currentDate = `${year}-${month}-${day}`;
+            dateOfJoiningInput.value = currentDate;
+        }
+
+        // Email validation
+        const emailInput = document.getElementById('email');
+        if (emailInput) {
+            emailInput.addEventListener('blur', validateEmail);
+            emailInput.addEventListener('input', function () {
+                if (this.value.length > 0) {
+                    validateEmail.call(this);
+                } else {
+                    hideValidation('emailValidation');
+                    this.classList.remove('error', 'valid');
+                }
+            });
+        }
+
+        // Mobile validation
+        const mobileInput = document.getElementById('mobileNo');
+        if (mobileInput) {
+            mobileInput.addEventListener('blur', validateMobile);
+            mobileInput.addEventListener('input', function () {
+                // Only allow numbers
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length > 0) {
+                    validateMobile.call(this);
+                } else {
+                    hideValidation('mobileValidation');
+                    this.classList.remove('error', 'valid');
+                }
+            });
+        }
+    });
+
+    // Email validation function
+    function validateEmail() {
+        const email = this.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const validationDiv = document.getElementById('emailValidation');
+
+        if (email.length === 0) {
+            hideValidation('emailValidation');
+            this.classList.remove('error', 'valid');
+            return true;
+        }
+
+        if (emailRegex.test(email)) {
+            showValidation('emailValidation', 'success', 'Valid email address');
+            this.classList.remove('error');
+            this.classList.add('valid');
+            return true;
+        } else {
+            showValidation('emailValidation', 'error', 'Please enter a valid email address');
+            this.classList.remove('valid');
+            this.classList.add('error');
+            return false;
+        }
+    }
+
+    // Mobile validation function
+    function validateMobile() {
+        const mobile = this.value.trim();
+        const mobileRegex = /^[6-9]\d{9}$/;
+        const validationDiv = document.getElementById('mobileValidation');
+
+        if (mobile.length === 0) {
+            hideValidation('mobileValidation');
+            this.classList.remove('error', 'valid');
+            return true;
+        }
+
+        if (mobileRegex.test(mobile)) {
+            showValidation('mobileValidation', 'success', 'Valid mobile number');
+            this.classList.remove('error');
+            this.classList.add('valid');
+            return true;
+        } else {
+            showValidation('mobileValidation', 'error', 'Please enter a valid 10-digit mobile number starting with 6-9');
+            this.classList.remove('valid');
+            this.classList.add('error');
+            return false;
+        }
+    }
+
+    // Show validation message
+    function showValidation(elementId, type, message) {
+        const validationDiv = document.getElementById(elementId);
+        const icon = validationDiv.querySelector('i');
+        const text = validationDiv.querySelector('span');
+
+        validationDiv.style.display = 'flex';
+        text.textContent = message;
+
+        if (type === 'success') {
+            validationDiv.style.color = 'var(--success-color)';
+            icon.className = 'fas fa-check-circle';
+        } else {
+            validationDiv.style.color = 'var(--error-color)';
+            icon.className = 'fas fa-exclamation-circle';
+        }
+    }
+
+    // Hide validation message
+    function hideValidation(elementId) {
+        const validationDiv = document.getElementById(elementId);
+        validationDiv.style.display = 'none';
+    }
+
+    // Handle education dropdown change
+    window.handleEducationChange = function () {
+        const select = document.getElementById('educationSelect');
+        const textInput = document.getElementById('education');
+
+        if (select.value === 'Other') {
+            // Show text input for custom education
+            textInput.style.display = 'block';
+            textInput.required = true;
+            textInput.focus();
+        } else if (select.value === '') {
+            // Hide text input when no selection
+            textInput.style.display = 'none';
+            textInput.required = false;
+            textInput.value = '';
+        } else {
+            // Hide text input and set the selected value
+            textInput.style.display = 'none';
+            textInput.required = false;
+            textInput.value = select.value;
+        }
+    }
+
+    // Form submission
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('employeeForm');
+        if (!form) {
+            return;
+        }
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const loading = document.getElementById('loading');
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+
+            // Check if required elements exist
+            if (!submitBtn) {
+                console.error('Submit button not found');
+                return;
+            }
+
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
+            }
+
+            // Replace IDs with names for country, state, and district
+            const countrySelect = document.getElementById('country');
+            const stateSelect = document.getElementById('state');
+            const districtSelect = document.getElementById('district');
+
+            if (countrySelect && countrySelect.value) {
+                const countryName = countrySelect.options[countrySelect.selectedIndex].text;
+                formData.set('country_name', countryName);
+            }
+
+            if (stateSelect && stateSelect.value) {
+                const stateName = stateSelect.options[stateSelect.selectedIndex].text;
+                formData.set('state_name', stateName);
+            }
+
+            if (districtSelect && districtSelect.value) {
+                const districtName = districtSelect.options[districtSelect.selectedIndex].text;
+                formData.set('district_name', districtName);
+            }
+
+
+            // Show loading
+            submitBtn.disabled = true;
+            if (loading) {
+                loading.style.display = 'block';
+            }
+
+            try {
+                const response = await fetch('/employees/add/submit/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrfToken.value
+                    }
+                });
+
+
+                const result = await response.json();
+
+                // Check for success in different possible formats
+                const isSuccess = result.status === 'SUCCESS' ||
+                    result.Status === 'SUCCESS' ||
+                    result.success === true ||
+                    (result.status === undefined && result.Status === undefined && result.success === undefined && !result.Message && !result.message);
+
+                if (isSuccess) {
+                    // Show success modal instead of alert
+                    const modal = document.getElementById('successModal');
+                    const modalText = document.getElementById('successModalText');
+                    const printBtn = document.getElementById('btnPrintJobLetter');
+
+                    if (modalText) {
+                        modalText.textContent = result.Message || result.message || 'Employee has been added successfully to the system.';
+                    }
+
+                    if (modal) {
+                        modal.style.display = 'flex';
+                    }
+
+                    if (printBtn) {
+                        printBtn.onclick = function () {
+                            const empCode = result.EmployeeCode || result.EmployeeID || result.user_code;
+                            if (empCode) {
+                                window.open(`/employees/print-job-letter/?employee_code=${empCode}`, '_blank');
+                            } else {
+                                alert('Error: Employee code not found in response');
+                            }
+                        };
+                    }
+
+                    // Store data for re-print if needed
+                    if (result.EmployeeCode || result.user_code) {
+                        sessionStorage.setItem('lastAddedEmployee', JSON.stringify({
+                            code: result.EmployeeCode || result.user_code,
+                            name: formData.get('employeeName')
+                        }));
+                    }
+                } else {
+                    const errorMessage = result.Message || result.message || result.error || 'Unknown error';
+                    alert('Error: ' + errorMessage);
+
+                    // If it's a National ID duplicate error, focus on the National ID field
+                    if (errorMessage.toLowerCase().includes('national id') && errorMessage.toLowerCase().includes('already exists')) {
+                        const nationalIdField = document.getElementById('nationalId');
+                        if (nationalIdField) {
+                            nationalIdField.focus();
+                            nationalIdField.select();
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while adding the employee: ' + error.message);
+            } finally {
+                // Hide loading
+                submitBtn.disabled = false;
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }
+        });
+    });
+
+    // Reset form for a new employee entry (from modal)
+    window.resetFormForNew = function () {
+        const modal = document.getElementById('successModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+
+        // Use the existing resetForm logic
+        document.getElementById('employeeForm').reset();
+
+        // Reset salary calculations
+        document.querySelectorAll('.salary-value').forEach(input => {
+            input.value = '';
+        });
+        if (typeof updateSalarySummary === 'function') {
+            updateSalarySummary();
+        }
+
+        // Reset documents
+        document.querySelectorAll('.doc-preview').forEach(preview => {
+            preview.style.display = 'none';
+        });
+        document.querySelectorAll('.upload-zone').forEach(zone => {
+            zone.style.display = 'block';
+        });
+
+        // Reset document rows to initial state
+        const docCards = document.querySelectorAll('.document-card:not(.mandatory-doc)');
+        docCards.forEach(card => card.remove());
+        docRowCount = 0;
+        if (typeof updateAddButtonState === 'function') {
+            updateAddButtonState();
+        }
+        if (typeof updateDocumentOptions === 'function') {
+            updateDocumentOptions();
+        }
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Helper to close modal specifically
+    window.closeSuccessModal = function () {
+        const modal = document.getElementById('successModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+</script>
+
+{% endblock %}

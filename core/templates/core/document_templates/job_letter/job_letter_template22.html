@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Letter - {{ employee.full_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --navy: #1e3a8a; --light-blue: #eff6ff; --border: #cbd5e1; --text: #334155; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
+        body { background:#f1f5f9; color:var(--text); padding:10px; font-size: 11px; }
+        .container { max-width:850px; margin:0 auto; background:#fff; position:relative; overflow:hidden; border: 1px solid #ddd; }
+        
+        /* Blue Header Section */
+        .blue-header { background: #2563eb; padding: 25px; text-align: center; color: #fff; }
+        .logo-container { background: #fff; display: inline-block; padding: 6px; border-radius: 4px; margin-bottom: 12px; }
+        .logo-img { height: 50px; display: block; }
+        .school-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .tagline { font-size: 14px; opacity: 0.9; }
+        
+        /* Secondary Title Bar */
+        .title-bar { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: center; color: #1e40af; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; }
+
+        .content { padding: 25px; }
+        .meta-area { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .meta-info { font-size: 12px; flex: 1; }
+        .meta-info p { margin-bottom: 4px; }
+        
+        .emp-photo-box { width: 100px; height: 125px; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; background: #f8fafc; flex-shrink: 0; margin-left: 20px; }
+        .emp-photo-img { width: 100%; height: 100%; object-fit: cover; }
+        .emp-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #e2e8f0; }
+
+        .greeting { line-height: 1.6; margin-bottom: 20px; font-size: 12px; clear: both; }
+        
+        /* Section Styling */
+        .section-title { font-size: 13px; font-weight: 800; color: #1e40af; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #eff6ff; padding-bottom: 6px; }
+        
+        /* Employee Info Table */
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .info-table td { padding: 8px 12px; border: 1px solid #e2e8f0; }
+        .info-table td:first-child { background: #f9fafb; width: 140px; font-weight: 600; color: #64748b; }
+        .highlight-red { color: #dc2626; font-weight: 700; }
+        
+        /* Salary Table */
+        .salary-table { width: 100%; border-collapse: collapse; border: 1px solid #2563eb; margin-bottom: 20px; overflow: hidden; border-radius: 6px; }
+        .salary-table th { background: #2563eb; color: #fff; padding: 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .salary-table td { padding: 8px 12px; border-bottom: 1px solid #eff6ff; font-size: 11px; }
+        .salary-table tr:nth-child(even) { background: #f8fafc; }
+        .salary-table .net-row { background: #f0f9ff; font-weight: 800; color: #1e3a8a; }
+        .currency-symbol { font-size: 1.2em; vertical-align: middle; }
+
+        /* Rules Section */
+        .rules-section { border: 1px solid #f97316; background: #fffbeb; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .rules-title { color: #9a3412; font-weight: 800; font-size: 13px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .rules-list { list-style: none; margin-left: 5px; }
+        .rules-list li { margin-bottom: 6px; padding-left: 15px; position: relative; font-size: 11px; color: #78350f; }
+        .rules-list li::before { content: '●'; position: absolute; left: 0; color: #f97316; font-size: 10px; }
+
+        /* Portal Access Block - Matching Style but using our unified logic */
+        .portal-container { border: 1px solid #38bdf8; background: #f0f9ff; border-radius: 6px; padding: 15px; margin-bottom: 20px; position: relative; }
+        .portal-title { color: #0369a1; font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .password-line { font-family: 'Courier New', monospace; font-size: 13px; margin-bottom: 15px; color: #0c4a6e; }
+        .password-val { color: #ef4444; font-weight: 800; background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid #bae6fd; }
+        
+        .options-box { background: #fff7ed; border: 1px solid #ffedd5; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+        .options-title { color: #ea580c; font-weight: 800; font-size: 11px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .options-list { list-style: none; }
+        .options-list li { font-size: 11px; color: #431407; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .options-list li::before { content: '▪'; color: #f97316; }
+
+        .disclaimer { font-size: 10px; color: #64748b; font-style: italic; }
+
+        @media print { 
+            .no-print { display:none; } 
+            body { background:#fff; padding:0; } 
+            .container { border:none; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="position:fixed;top:10px;right:10px;z-index:100;"><button onclick="window.print()" style="background:#2563eb;color:#fff;padding:10px 20px;border:none;border-radius:6px;font-weight:800;cursor:pointer;box-shadow:0 4px 6px rgba(0,0,0,0.1);">Print Letter</button></div>
+    
+    <div class="container">
+        <!-- Blue Header -->
+        <div class="blue-header">
+            <div class="logo-container">{% if employee.school_logo %}<img src = "{{ employee.school_logo }}" class = "logo-img">{% else %}<div style = "width:50px;height:50px;background:#eee;color:#333;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;">{{ employee.school_name|slice:":1" }}</div>{% endif %}</div>
+            <h1 class="school-name">{{ employee.school_name }}</h1>
+            <p class="tagline">{{ employee.school_address }}</p>
+        </div>
+        
+        <!-- Clipboard Title Bar -->
+        <div class="title-bar">
+            <span>📋</span> JOB LETTER & APPOINTMENT CONFIRMATION
+        </div>
+
+        <div class="content">
+            <div class="meta-area">
+                <div class="meta-info">
+                    <p><strong>Date:</strong> {{ employee.current_date }}</p>
+                    <p><strong>To:</strong> {{ employee.full_name }}</p>
+                    <p><strong>Subject:</strong> Job Letter & Appointment Confirmation</p>
+                </div>
+                <div class="emp-photo-box">
+                    {% if employee.user_photo %}
+                        <img src="{{ employee.user_photo }}" class="emp-photo-img" alt="Staff Photo">
+                    {% else %}
+                        <div class="emp-photo-placeholder">👤</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="greeting">
+                Dear <strong>{{ employee.full_name }}</strong>,<br><br>
+                {{ employee.greeting_message }}
+            </div>
+
+            <!-- Employee Info Section -->
+            <div class="section-title"><span>👤</span> Employee Information</div>
+            <table class="info-table">
+                <tr><td>Full Name:</td><td class="highlight-red">{{ employee.full_name }}</td></tr>
+                <tr><td>Employee Code:</td><td class="highlight-red">{{ employee.employee_code }}</td></tr>
+                <tr><td>Position:</td><td>{{ employee.position }}</td></tr>
+                <tr><td>Date of Joining:</td><td>{{ employee.date_of_joining }}</td></tr>
+                <tr><td>Email:</td><td>{{ employee.email }}</td></tr>
+                <tr><td>Mobile:</td><td>{{ employee.mobile_no }}</td></tr>
+                <tr><td>Department:</td><td>{{ employee.department }}</td></tr>
+            </table>
+
+            <!-- Salary Structure Section -->
+            <div class="section-title"><span>💰</span> Salary Structure</div>
+            <table class="salary-table">
+                <thead><tr><th>Component</th><th>Type</th><th>Amount (₹)</th></tr></thead>
+                <tbody>
+                    {% for comp in employee.earnings %}<tr><td>{{ comp.ComponentName }}</td><td > Earning</td><td align = "right">{{ comp.Amount|floatformat:2 }}</td></tr>{% endfor %}
+                    {% for comp in employee.deductions %}<tr><td>{{ comp.ComponentName }}</td><td style = "color:#ef4444;">Deduction</td><td align = "right" style = "color:#ef4444;">{{ comp.Amount|floatformat:2 }}</td></tr>{% endfor %}
+                    <tr class="net-row">
+                        <td colspan="2" style="font-weight:800;">Net Salary</td>
+                        <td align="right" style="font-size:14px;"><strong>₹{{ employee.net_salary|floatformat:0 }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Rules Section -->
+            <div class="rules-section">
+                <div class="rules-title"><span>📝</span> School Rules & Regulations</div>
+                <ul class="rules-list">{% for rule in employee.school_rules %}<li><strong>{{ rule.Title }}:</strong> {{ rule.Description }}</li>{% endfor %}</ul>
+            </div>
+
+            <!-- Portal Access Block -->
+            <div class="portal-container">
+                <div class="portal-title"><span>🔐</span> {{ login_info.Title }}</div>
+                <div class="password-line">Password: <span class="password-val">Contact Admin</span></div>
+                
+                <div class="options-box">
+                    <div class="options-title"><span>📱</span> {{ login_info.OptionsHeader }}</div>
+                    <ul class="options-list">{% for opt in login_info.Options %}<li><strong>{{ opt.Label }}</strong> {{ opt.Value }}</li>{% endfor %}</ul>
+                </div>
+                
+                <p class="disclaimer">{{ login_info.Disclaimer }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

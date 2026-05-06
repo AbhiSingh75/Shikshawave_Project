@@ -1,0 +1,862 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Exam Result Entry | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=3.0">
+</style>
+{{ theme_styles|safe }}
+<style>
+    /* Layout Spacing Reset */
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #64748b;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --bg-hover: #f8fafc;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --secondary-color: #111827;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+        --bg-hover: #374151;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+
+    /* Fixed Header / Sidebar Offset for sw-main-content */
+    body { padding-top: 0 !important; }
+    
+    .dashboard-container { 
+        padding: 16px 20px 24px 20px !important; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 12px; 
+    }
+
+    /* Standard Sticky Controls Row */
+    @media (min-width: 1025px) {
+        .controls-row {
+            position: sticky !important;
+            top: calc(var(--header-height, 70px) + 12px) !important;
+            z-index: 999 !important;
+            margin: 0 0 10px 0 !important;
+        }
+    }
+
+    .controls-row {
+        background: var(--card-bg, #ffffff) !important; 
+        padding: 12px 20px !important;
+        border-radius: 12px !important;
+        box-shadow: var(--shadow-sm, 0 4px 15px rgba(0,0,0,0.08)) !important;
+        border: 1px solid var(--border-color, #e5e7eb) !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        overflow: visible !important;
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    .controls-left h3 {
+        color: var(--primary-color, #004aad) !important;
+        font-weight: 700 !important;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+        font-size: 1.3rem;
+    }
+    
+    .breadcrumb-text {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .breadcrumb-separator {
+        color: #cbd5e1;
+        font-weight: 300;
+        margin: 0 4px;
+    }
+
+    body.dark-mode { background-color: var(--secondary-color) !important; color: var(--text-color); }
+
+    /* CONTENT STYLES (RESTORED) */
+    .panel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; }
+    body.dark-mode .panel-header { border-color: #4b5563; }
+    .panel-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: white; background: linear-gradient(135deg, var(--primary-color, #8b5cf6) 0%, var(--primary-hover, #6d28d9) 100%); }
+    .panel-title { font-size: 1.15rem; font-weight: 700; color: var(--text-main, #1f2937); margin: 0; }
+    body.dark-mode .panel-title { color: #d1d5db; }
+    
+    .btn { padding: 8px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-primary { background: var(--success-color); color: white; }
+    .btn-primary:hover { background: var(--success-color); filter: brightness(1.1); }
+    
+    .class-card { background: var(--card-bg, white); padding: 16px; border-radius: 12px; box-shadow: var(--card-shadow); cursor: pointer; transition: all 0.2s; border-left: 4px solid var(--primary-color, #8b5cf6); border: 1px solid var(--border-color); }
+    body.dark-mode .class-card { background: var(--bg-hover); border-left-color: var(--primary-color); }
+    .class-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79,70,229,0.2); }
+    body.dark-mode .class-card:hover { box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+    .class-name { font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
+    body.dark-mode .class-name { color: #f3f4f6; }
+    .class-stats { font-size: 0.85rem; color: #6b7280; }
+    body.dark-mode .class-stats { color: #34d399; }
+    
+    .students-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .students-table th, .students-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    body.dark-mode .students-table th, body.dark-mode .students-table td { border-color: #4b5563; color: #e5e7eb; }
+    .students-table th { background: var(--primary-color, #004aad) !important; color: white !important; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .students-table tbody tr { transition: background 0.2s; }
+    .students-table tbody tr:hover { background: #f9fafb; }
+    body.dark-mode .students-table tbody tr:hover { background: #374151; }
+    .students-table input[type="number"] { width: 70px; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 4px; text-align: center; font-size: 13px; }
+    .students-table input[type="text"] { padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; }
+    body.dark-mode .students-table input { background: #374151; border-color: #4b5563; color: #f9fafb; }
+    .students-table input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px var(--primary-light); }
+    .no-data { text-align: center; color: #6b7280; padding: 40px 20px; font-style: italic; }
+    .subject-cell { font-weight: 600; color: #1f2937; }
+    body.dark-mode .subject-cell { color: #f3f4f6; }
+    body.dark-mode .students-table .row-even { background: #374151 !important; }
+    body.dark-mode .students-table .row-odd { background: #2d2d2d !important; }
+    .marks-info { font-size: 10px; color: #6b7280; margin-top: 2px; }
+    body.dark-mode .marks-info { color: #9ca3af; }
+    .validation-modal { display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .validation-modal.show { display: flex !important; }
+    .validation-content { background: white; padding: 24px; border-radius: 12px; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); text-align: center; }
+    body.dark-mode .validation-content { background: #2d2d2d; }
+    .validation-icon { font-size: 48px; color: #ef4444; margin-bottom: 16px; }
+    .validation-title { font-size: 1.2rem; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
+    body.dark-mode .validation-title { color: #f3f4f6; }
+    .validation-message { font-size: 0.95rem; color: #6b7280; margin-bottom: 20px; }
+    body.dark-mode .validation-message { color: #9ca3af; }
+    .student-header { background: var(--light-gray, #f8fafc); padding: 14px 18px; border-radius: 10px; margin-bottom: 12px; border-left: 5px solid var(--primary-color, #8b5cf6); border: 1px solid var(--border-color); }
+    body.dark-mode .student-header { background: var(--bg-hover); border-left-color: var(--primary-color); }
+    .student-header h4 { margin: 0; font-size: 1.1rem; color: #1f2937; }
+    body.dark-mode .student-header h4 { color: #f3f4f6; }
+    .student-header p { color: #6b7280; }
+    body.dark-mode .student-header p { color: #9ca3af; }
+    .marks-table-wrapper { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    body.dark-mode .marks-table-wrapper { background: #2d2d2d; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    body.dark-mode .save-section { background: var(--bg-hover); }
+    body.dark-mode .save-section-text { color: var(--text-light); }
+    
+    /* New Alignment & Overflow Fixes */
+    .panel-card {
+        background: var(--card-bg, #ffffff);
+        border-radius: 12px;
+        border: 1px solid var(--border-color, #e5e7eb);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 20px;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    .panel-card .panel-header {
+        padding: 16px 20px;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-hover, #f9fafb);
+    }
+    
+    .panel-card .panel-body {
+        padding: 20px;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 10px;
+        border-radius: 8px;
+    }
+    
+    /* Compact Action Buttons for Table */
+    .action-group {
+        display: flex;
+        gap: 6px;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+    }
+    
+    .action-group .btn {
+        padding: 6px 12px;
+        font-size: 11px;
+        height: 32px;
+        justify-content: center;
+    }
+
+    .overview-stats { display: flex; gap: 20px; margin-top: 8px; font-size: 12px; flex-wrap: wrap; }
+    .overview-label { color: #6b7280; }
+    body.dark-mode .overview-label { color: #9ca3af; }
+    .nav-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+    .student-header-content { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .remarks-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 8px 12px; background: #f8fafc; border-radius: 6px; font-size: 12px; }
+    body.dark-mode .remarks-toggle { background: #374151; }
+    .remarks-toggle input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+    .remarks-toggle label { cursor: pointer; color: #374151; font-weight: 500; }
+    body.dark-mode .remarks-toggle label { color: #f3f4f6; }
+    @media (max-width: 768px) {
+        .student-header-content { flex-direction: column; align-items: stretch; }
+        .overview-stats { gap: 12px; font-size: 11px; }
+        .nav-buttons { justify-content: stretch; }
+        .nav-buttons .btn { flex: 1; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="dashboard-container">
+    <!-- Validation Modal -->
+    <div class="validation-modal" id="validationModal">
+        <div class="validation-content">
+            <div class="validation-icon"><i class="fas fa-exclamation-circle"></i></div>
+            <h3 class="validation-title">Invalid Marks Entry</h3>
+            <p class="validation-message" id="validationMessage"></p>
+            <button class="btn btn-primary" onclick="window.closeValidationModal()" style="padding: 10px 24px;">OK</button>
+        </div>
+    </div>
+
+    <!-- Global Control Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-graduation-cap" style="color: var(--warning-color, #f59e0b);"></i> 
+                Exam Result Entry
+                <span id="breadcrumbContainer" class="breadcrumb-text"></span>
+            </h3>
+        </div>
+        <div class="controls-right" style="display: flex; align-items: center; gap: 15px;">
+            {% if is_super_admin %}
+            <div class="custom-dropdown" id="schoolDropdown" style="width: 250px; margin-right: 15px;">
+                <div class="custom-dropdown-toggle">
+                    <i class="fas fa-university"></i>
+                    <span class="custom-dropdown-text">Select School</span>
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </div>
+                <div class="custom-dropdown-menu" id="schoolDropdownMenu">
+                    <input type="text" class="dropdown-search" placeholder="Search school...">
+                    <!-- Options injected via JS -->
+                </div>
+                <input type="hidden" id="schoolSelect" name="school_id" value="">
+            </div>
+            {% endif %}
+            <a href="{% url 'exam_management' %}" class="btn" style="background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; font-weight: 700; border-radius: 10px; height: 38px; padding: 0 16px;">
+                <i class="fas fa-arrow-left"></i> <span class="btn-label">Back to Dashboard</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Exam List View -->
+    <div id="examListView" class="panel-card">
+        <div class="panel-header">
+            <div class="panel-icon" style="background: var(--primary-color);"><i class="fas fa-list-check"></i></div>
+            <h2 class="panel-title">Select Exam</h2>
+        </div>
+        <div class="panel-body">
+            <div id="examListContainer" class="table-responsive"></div>
+        </div>
+    </div>
+
+    <!-- Class Cards View -->
+    <div id="classCardsView" class="panel-card" style="display: none;">
+        <div class="panel-header">
+            <div class="panel-icon" style="background: var(--primary-color);"><i class="fas fa-school"></i></div>
+            <h2 class="panel-title">Select Class</h2>
+        </div>
+        <div class="panel-body">
+            <button class="btn btn-primary" onclick="showExamList()" style="margin-bottom: 15px;">
+                <i class="fas fa-arrow-left"></i> Back to Exams
+            </button>
+            <div id="classCardsContainer"></div>
+        </div>
+    </div>
+
+    <!-- Student Result Entry View -->
+    <div id="studentResultView" class="panel-card" style="display: none;">
+        <div class="panel-body">
+            <div id="studentResultContainer"></div>
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_js %}
+<script>
+let currentExamId = null;
+let currentExamName = null;
+let currentClassId = null;
+let currentSubjectId = null;
+
+// Load exam list on page load
+document.addEventListener('DOMContentLoaded', function() {
+    {% if is_super_admin %}
+    initSchoolDropdown();
+    {% endif %}
+    loadExamList();
+});
+
+// School Dropdown Logic (for Super Admin)
+function initSchoolDropdown() {
+    const dropdown = document.getElementById('schoolDropdown');
+    const toggle = dropdown.querySelector('.custom-dropdown-toggle');
+    const menu = document.getElementById('schoolDropdownMenu');
+    const text = dropdown.querySelector('.custom-dropdown-text');
+    const search = dropdown.querySelector('.dropdown-search');
+    const hiddenInput = document.getElementById('schoolSelect');
+
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+        if(dropdown.classList.contains('active')) search.focus();
+    });
+
+    search.addEventListener('click', (e) => e.stopPropagation());
+    search.addEventListener('keyup', () => {
+        const val = search.value.toLowerCase();
+        dropdown.querySelectorAll('.custom-dropdown-option').forEach(opt => {
+            const txt = opt.textContent.toLowerCase();
+            opt.style.display = txt.includes(val) ? 'block' : 'none';
+        });
+    });
+
+    fetch('/api/school-dropdown/')
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'SUCCESS') {
+                res.data.forEach(s => {
+                    const opt = document.createElement('div');
+                    opt.className = 'custom-dropdown-option';
+                    opt.textContent = s.name;
+                    opt.addEventListener('click', () => {
+                        dropdown.querySelectorAll('.custom-dropdown-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        text.textContent = s.name;
+                        hiddenInput.value = s.id;
+                        dropdown.classList.remove('active');
+                        loadExamList(); // Reload exams for selected school
+                    });
+                    menu.appendChild(opt);
+                });
+            }
+        });
+
+    document.addEventListener('click', () => dropdown.classList.remove('active'));
+}
+
+function loadExamList() {
+    let url = '/api/exams/';
+    const schoolId = document.getElementById('schoolSelect')?.value;
+    if(schoolId) url += `?school_id=${schoolId}`;
+
+    const container = document.getElementById('examListContainer');
+    container.innerHTML = '<div class="no-data"><p><i class="fas fa-spinner fa-spin"></i> Loading exams...</p></div>';
+
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('examListContainer');
+            if (data.length === 0) {
+                container.innerHTML = '<div class="no-data"><p>No exams found</p></div>';
+                return;
+            }
+            
+            let html = '<table class="students-table"><thead><tr><th>SN</th><th>Exam Name</th><th>Type</th><th>Academic Year</th><th>Duration</th><th>Action</th></tr></thead><tbody>';
+            data.forEach((exam, index) => {
+                html += `<tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${exam.ExamName}</strong></td>
+                    <td>${exam.ExamType || '-'}</td>
+                    <td>${exam.AcademicYear || '-'}</td>
+                    <td>${exam.StartDate} to ${exam.EndDate}</td>
+                    <td>
+                        <div class="action-group">
+                            <button class="btn btn-primary" onclick="showClassCards(${exam.ExamID}, '${exam.ExamName}')"><i class="fas fa-edit"></i> Enter Result</button>
+                            <button class="btn" onclick="publishResult(${exam.ExamID})" style="background: #f59e0b; color: white;"><i class="fas fa-upload"></i> Publish</button>
+                            <button class="btn" onclick="showAnalytics(${exam.ExamID})" style="background: #8b5cf6; color: white;"><i class="fas fa-chart-line"></i> Analytics</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        });
+}
+
+function showExamList() {
+    document.getElementById('breadcrumbContainer').innerHTML = '';
+    document.getElementById('examListView').style.display = 'block';
+    document.getElementById('classCardsView').style.display = 'none';
+    document.getElementById('studentResultView').style.display = 'none';
+    currentExamId = null;
+    currentClassId = null;
+    currentSubjectId = null;
+}
+
+function backToClasses() {
+    updateBreadcrumbs(currentExamName);
+    document.getElementById('studentResultView').style.display = 'none';
+    document.getElementById('classCardsView').style.display = 'block';
+    showClassCards(currentExamId, currentExamName);
+}
+
+function updateBreadcrumbs(examName, className, studentName) {
+    let html = '';
+    if (examName) {
+        html += `<span class="breadcrumb-separator">/</span> <span style="cursor:pointer;" onclick="showClassCards(${currentExamId}, '${examName}')">${examName}</span>`;
+    }
+    if (className) {
+        html += `<span class="breadcrumb-separator">/</span> <span style="cursor:pointer;" onclick="loadStudentsForClass(${currentClassId}, '${className}')">${className}</span>`;
+    }
+    if (studentName) {
+        html += `<span class="breadcrumb-separator">/</span> ${studentName}`;
+    }
+    document.getElementById('breadcrumbContainer').innerHTML = html;
+}
+
+function showClassCards(examId, examName) {
+    currentExamId = examId;
+    currentExamName = examName;
+    updateBreadcrumbs(examName);
+    document.getElementById('examListView').style.display = 'none';
+    document.getElementById('classCardsView').style.display = 'block';
+    
+    const schoolId = document.getElementById('schoolSelect')?.value;
+    let url = '/api/classes-by-exam/?exam_id=' + examId;
+    if(schoolId) url += `&school_id=${schoolId}`;
+    
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('classCardsContainer');
+            if (data.length === 0) {
+                container.innerHTML = '<div class="no-data"><p><i class="fas fa-info-circle"></i> No classes with scheduled exams found</p></div>';
+                return;
+            }
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">';
+            data.forEach(cls => {
+                html += `<div class="class-card" onclick="loadStudentsForClass(${cls.id}, '${cls.name}')">
+                    <div class="class-name"><i class="fas fa-graduation-cap"></i> ${cls.name}</div>
+                    <div class="class-stats">Click to enter results</div>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        });
+}
+
+function loadStudentsForClass(classId, className) {
+    currentClassId = classId;
+    if (className) updateBreadcrumbs(currentExamName, className);
+    
+    const schoolId = document.getElementById('schoolSelect')?.value;
+    let url = `/exams/results/students/?exam_id=${currentExamId}&class_id=${classId}`;
+    if(schoolId) url += `&school_id=${schoolId}`;
+    
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'SUCCESS') {
+                document.getElementById('classCardsView').style.display = 'none';
+                document.getElementById('studentResultView').style.display = 'block';
+                displayAllStudents(data.students, className);
+            } else {
+                alert(data.message);
+            }
+        });
+}
+
+function displayAllStudents(students, className) {
+    const container = document.getElementById('studentResultContainer');
+    
+    if (students.length === 0) {
+        container.innerHTML = '<div class="no-data"><p>No students found in ' + className + '</p></div>';
+        return;
+    }
+    
+    let html = '<h4 style="margin-bottom: 15px; color: #374151;">Students in ' + className + '</h4>';
+    html += '<table class="students-table"><thead><tr><th>SN</th><th>Student Code</th><th>Student Name</th><th>Action</th></tr></thead><tbody>';
+    
+    students.forEach((student, index) => {
+        html += `<tr>
+            <td>${index + 1}</td>
+            <td>${student.StudentCode}</td>
+            <td>${student.StudentName}</td>
+            <td><button class="btn btn-primary" onclick="enterResult(${student.StudentID}, '${student.StudentName}')">
+                <i class="fas fa-edit"></i> Enter Result
+            </button></td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function enterResult(studentId, studentName) {
+    updateBreadcrumbs(currentExamName, null, studentName); // We don't have className here easily, but it's fine for now
+    const schoolId = document.getElementById('schoolSelect')?.value;
+    let url = `/exams/results/student-subjects/?exam_id=${currentExamId}&class_id=${currentClassId}&student_id=${studentId}`;
+    if(schoolId) url += `&school_id=${schoolId}`;
+    
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            console.log('Subject data received:', data);
+            if (data.status === 'SUCCESS') {
+                showMarksEntryForm(data.subjects, studentId, studentName);
+            } else {
+                alert(data.message);
+            }
+        });
+}
+
+function showMarksEntryForm(subjects, studentId, studentName) {
+    const container = document.getElementById('studentResultContainer');
+    
+    if (subjects.length === 0) {
+        alert('No subjects found for this student');
+        return;
+    }
+    
+    // IsPublished=true means user can edit/insert, IsPublished=false means published (readonly)
+    const canEditResults = subjects.every(s => s.IsPublished === true);
+    
+    // Detect which columns are needed based on data
+    let hasTheory = false, hasPractical = false, hasViva = false;
+    let totalMaxMarks = 0;
+    subjects.forEach(s => {
+        if (s.MaxTheoryMarks) hasTheory = true;
+        if (s.MaxPracticalMarks) hasPractical = true;
+        if (s.MaxVivaMarks) hasViva = true;
+        totalMaxMarks += (s.MaxTheoryMarks || 0) + (s.MaxPracticalMarks || 0) + (s.MaxVivaMarks || 0);
+    });
+    
+    let html = `<div class="student-header">
+        <div class="student-header-content">
+            <div style="flex: 1;">
+                <h4 style="margin-bottom: 6px;"><i class="fas fa-user-graduate"></i> ${studentName} <span style="font-weight: 400; font-size: 0.85em; color: #6b7280;">| ${currentExamName || 'Exam'}</span></h4>
+                <div class="overview-stats" style="gap: 15px; font-size: 11px;">
+                    <div><span class="overview-label">Max:</span> <strong style="color: #004aad;" id="overviewTotalMax">${totalMaxMarks}</strong></div>
+                    <div><span class="overview-label">Obtained:</span> <strong style="color: #10b981;" id="overviewObtained">0</strong></div>
+                    <div><span class="overview-label">%:</span> <strong style="color: #f59e0b;" id="overviewPercentage">0%</strong></div>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-primary" onclick="showExamList()" title="Back to Exams">
+                    <i class="fas fa-list"></i> Exams
+                </button>
+                <button class="btn btn-primary" onclick="backToClasses()" title="Back to Classes">
+                    <i class="fas fa-school"></i> Classes
+                </button>
+                <button class="btn btn-primary" onclick="loadStudentsForClass(${currentClassId}, '')" title="Back to Students">
+                    <i class="fas fa-users"></i> Students
+                </button>
+            </div>
+        </div>
+    </div>`;
+    
+    if (!canEditResults) {
+        html += '<div style="margin-bottom: 12px; padding: 8px 12px; background: #fef3c7; border-left: 3px solid #f59e0b; color: #92400e; border-radius: 4px; font-size: 12px;">';
+        html += '<i class="fas fa-lock"></i> Results are published and cannot be edited.';
+        html += '</div>';
+    }
+    
+    html += '<div class="remarks-toggle">';
+    html += '<input type="checkbox" id="showRemarksToggle" onchange="toggleRemarksColumn()" checked>';
+    html += '<label for="showRemarksToggle"><i class="fas fa-comment-alt"></i> Show Remarks Column</label>';
+    html += '</div>';
+    
+    html += '<div class="marks-table-wrapper" style="overflow-x: auto;">';
+    html += '<table class="students-table" id="marksTable"><thead>';
+    html += '<tr><th rowspan="2" style="width: 40px; vertical-align: middle;">SN</th>';
+    html += '<th rowspan="2" style="min-width: 120px; vertical-align: middle;">Subject</th>';
+    
+    // Dynamic column headers based on available data
+    if (hasTheory) {
+        html += '<th colspan="2" style="text-align: center; background: #ede9fe; color: #5b21b6;">Theory</th>';
+    }
+    if (hasPractical) {
+        html += '<th colspan="2" style="text-align: center; background: #dbeafe; color: #1e40af;">Practical</th>';
+    }
+    if (hasViva) {
+        html += '<th colspan="2" style="text-align: center; background: #fef3c7; color: #92400e;">Viva</th>';
+    }
+    
+    html += '<th rowspan="2" style="width: 70px; vertical-align: middle; text-align: center;">Total<br/><small>(Auto)</small></th>';
+    html += '<th rowspan="2" style="width: 60px; vertical-align: middle;">Grade</th>';
+    html += '<th rowspan="2" style="width: 80px; vertical-align: middle;">Status</th>';
+    html += '<th rowspan="2" class="remarks-column" style="min-width: 150px; vertical-align: middle;">Remarks</th></tr>';
+    html += '<tr>';
+    
+    if (hasTheory) {
+        html += '<th style="width: 60px; text-align: center; background: #f5f3ff; color: #6b21a8; font-size: 10px;">Max</th>';
+        html += '<th style="width: 70px; text-align: center; background: #f5f3ff; color: #6b21a8; font-size: 10px;">Obtained</th>';
+    }
+    if (hasPractical) {
+        html += '<th style="width: 60px; text-align: center; background: #eff6ff; color: #1e3a8a; font-size: 10px;">Max</th>';
+        html += '<th style="width: 70px; text-align: center; background: #eff6ff; color: #1e3a8a; font-size: 10px;">Obtained</th>';
+    }
+    if (hasViva) {
+        html += '<th style="width: 60px; text-align: center; background: #fefce8; color: #854d0e; font-size: 10px;">Max</th>';
+        html += '<th style="width: 70px; text-align: center; background: #fefce8; color: #854d0e; font-size: 10px;">Obtained</th>';
+    }
+    
+    html += '</tr></thead><tbody>';
+    
+    subjects.forEach((subject, index) => {
+        // IsPublished=true allows editing, IsPublished=false means readonly
+        const readonly = subject.IsPublished !== true ? 'readonly' : '';
+        
+        html += `<tr data-min-theory="${subject.MinTheoryMarks || 0}" data-min-practical="${subject.MinPracticalMarks || 0}" data-min-viva="${subject.MinVivaMarks || 0}">
+            <td style="text-align: center; color: #6b7280; font-weight: 600;">${index + 1}</td>
+            <td><div class="subject-cell">${subject.SubjectName}</div></td>`;
+        
+        // Theory columns (only if hasTheory)
+        if (hasTheory) {
+            html += `<td style="text-align: center; background: #faf5ff; color: #6b21a8; font-weight: 600;">${subject.MaxTheoryMarks || '-'}</td>`;
+            const theoryDisabled = !subject.MaxTheoryMarks ? 'disabled' : '';
+            html += `<td style="background: #faf5ff;"><input type="number" class="marks-input" id="theory_${subject.ExamTimeTableID}" 
+                value="${subject.TheoryMarksObtained || ''}" placeholder="${subject.MaxTheoryMarks ? '0' : 'N/A'}" ${readonly} ${theoryDisabled} min="0" max="${subject.MaxTheoryMarks || ''}" 
+                oninput="validateMarks(this, ${subject.MaxTheoryMarks || 0}, ${subject.ExamTimeTableID})" onchange="calculateTotal(${subject.ExamTimeTableID})" style="width: 100%;"></td>`;
+        }
+        
+        // Practical columns (only if hasPractical)
+        if (hasPractical) {
+            html += `<td style="text-align: center; background: #eff6ff; color: #1e40af; font-weight: 600;">${subject.MaxPracticalMarks || '-'}</td>`;
+            const practicalDisabled = !subject.MaxPracticalMarks ? 'disabled' : '';
+            html += `<td style="background: #eff6ff;"><input type="number" class="marks-input" id="practical_${subject.ExamTimeTableID}" 
+                value="${subject.PracticalMarksObtained || ''}" placeholder="${subject.MaxPracticalMarks ? '0' : 'N/A'}" ${readonly} ${practicalDisabled} min="0" max="${subject.MaxPracticalMarks || ''}" 
+                oninput="validateMarks(this, ${subject.MaxPracticalMarks || 0}, ${subject.ExamTimeTableID})" onchange="calculateTotal(${subject.ExamTimeTableID})" style="width: 100%;"></td>`;
+        }
+        
+        // Viva columns (only if hasViva)
+        if (hasViva) {
+            html += `<td style="text-align: center; background: #fefce8; color: #92400e; font-weight: 600;">${subject.MaxVivaMarks || '-'}</td>`;
+            const vivaDisabled = !subject.MaxVivaMarks ? 'disabled' : '';
+            html += `<td style="background: #fefce8;"><input type="number" class="marks-input" id="viva_${subject.ExamTimeTableID}" 
+                value="${subject.VivaMarksObtained || ''}" placeholder="${subject.MaxVivaMarks ? '0' : 'N/A'}" ${readonly} ${vivaDisabled} min="0" max="${subject.MaxVivaMarks || ''}" 
+                oninput="validateMarks(this, ${subject.MaxVivaMarks || 0}, ${subject.ExamTimeTableID})" onchange="calculateTotal(${subject.ExamTimeTableID})" style="width: 100%;"></td>`;
+        }
+        
+        html += `<td style="text-align: center; background: #f0fdf4;"><strong style="color: #15803d; font-size: 15px;" id="total_${subject.ExamTimeTableID}">${subject.TotalMarksObtained || '0'}</strong></td>`;
+        html += `<td><input type="text" id="grade_${subject.ExamTimeTableID}" value="${subject.Grade || ''}" 
+            ${readonly} style="width: 100%; text-align: center; text-transform: uppercase;"></td>`;
+        html += `<td style="text-align: center;"><span style="padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: ${subject.ResultStatus === 'Pass' ? '#d1fae5' : subject.ResultStatus === 'Fail' ? '#fee2e2' : '#f3f4f6'}; color: ${subject.ResultStatus === 'Pass' ? '#065f46' : subject.ResultStatus === 'Fail' ? '#991b1b' : '#6b7280'}">
+            ${subject.ResultStatus || 'Pending'}</span></td>`;
+        html += `<td class="remarks-column"><input type="text" id="remarks_${subject.ExamTimeTableID}" value="${subject.Remarks || ''}" 
+            ${readonly} placeholder="Enter remarks" style="width: 100%;"></td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table></div>';
+    
+    if (canEditResults) {
+        html += '{% csrf_token %}';
+        html += '<div class="save-section" style="display: flex; justify-content: space-between; align-items: center;">';
+        html += '<div class="save-section-text"><i class="fas fa-info-circle"></i> Press Tab to move between fields quickly</div>';
+        html += `<button class="btn btn-primary" onclick="saveStudentResults(${studentId})" style="padding: 8px 24px; font-size: 13px;">
+            <i class="fas fa-save"></i> Save Results</button>`;
+        html += '</div>';
+    }
+    
+    container.innerHTML = html;
+    updateOverview();
+}
+
+function validateMarks(input, maxMarks, examTimeTableId) {
+    const value = parseFloat(input.value);
+    if (value > maxMarks) {
+        showValidationModal(`Marks cannot exceed ${maxMarks}. Please enter a value between 0 and ${maxMarks}.`);
+        input.value = '';
+        input.focus();
+        return false;
+    }
+    if (value < 0) {
+        showValidationModal('Marks cannot be negative. Please enter a value of 0 or greater.');
+        input.value = '';
+        input.focus();
+        return false;
+    }
+    return true;
+}
+
+function showValidationModal(message) {
+    document.getElementById('validationMessage').textContent = message;
+    document.getElementById('validationModal').classList.add('show');
+}
+
+function closeValidationModal() {
+    document.getElementById('validationModal').classList.remove('show');
+}
+
+function calculateTotal(examTimeTableId) {
+    const theoryInput = document.getElementById(`theory_${examTimeTableId}`);
+    const practicalInput = document.getElementById(`practical_${examTimeTableId}`);
+    const vivaInput = document.getElementById(`viva_${examTimeTableId}`);
+    
+    const theory = theoryInput && !theoryInput.disabled ? (parseFloat(theoryInput.value) || 0) : 0;
+    const practical = practicalInput && !practicalInput.disabled ? (parseFloat(practicalInput.value) || 0) : 0;
+    const viva = vivaInput && !vivaInput.disabled ? (parseFloat(vivaInput.value) || 0) : 0;
+    
+    const total = theory + practical + viva;
+    document.getElementById(`total_${examTimeTableId}`).textContent = total;
+    
+    updateStatus(examTimeTableId, theory, practical, viva, total);
+    updateOverview();
+}
+
+function updateStatus(examTimeTableId, theory, practical, viva, total) {
+    const totalCell = document.getElementById(`total_${examTimeTableId}`);
+    if (!totalCell) return;
+    
+    const row = totalCell.closest('tr');
+    if (!row) return;
+    
+    const statusCell = row.cells[row.cells.length - 2];
+    if (!statusCell) return;
+    
+    const statusSpan = statusCell.querySelector('span');
+    if (!statusSpan) return;
+    
+    const minTheory = parseFloat(row.dataset.minTheory) || 0;
+    const minPractical = parseFloat(row.dataset.minPractical) || 0;
+    const minViva = parseFloat(row.dataset.minViva) || 0;
+    
+    const style = getComputedStyle(document.body);
+    let status = 'Pending';
+    let bgColor = style.getPropertyValue('--bg-hover').trim() || '#f3f4f6';
+    let textColor = style.getPropertyValue('--text-light').trim() || '#6b7280';
+    
+    if (total > 0) {
+        const theoryFail = minTheory > 0 && theory < minTheory;
+        const practicalFail = minPractical > 0 && practical < minPractical;
+        const vivaFail = minViva > 0 && viva < minViva;
+        
+        if (theoryFail || practicalFail || vivaFail) {
+            status = 'Fail';
+            bgColor = style.getPropertyValue('--error-light').trim() || '#fee2e2';
+            textColor = style.getPropertyValue('--error-color').trim() || '#991b1b';
+        } else {
+            status = 'Pass';
+            bgColor = style.getPropertyValue('--success-light').trim() || '#d1fae5';
+            textColor = style.getPropertyValue('--success-color').trim() || '#065f46';
+        }
+    }
+    
+    statusSpan.textContent = status;
+    statusSpan.style.background = bgColor;
+    statusSpan.style.color = textColor;
+}
+
+function updateOverview() {
+    let totalObtained = 0;
+    const totalElements = document.querySelectorAll('[id^="total_"]');
+    totalElements.forEach(el => {
+        totalObtained += parseFloat(el.textContent) || 0;
+    });
+    
+    const totalMax = parseFloat(document.getElementById('overviewTotalMax').textContent) || 0;
+    const percentage = totalMax > 0 ? ((totalObtained / totalMax) * 100).toFixed(2) : 0;
+    
+    document.getElementById('overviewObtained').textContent = totalObtained;
+    document.getElementById('overviewPercentage').textContent = percentage + '%';
+}
+
+function saveStudentResults(studentId) {
+    const rows = document.querySelectorAll('#marksTable tbody tr');
+    const results = [];
+    
+    rows.forEach(row => {
+        const examTimeTableId = row.querySelector('[id^="total_"]').id.split('_')[1];
+        const theoryInput = document.getElementById(`theory_${examTimeTableId}`);
+        const practicalInput = document.getElementById(`practical_${examTimeTableId}`);
+        const vivaInput = document.getElementById(`viva_${examTimeTableId}`);
+        const gradeInput = document.getElementById(`grade_${examTimeTableId}`);
+        const remarksInput = document.getElementById(`remarks_${examTimeTableId}`);
+        const statusSpan = row.cells[row.cells.length - 2].querySelector('span');
+        
+        let status = statusSpan ? statusSpan.textContent.trim() : 'Pass';
+        if (status === 'Pending') status = null;
+        
+        results.push({
+            exam_timetable_id: examTimeTableId,
+            theory_marks: theoryInput && !theoryInput.disabled ? (parseFloat(theoryInput.value) || null) : null,
+            practical_marks: practicalInput && !practicalInput.disabled ? (parseFloat(practicalInput.value) || null) : null,
+            viva_marks: vivaInput && !vivaInput.disabled ? (parseFloat(vivaInput.value) || null) : null,
+            grade: gradeInput ? gradeInput.value : null,
+            status: status,
+            remarks: remarksInput ? remarksInput.value : null
+        });
+    });
+    
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/exams/results/save/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            student_id: studentId,
+            results: results
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'SUCCESS') {
+            alert('✅ Results saved successfully!');
+            loadStudentsForClass(currentClassId, '');
+        } else {
+            alert('❌ Failed to save results: ' + data.message);
+        }
+    })
+    .catch(err => {
+        alert('❌ Error saving results: ' + err.message);
+    });
+}
+
+function publishResult(examId) {
+    if (!confirm('Are you sure you want to publish results for this exam?')) return;
+    alert('Publish Result functionality - Coming Soon!');
+}
+
+function viewAnalytics(examId) {
+    alert('View Analytics functionality - Coming Soon!');
+}
+
+function toggleRemarksColumn() {
+    const isChecked = document.getElementById('showRemarksToggle').checked;
+    const remarksColumns = document.querySelectorAll('.remarks-column');
+    console.log('Toggling remarks column. Checked:', isChecked, 'Found columns:', remarksColumns.length);
+    remarksColumns.forEach(col => {
+        col.style.display = isChecked ? '' : 'none';
+        console.log('Column display set to:', col.style.display);
+    });
+}
+</script>
+{% endblock %}

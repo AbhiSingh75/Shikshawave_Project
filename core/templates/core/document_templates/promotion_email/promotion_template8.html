@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #ebf5e9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 40px 0 40px 0;
+            overflow: hidden;
+            box-shadow: 20px 20px 60px #c8d1c6, -20px -20px 60px #ffffff;
+        }
+
+        .leaf-header {
+            background: #2e7d32;
+            padding: 40px;
+            text-align: left;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .hero-text h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 300;
+        }
+
+        .hero-text span {
+            font-weight: 800;
+            color: #a5d6a7;
+        }
+
+        .content {
+            padding: 40px;
+            color: #2e3d2e;
+        }
+
+        .success-box {
+            background: #f1f8e9;
+            border-left: 6px solid #81c784;
+            padding: 30px;
+            border-radius: 0 20px 20px 0;
+            margin: 25px 0;
+        }
+
+        .info-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .info-item {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 12px;
+            color: #689f38;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .info-item p {
+            margin: 5px 0 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1b5e20;
+        }
+
+        .footer {
+            padding: 40px;
+            border-top: 1px solid #e8f5e9;
+            text-align: center;
+            color: #689f38;
+        }
+
+        .nature-icon {
+            width: 50px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="leaf-header">
+            <div class="hero-text">
+                <h1>Growth Confirmed.</h1>
+                <h1>Time to <span>Bloom.</span></h1>
+            </div>
+        </div>
+        <div class="content">
+            <p style="font-size: 20px;">Dear {{ student_name }},</p>
+            <p>Just like a seedling growing into a tree, you've successfully reached your next branch of learning. We're
+                proud to see you grow!</p>
+
+            <div class="success-box">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Old Branch</label>
+                        <p>{{ prev_class }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>New Branch</label>
+                        <p>{{ new_class }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Sector</label>
+                        <p>{{ new_section }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>ID Tag</label>
+                        <p>{{ roll_no }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <p>The <strong>{{ academic_year }}</strong> season is about to begin. Let's make it fruitful!</p>
+        </div>
+        <div class="footer">
+            <p>Keep Growing,<br><strong>{{ school_name }}</strong></p>
+        </div>
+    </div>
+</body>
+
+</html>

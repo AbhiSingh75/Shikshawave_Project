@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Brand Invoice | {{ brand.BrandName }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+        body { background-color: #f0f4f8; display: flex; justify-content: center; padding: 20px; }
+        .page { width: 210mm; min-height: 297mm; background: white; padding: 40px; border: 1px solid #003B73; position: relative; box-shadow: 0 0 30px rgba(0, 59, 115, 0.1); }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        /* Brand Edition Header - Indigo to Green Gradient */
+        .header-premium { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3.5px solid #003B73; padding-bottom: 20px; margin-bottom: 0; position: relative; }
+        .header-premium::after { content: ''; position: absolute; bottom: -3.5px; right: 0; width: 40%; height: 3.5px; background: #4B9C4A; }
+        
+        .brand-block { display: flex; align-items: center; gap: 25px; }
+        .logo-wrapper { width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; background: #fff; border: 2.5px solid #003B73; border-radius: 8px; overflow: hidden; padding: 12px; }
+        .logo-wrapper img { max-height: 130px; max-width: 130px; object-fit: contain; }
+        
+        .brand-info h1 { font-size: 34px; font-weight: 900; color: #003B73; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1.5px; }
+        .brand-address { font-size: 13px; color: #334155; line-height: 1.6; margin-bottom: 12px; }
+        .contact-details { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #003B73; font-weight: 700; }
+        .contact-item { display: flex; align-items: center; gap: 8px; }
+
+        .invoice-title-block { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+        .tax-invoice-label { font-size: 30px; font-weight: 950; color: #003B73; letter-spacing: 3px; line-height: 1; margin-bottom: 5px; white-space: nowrap; }
+        .recipient-copy { font-size: 11px; font-weight: 800; color: #4B9C4A; margin-bottom: 15px; text-transform: uppercase; border-top: 1.5px solid #003B73; padding-top: 5px; width: 100%; }
+        
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid #003B73; border-top: none; }
+        .meta-col { padding: 12px; border-right: 1.5px solid #003B73; font-size: 13px; }
+        .meta-col:last-child { border-right: none; }
+        .meta-item { display: flex; margin-bottom: 6px; }
+        .meta-label { font-weight: 800; width: 150px; color: #003B73; }
+        
+        .billing-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid #003B73; border-top: none; }
+        .billing-box { padding: 12px; border-right: 1.5px solid #003B73; font-size: 13px; }
+        .billing-box:last-child { border-right: none; }
+        .billing-box h3 { font-size: 14px; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #4B9C4A; padding: 6px 12px; background: #f0fdf4; margin: -12px -12px 12px -12px; color: #064e3b; }
+        
+        .invoice-table { width: 100%; border-collapse: collapse; border: 1.5px solid #003B73; border-top: none; table-layout: fixed; }
+        .invoice-table th, .invoice-table td { border: 1px solid #003B73; padding: 6px 4px; font-size: 10px; text-align: center; word-wrap: break-word; overflow: hidden; }
+        .invoice-table th { background: #003B73; color: white; font-weight: 700; text-transform: uppercase; border: 1px solid rgba(255, 255, 255, 0.4); }
+        .invoice-table td { height: 40px; vertical-align: middle; }
+        .invoice-table .nowrap { white-space: nowrap; }
+        
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid #003B73; border-top: none; }
+        .amount-words { padding: 15px; font-size: 14px; border-right: 1.5px solid #003B73; display: flex; flex-direction: column; background: #f8fafc; }
+        .totals-col { font-size: 12px; }
+        .total-row { display: flex; justify-content: space-between; border-bottom: 1px solid #cbd5e1; padding: 8px 15px; min-height: 32px; align-items: center; }
+        .total-row:last-child { border-bottom: none; font-weight: 900; font-size: 16px; background: #4B9C4A; color: white; min-height: 45px; border-top: 2px solid #003B73; }
+
+        .footer-grid { border: 1.5px solid #003B73; border-top: none; display: grid; grid-template-columns: 1fr 1fr; }
+        .terms-section { padding: 15px; font-size: 11px; border-right: 1.5px solid #003B73; color: #334155; line-height: 1.5; }
+        .auth-section { padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .signature-title { font-size: 12px; font-weight: 800; margin-bottom: 40px; color: #003B73; }
+        
+        .declaration { font-size: 10px; font-style: italic; border: 1.5px solid #003B73; border-top: none; padding: 10px; text-align: center; color: #003B73; }
+
+        @media print {
+            body { background-color: #fff; padding: 0; margin: 0; display: block; }
+            .page { border: none; box-shadow: none; transform: none !important; width: 210mm; min-height: 297mm; padding: 20mm; margin: 0 auto; }
+            .no-print { display: none !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    
+        /* Standardized Action Buttons */
+        .no-print { display: flex !important; }
+        @media print { .no-print { display: none !important; } }
+        
+        .action-bar {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            display: flex;
+            gap: 15px;
+            z-index: 9999;
+        }
+        
+        .btn-sw {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .btn-print { background: #7E91F6; }
+        .btn-close { background: #6E7782; }
+        
+        .btn-sw:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            filter: brightness(1.1);
+        }
+        
+        /* Corner Borders */
+        .corner-border {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #000;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .cb-tl { top: 15px; left: 15px; border-right: none; border-bottom: none; }
+        .cb-tr { top: 15px; right: 15px; border-left: none; border-bottom: none; }
+        .cb-bl { bottom: 15px; left: 15px; border-right: none; border-top: none; }
+        .cb-br { bottom: 15px; right: 15px; border-left: none; border-top: none; }
+        
+        .page { border: 1px solid #000; position: relative; }
+
+    </style>
+</head>
+<body onload="autoScale()">
+    <div class="action-bar no-print">
+        <button class="btn-sw btn-print" onclick="window.print()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print
+        </button>
+        <button class="btn-sw btn-close" onclick="window.close(); if(!window.closed) history.back();">
+            Close
+        </button>
+    </div>
+    <div id="page" class="page">
+        <div class="corner-border cb-tl"></div>
+        <div class="corner-border cb-tr"></div>
+        <div class="corner-border cb-bl"></div>
+        <div class="corner-border cb-br"></div>
+
+        <div class="header-premium">
+            <div class="brand-block">
+                <div class="logo-wrapper">
+                    {% if brand.BrandLogo %}<img src="data:image/png;base64,{{ brand.BrandLogo }}" alt="Logo">{% else %}<div class="no-logo">SHIKSHAWAVE</div>{% endif %}
+                </div>
+                <div class="brand-info">
+                    <h1>{{ brand.BrandName }}</h1>
+                    <div class="brand-address">
+                        {{ brand.Address }}<br>
+                        {% if brand.GSTIN %}<strong>GSTIN:</strong> {{ brand.GSTIN }}{% endif %}
+                        {% if brand.TaxID %} | <strong>PAN:</strong> {{ brand.TaxID }}{% endif %}
+                    </div>
+                    <div class="contact-details">
+                        {% if brand.Website %}<div class="contact-item">🌐 {{ brand.Website }}</div>{% endif %}
+                        {% if brand.Email %}<div class="contact-item">✉️ {{ brand.Email }}</div>{% endif %}
+                        {% if brand.Phone %}<div class="contact-item">📞 {{ brand.Phone }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="invoice-title-block">
+                <div class="tax-invoice-label">TAX INVOICE</div>
+                <div class="recipient-copy">SIGNATURE BRAND EDITION</div>
+            </div>
+        </div>
+
+        <div class="meta-grid">
+            <div class="meta-col">
+                <div class="meta-item"><span class="meta-label">Invoice Serial No:</span> <span>{{ invoice.InvoiceNumber }}</span></div>
+                <div class="meta-item"><span class="meta-label">Invoice Date:</span> <span>{{ invoice.FormattedDate }}</span></div>
+                <div class="meta-item"><span class="meta-label">Supply State:</span> <span>{{ school.State|default:"Uttar Pradesh" }}</span></div>
+            </div>
+            <div class="meta-col">
+                <div class="meta-item"><span class="meta-label">Subscription No:</span> <span style="font-weight: 800; color: #003B73;">{{ plan.SubscriptionNo|default:"N/A" }}</span></div>
+                <div class="meta-item"><span class="meta-label">Reverse Charge:</span> <span>No</span></div>
+                <div class="meta-item"><span class="meta-label">Currency Code:</span> <span>INR</span></div>
+                <div class="meta-item"><span class="meta-label">GST Payable:</span> <span>Yes</span></div>
+            </div>
+        </div>
+
+        <div class="billing-grid">
+            <div class="billing-box">
+                <h3>Bill to Customer</h3>
+                <p><strong>Name:</strong> {{ school.SchoolName }}{% if school.SchoolCode %} ({{ school.SchoolCode }}){% endif %}</p>
+                <p><strong>Address:</strong> {{ school.Address }}</p>
+                <p><strong>Region:</strong> {{ school.District }}, {{ school.State }}</p>
+                {% if school.GSTIN %}<p><strong>GSTIN:</strong> {{ school.GSTIN }}</p>{% endif %}
+            </div>
+            <div class="billing-box">
+                <h3>Ship to Consignee</h3>
+                <p><strong>Name:</strong> {{ school.SchoolName }}</p>
+                <p><strong>Address:</strong> {{ school.Address }}</p>
+                <p><strong>Region:</strong> {{ school.District }}, {{ school.State }}</p>
+                {% if school.GSTIN %}<p><strong>GSTIN:</strong> {{ school.GSTIN }}</p>{% endif %}
+            </div>
+        </div>
+
+        <table class="invoice-table">
+            <colgroup>
+                <col style="width: 3%;">
+                <col style="width: 27%;">
+                <col style="width: 8%;">
+                <col style="width: 4%;">
+                <col style="width: 10%;">
+                <col style="width: 10%;">
+                <col style="width: 6%;">
+                <col style="width: 8%;">
+                <col style="width: 6%;">
+                <col style="width: 8%;">
+                <col style="width: 10%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th rowspan="2">S. <br>No</th>
+                    <th rowspan="2">Service Description</th>
+                    <th rowspan="2">SAC CODE</th>
+                    <th rowspan="2">Qty</th>
+                    <th rowspan="2">Rate</th>
+                    <th rowspan="2">Taxable</th>
+                    <th colspan="2">CGST</th>
+                    <th colspan="2">SGST</th>
+                    <th rowspan="2">Net Amount</th>
+                </tr>
+                <tr>
+                    <th>%</th>
+                    <th>Value</th>
+                    <th>%</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td style="text-align: left;">
+                        <strong style="color: #003B73;">{{ item.ItemName }}</strong>
+                        {% if plan.SubscriptionNo %}<br><span style="font-size: 10px; color: #4B9C4A; font-weight: 900;">ID: {{ plan.SubscriptionNo }}</span>{% endif %}
+                        <br><small style="font-size: 9px;">Term: {{ plan.FormattedStart }} to {{ plan.FormattedEnd }}</small>
+                    </td>
+                    <td>9983</td>
+                    <td>1.0</td>
+                    <td class="nowrap">{{ item.TotalPrice|floatformat:2 }}</td>
+                    <td class="nowrap">{{ item.TotalPrice|floatformat:2 }}</td>
+                    <td>{{ invoice.CGST_Rate|floatformat:0 }}%</td>
+                    <td class="nowrap">₹{{ invoice.CGST_Amount|floatformat:2 }}</td>
+                    <td>{{ invoice.SGST_Rate|floatformat:0 }}%</td>
+                    <td class="nowrap">₹{{ invoice.SGST_Amount|floatformat:2 }}</td>
+                    <td class="nowrap">₹{{ invoice.FinalAmount|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="summary-grid">
+            <div class="amount-words">
+                <p style="font-weight: 900; color: #003B73;">Invoice Value (In Words)</p>
+                <p id="amountInWords" style="margin-top: 10px; text-transform: capitalize; font-weight: 950; color: #4B9C4A; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word; font-size: 15px;">
+                    {{ invoice.FinalAmountInWords }}
+                </p>
+            </div>
+            <div class="totals-col">
+                <div class="total-row"><span>Base Value</span> <span>₹{{ invoice.TotalAmount|floatformat:2 }}</span></div>
+                <div class="total-row"><span>Central GST</span> <span>₹{{ invoice.CGST_Amount|floatformat:2 }}</span></div>
+                <div class="total-row"><span>State GST</span> <span>₹{{ invoice.SGST_Amount|floatformat:2 }}</span></div>
+                <div class="total-row"><span>Adjustment</span> <span>₹0.00</span></div>
+                <div class="total-row">
+                    <span>Grand Total</span> <span>₹{{ invoice.FinalAmount|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-grid">
+            <div class="terms-section">
+                <p style="font-weight: 900; color: #003B73; margin-bottom: 8px;">Institutional Terms:</p>
+                <div style="white-space: pre-line; line-height: 1.6;">{{ footer.TermsAndConditions|default:"1. Noida jurisdictions only.\n2. Service activation subject to payment clearance." }}</div>
+            </div>
+            <div class="auth-section">
+                <div class="signature-title">For {{ brand.BrandName }}</div>
+                <div style="height: 50px; display: flex; align-items: center; justify-content: center;">
+                    {% if brand.AuthorizedSignature %}<img src="data:image/png;base64,{{ brand.AuthorizedSignature }}" style="max-height: 50px;" alt="Signature">{% endif %}
+                </div>
+                <div style="font-weight: 900; font-size: 14px; margin-top: 10px; border-top: 3px solid #003B73; color: #003B73; padding-top: 8px;">{{ brand.AuthorizedSignatory|default:"Authorized Signatory" }}</div>
+            </div>
+        </div>
+
+        <div class="declaration">
+            "{{ footer.LegalDeclaration|default:"Certified that the particulars given above are true and correct the amount indicated represents the price actually charged and there is no flow for additional consideration directly or indirectly from the buyer." }}"
+        </div>
+    </div>
+
+    <script>
+        function autoScale() {
+            const p = document.getElementById('page');
+            const s = Math.min((window.innerHeight - 40) / p.offsetHeight, (window.innerWidth - 40) / p.offsetWidth, 1);
+            p.style.transform = `scale(${s})`;
+            p.style.transformOrigin = 'top center';
+        }
+        window.onresize = autoScale;
+    </script>
+</body>
+</html>

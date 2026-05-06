@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exam Timetable - {{ class_name }}</title>
+    <style>
+        @media print { 
+            .no-print { display: none; } 
+            @page { size: A4 landscape; margin: 10mm; } 
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .container { box-shadow: none !important; border: 1px solid #eee !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .header { text-align: center; margin-bottom: 25px; border-bottom: 3px solid #667eea; padding-bottom: 20px; }
+        .header h1 { margin: 5px 0; font-size: 28px; color: #667eea; }
+        .header h2 { margin: 10px 0; font-size: 20px; color: #764ba2; }
+        .header p { margin: 5px 0; color: #666; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 2px solid #667eea; padding: 12px; text-align: center; font-size: 11px; }
+        th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; }
+        tr:nth-child(even) { background: #f8f9ff; }
+        .btn-print { background: #667eea; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; margin: 10px 5px; font-size: 14px; }
+        .btn-print:hover { background: #764ba2; }
+        .footer { margin-top: 40px; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-print" style="background: #6b7280;" onclick="window.close()">✖ Close</button>
+    </div>
+    <div class="container">
+        <div class="header">
+            {% if school_logo_src %}<img src = "{{ school_logo_src }}" alt = "Logo" style = "height: 80px; margin-bottom: 10px;">{% endif %}
+            <h1>{{ school_name }}</h1>
+            <h2>{{ exam.ExamName }} - Examination Timetable</h2>
+            <p><strong>Class:</strong> {{ class_name }} | <strong>Type:</strong> {{ exam.ExamType|default:"N/A" }} | <strong>Duration:</strong> {{ exam.StartDate|date:"d M, Y" }} to {{ exam.EndDate|date:"d M, Y" }}</p>
+        </div>
+        <table>
+            <thead>
+                <tr><th>S.No</th><th>Subject</th><th>Date</th><th>Time</th><th>Room No</th><th>Max Marks</th></tr>
+            </thead>
+            <tbody>
+                {% for item in timetable %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.SubjectName }}</td>
+                    <td>{{ item.ExamDate|date:"d M, Y (D)" }}</td>
+                    <td>{{ item.StartTime|time:"g:i A" }} - {{ item.EndTime|time:"g:i A" }}</td>
+                    <td>{{ item.RoomNo|default:"-" }}</td>
+                    <td>{% if item.MaxTheoryMarks %}T: {{ item.MaxTheoryMarks }}{% endif %}{% if item.MaxPracticalMarks %} | P: {{ item.MaxPracticalMarks }}{% endif %}{% if item.MaxVivaMarks %} | V: {{ item.MaxVivaMarks }}{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="footer">
+            <p>_______________________</p>
+            <p>Authorized Signature</p>
+        </div>
+    </div>
+</body>
+</html>

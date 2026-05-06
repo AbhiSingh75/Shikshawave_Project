@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Appointment Letter - {{ employee.full_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #7c3aed; --primary-light: #f5f3ff; --text-dark: #0f172a; --text-gray: #475569; --border: #e2e8f0; --white: #ffffff; --success: #059669; --danger: #dc2626; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: #f8fafc; color: var(--text-dark); line-height: 1.5; padding: 5px; }
+        .letter-container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: relative; }
+        .no-print { position: fixed; top: 10px; right: 10px; background: white; padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 1000; display: flex; gap: 8px; }
+        .btn { padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-size: 13px; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        @media print { body { background: white; padding: 0; } .letter-container { box-shadow: none; width: 100%; padding: 0; } .no-print { display: none !important; } }
+        header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--primary-light); }
+        .school-brand { display: flex; gap: 15px; align-items: center; }
+        .logo-box { width: 55px; height: 55px; }
+        .logo-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .logo-placeholder { width: 55px; height: 55px; background: var(--primary-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 800; font-size: 22px; }
+        .school-details h1 { font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 2px; }
+        .school-address { font-size: 10px; color: var(--text-gray); max-width: 350px; }
+        .doc-meta { text-align: right; }
+        .doc-type { background: var(--primary-light); color: var(--primary); padding: 3px 10px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: inline-block; }
+        .meta-row { font-size: 10px; color: var(--text-gray); margin-bottom: 2px; }
+        .employee-hero { display: flex; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; gap: 15px; margin-bottom: 20px; }
+        .emp-photo { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 3px solid white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+        .section-header { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; }
+        .section-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .info-cell { display: flex; flex-direction: column; gap: 1px; padding: 6px 10px; background: #fff; border: 1px solid var(--border); border-radius: 6px; }
+        .label { font-size: 8px; text-transform: uppercase; color: var(--text-gray); font-weight: 600; }
+        .value { font-size: 11px; font-weight: 700; color: var(--text-dark); }
+        .salary-wrapper { display: flex; gap: 15px; margin-bottom: 15px; }
+        .salary-col { flex: 1; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .salary-col-header { background: #f8fafc; padding: 6px 12px; border-bottom: 1px solid var(--border); font-size: 10px; font-weight: 800; color: var(--text-dark); }
+        .sal-table { width: 100%; border-collapse: collapse; }
+        .sal-table td { padding: 6px 12px; font-size: 10px; border-bottom: 1px solid #f1f5f9; }
+        .sal-table td:last-child { text-align: right; font-weight: 700; }
+        .sal-footer { background: var(--primary-light); padding: 8px 15px; border: 1px solid var(--primary); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .rules-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; margin-bottom: 20px; }
+        .signature-row { display: flex; justify-content: space-between; margin-top: 20px; }
+        .sig-box { text-align: center; width: 150px; }
+        .sig-line { border-top: 1px solid var(--text-dark); margin-bottom: 10px; }
+        footer { text-align: center; padding-top: 15px; border-top: 1px solid var(--border); font-size: 9px; color: var(--text-gray); margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="no-print"><button class="btn btn-primary" onclick="window.print()">Print Document</button></div>
+    <div class="letter-container">
+        <header>
+            <div class="school-brand">
+                <div class="logo-box">{% if employee.school_logo %}<img src = "{{ employee.school_logo }}" alt = "Logo" class = "logo-img">{% else %}<div class = "logo-placeholder">{{ employee.school_name|slice:":1" }}</div>{% endif %}</div>
+                <div class="school-details"><h1>{{ employee.school_name }}</h1><p class="school-address">{{ employee.school_address }}</p></div>
+            </div>
+            <div class="doc-meta"><span class="doc-type">Job Appointment Letter</span><div class="meta-row">Ref: <strong>SW/T16/{{ employee.current_date|slice:'-4:' }}</strong></div><div class="meta-row">Date: <strong>{{ employee.current_date }}</strong></div></div>
+        </header>
+        <section class="employee-hero">
+            <div class="hero-photo">{% if employee.user_photo %}<img src = "{{ employee.user_photo }}" alt = "Staff Photo" class = "emp-photo">{% else %}<div class = "photo-placeholder" style = "width:80px;height:80px;background:#e2e8f0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:28px;">👤</div>{% endif %}</div>
+            <div class="hero-text">
+                <h2 style="font-size:17px;color:var(--primary);">{{ employee.full_name }}</h2>
+                <div style="margin-top: 10px; line-height: 1.5; font-size: 11px;">Dear <strong>{{ employee.full_name }}</strong>,<br>{{ employee.greeting_message }}</div>
+            </div>
+        </section>
+        <h3 class="section-header">Employment Information</h3>
+        <div class="grid-container">
+            <div class="info-cell"><span class="label">Position</span><span class="value">{{ employee.position }}</span></div>
+            <div class="info-cell"><span class="label">Department</span><span class="value">{{ employee.department }}</span></div>
+            <div class="info-cell"><span class="label">Joining Date</span><span class="value">{{ employee.date_of_joining }}</span></div>
+            <div class="info-cell"><span class="label">Gender</span><span class="value">{{ employee.gender }}</span></div>
+            <div class="info-cell"><span class="label">Date of Birth</span><span class="value">{{ employee.date_of_birth }}</span></div>
+            <div class="info-cell"><span class="label">Mobile</span><span class="value">{{ employee.mobile_no }}</span></div>
+        </div>
+        <h3 class="section-header">Salary Breakdown</h3>
+        <div class="salary-wrapper">
+            <div class="salary-col">
+                <div class="salary-col-header" style="color:var(--success);">Earnings</div>
+                <table class="sal-table">{% for comp in employee.earnings %}<tr><td>{{ comp.ComponentName }}</td><td>₹{{ comp.Amount|floatformat:0 }}</td></tr>{% endfor %}</table>
+            </div>
+            <div class="salary-col">
+                <div class="salary-col-header" style="color:var(--danger);">Deductions</div>
+                <table class="sal-table">{% for comp in employee.deductions %}<tr><td>{{ comp.ComponentName }}</td><td style = "color:var(--danger);">- ₹{{ comp.Amount|floatformat:0 }}</td></tr>{% endfor %}</table>
+            </div>
+        </div>
+        <div class="sal-footer"><span class="sal-footer-label" style="font-size:10px;">NET MONTHLY TAKE-HOME</span><span class="sal-footer-value" style="font-size:14px;">₹{{ employee.net_salary|floatformat:0 }}</span></div>
+        <h3 class="section-header">Guidelines</h3>
+        <div class="rules-box"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">{% for rule in employee.school_rules %}<div style = "display:flex;gap:6px;font-size:10px;"><span style = "color:#d97706;">●</span><div><strong>{{ rule.Title }}:</strong> {{ rule.Description }}</div></div>{% endfor %}</div></div>
+        
+        <!-- UNIFIED PORTAL ACCESS BLOCK -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid var(--primary); clear: both; width: 100%; box-sizing: border-box; position: relative; z-index: 10;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 16px;">🔐</span><span style="font-size: 12px; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px;">{{ login_info.Title }}</span></div>
+                <div style="font-size: 10px; color: #be185d; background: #fff1f2; padding: 4px 12px; border-radius: 6px; border: 1px solid #fecdd3; font-weight: 800; text-transform: uppercase;">Password: Contact Admin</div>
+            </div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 8px;">{% for opt in login_info.Options %}<div style = "font-size: 10px; color: #334155;"><strong style = "color: #64748b; text-transform: uppercase; font-size: 8px; display: block; margin-bottom: 2px;">{{ opt.Label }}</strong> <span style = "font-size: 12px; font-weight: 700;">{{ opt.Value }}</span></div>{% endfor %}</div>
+            <div style="margin-top: 10px; font-size: 9px; color: #64748b; font-style: italic; border-top: 1px solid #f1f5f9; padding-top: 8px;">{{ login_info.Disclaimer }}</div>
+        </div>
+        
+        <div class="signature-row">
+            <div class="sig-box"><div class="sig-line"></div><span style="font-size:10px;">Candidate Signature</span></div>
+            <div class="sig-box"><div class="sig-line"></div><span style="font-size:10px;">Issuing Authority</span></div>
+        </div>
+        <footer><div style="display: flex; justify-content: space-between; align-items: center; max-width: 100%; margin: 0 auto; opacity: 0.8;"><div>{{ employee.school_name }} | {{ employee.school_address }}</div><div style="font-weight: 600;">Generated: {{ employee.current_date }}</div><div>Powered by ShikshaWave</div></div></footer>
+    </div>
+</body>
+</html>

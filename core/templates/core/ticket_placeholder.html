@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page_title }} - ShikshaWave</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin-bottom: 20px; }
+        .info { background: #e3f2fd; padding: 20px; border-radius: 4px; margin: 20px 0; }
+        .api-list { background: #f5f5f5; padding: 20px; border-radius: 4px; }
+        code { background: #263238; color: #aed581; padding: 2px 6px; border-radius: 3px; }
+        .endpoint { margin: 10px 0; padding: 10px; background: white; border-left: 3px solid #2196f3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ page_title }}</h1>
+        
+        <div class="info">
+            <h3>🎉 Ticket Management System - Backend Ready!</h3>
+            <p>The ticket management backend is fully implemented and operational. The frontend UI is pending development.</p>
+        </div>
+
+        <h3>Available API Endpoints:</h3>
+        <div class="api-list">
+            <div class="endpoint">
+                <strong>GET</strong> <code>/tickets/api/categories/</code> - Get ticket categories
+            </div>
+            <div class="endpoint">
+                <strong>GET</strong> <code>/tickets/api/priorities/</code> - Get priority levels
+            </div>
+            <div class="endpoint">
+                <strong>GET</strong> <code>/tickets/api/statuses/</code> - Get status list
+            </div>
+            <div class="endpoint">
+                <strong>GET</strong> <code>/tickets/api/dashboard/</code> - Get dashboard statistics
+            </div>
+            <div class="endpoint">
+                <strong>POST</strong> <code>/tickets/api/create/</code> - Create new ticket
+            </div>
+            <div class="endpoint">
+                <strong>GET</strong> <code>/tickets/api/list/</code> - Get ticket list (with filters)
+            </div>
+            <div class="endpoint">
+                <strong>GET</strong> <code>/tickets/api/{id}/</code> - Get ticket detail
+            </div>
+            <div class="endpoint">
+                <strong>POST</strong> <code>/tickets/api/{id}/assign/</code> - Assign ticket
+            </div>
+            <div class="endpoint">
+                <strong>POST</strong> <code>/tickets/api/{id}/status/</code> - Change status
+            </div>
+            <div class="endpoint">
+                <strong>POST</strong> <code>/tickets/api/{id}/reopen/</code> - Reopen ticket
+            </div>
+            <div class="endpoint">
+                <strong>POST</strong> <code>/tickets/api/{id}/comment/</code> - Add comment
+            </div>
+        </div>
+
+        <div class="info" style="margin-top: 30px; background: #fff3e0;">
+            <h3>📋 Next Steps:</h3>
+            <ul>
+                <li>Frontend UI development for ticket pages</li>
+                <li>Integration with existing ShikshaWave UI framework</li>
+                <li>Dashboard charts and visualizations</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

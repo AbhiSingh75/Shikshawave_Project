@@ -1,0 +1,91 @@
+<div class="table-container" id="contact-section">
+    <div class="section-header">
+        <div class="section-title-wrapper">
+            <div class="section-icon"><i class="fas fa-address-book"></i></div>
+            Contact Information
+        </div>
+        <button class="btn-icon" onclick="toggleEdit('contact')">
+            <i class="fas fa-pencil-alt"></i>
+        </button>
+    </div>
+
+    <div class="view-mode">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td>Mobile No</td>
+                    <td data-field="MobileNo">{{ staff.MobileNo|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td data-field="Email">{{ staff.Email|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Home Address</td>
+                    <td data-field="HomeAddress">{{ staff.HomeAddress|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Country</td>
+                    <td data-field="Country">{{ staff.Country|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>State</td>
+                    <td data-field="State">{{ staff.State|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>District</td>
+                    <td data-field="District">{{ staff.District|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td>Pincode</td>
+                    <td data-field="Pincode">{{ staff.Pincode|default:"N/A" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="edit-mode" style="display: none; padding: 20px;">
+        <form onsubmit="saveContact(event)">
+            <div class="sw-form-grid">
+                <div class="sw-form-group">
+                    <label>Mobile No</label>
+                    <input type="text" name="MobileNo" value="{{ staff.MobileNo }}" class="sw-form-control" maxlength="15">
+                </div>
+                <div class="sw-form-group">
+                    <label>Email</label>
+                    <input type="email" name="Email" value="{{ staff.Email }}" class="sw-form-control">
+                </div>
+                <div class="sw-form-group full-width">
+                    <label>Home Address</label>
+                    <textarea name="HomeAddress" class="sw-form-control" rows="3">{{ staff.HomeAddress }}</textarea>
+                </div>
+                <div class="sw-form-group">
+                    <label>Country</label>
+                    <select name="Country" id="countrySelect" class="sw-form-control">
+                        <option value="">Select Country</option>
+                    </select>
+                </div>
+                <div class="sw-form-group">
+                    <label>State</label>
+                    <select name="State" id="stateSelect" class="sw-form-control" disabled>
+                        <option value="">Select State</option>
+                    </select>
+                </div>
+                <div class="sw-form-group">
+                    <label>District</label>
+                    <select name="District" id="districtSelect" class="sw-form-control" disabled>
+                        <option value="">Select District</option>
+                    </select>
+                </div>
+                <div class="sw-form-group">
+                    <label>Pincode</label>
+                    <input type="text" name="Pincode" value="{{ staff.Pincode }}" class="sw-form-control" maxlength="10">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="toggleEdit('contact')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>

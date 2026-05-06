@@ -1,0 +1,3940 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Student Admission Form | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<link rel="icon" href="{% static 'images/ShikshaWave_Logo.png' %}" type="image/x-icon">
+<!-- Google Fonts for Signature -->
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+<!-- Global List/Form Design System -->
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.5">
+<style>
+    /* Page-specific aliases (map to global vars) */
+    :root {
+        --text-color: var(--text-main);
+        --text-light: var(--text-muted);
+        --light-gray: var(--bg-color);
+    }
+
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px 20px 20px;
+    }
+
+    /* Welcome Banner */
+    .welcome-banner {
+        display: none;
+    }
+
+    /* Helper Text */
+    .helper-text {
+        display: none;
+    }
+
+    .progress-container {
+        display: none;
+    }
+
+    .form-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 32px;
+        margin-top: 20px;
+    }
+
+    .form-section {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    body.dark-mode .form-section {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    body.dark-mode .section-header {
+        border-bottom-color: #374151;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-color);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        color: white;
+        font-size: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    /* Default form grid: 3 columns */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    /* 4 columns when sidebar is collapsed */
+    .sidebar-collapsed .form-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    @media (max-width: 1024px) {
+
+        .form-grid,
+        .sidebar-collapsed .form-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 650px) {
+
+        .form-grid,
+        .sidebar-collapsed .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Desktop: Hide native select if custom dropdown is present */
+    @media (min-width: 769px) {
+        .form-group:has(.custom-dropdown) select {
+            display: none !important;
+        }
+    }
+
+    /* Mobile: Show native select and hide custom dropdown */
+    @media (max-width: 768px) {
+        .form-group:has(.custom-dropdown) select {
+            display: block !important;
+        }
+        .custom-dropdown {
+            display: none !important;
+        }
+    }
+
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+        width: 100%;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--input-border);
+        border-radius: 6px;
+        font-size: 0.875rem;
+        background: white;
+        color: var(--text-color);
+        transition: border-color 0.15s;
+        min-height: 41px;
+    }
+
+    select.form-control {
+        appearance: none;
+        -moz-appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 10px auto;
+        padding-right: 32px;
+    }
+
+    body.dark-mode .form-control {
+        background: #374151;
+        border-color: var(--input-border);
+    }
+
+    body.dark-mode select.form-control {
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23d1d5db%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--input-border-focus);
+    }
+
+    /* Standardize custom dropdown sizing and styling */
+    .custom-dropdown-toggle {
+        padding: 10px 40px 10px 12px !important;
+        border-radius: 6px !important;
+        font-size: 0.875rem !important;
+        min-height: 41px;
+        border: 1px solid var(--input-border) !important;
+        background: white !important;
+        color: var(--text-color) !important;
+        font-weight: 500 !important;
+    }
+
+    body.dark-mode .custom-dropdown-toggle {
+        background: #374151 !important;
+        border-color: var(--input-border) !important;
+        color: white !important;
+    }
+
+    .custom-dropdown-option {
+        padding: 8px 12px !important;
+        font-size: 0.875rem !important;
+    }
+
+    .form-control.loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .form-control.error {
+        border-color: var(--error-color);
+    }
+
+    .password-field {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        grid-column: span 2;
+    }
+
+    @media (max-width: 1024px) {
+        .password-field {
+            grid-column: span 1;
+        }
+    }
+
+    .password-input-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .password-input-container {
+        position: relative;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .password-input-container input {
+        width: 100% !important;
+        padding-right: 45px !important;
+        /* Space only for eye icon now */
+    }
+
+    .password-field .toggle-password {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-light);
+        z-index: 10;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+    }
+
+    .password-field .toggle-password:hover {
+        color: var(--primary-color);
+    }
+
+    .generate-password-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        height: 41px;
+        padding: 0 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .generate-password-btn:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .password-strength {
+        margin-top: 12px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        max-width: 400px;
+    }
+
+    body.dark-mode .password-strength {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .strength-bar {
+        width: 100%;
+        height: 4px;
+        background: var(--border-color);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .strength-text {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        line-height: 1.4;
+    }
+
+    .strength-text strong {
+        color: var(--text-color);
+        font-weight: 600;
+    }
+
+    .password-suggestions {
+        display: none !important;
+    }
+
+    body.dark-mode .password-suggestions {
+        background: var(--secondary-color);
+    }
+
+    .suggestions-header {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--text-color);
+    }
+
+    .suggestions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .suggestion-item {
+        padding: 8px 12px;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    body.dark-mode .suggestion-item {
+        background: var(--light-gray);
+    }
+
+    .suggestion-item:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .suggestion-copy {
+        font-size: 0.7rem;
+        opacity: 0.7;
+    }
+
+    .tooltip {
+        position: absolute;
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+        white-space: nowrap;
+        z-index: 10;
+    }
+
+    .form-group:hover .tooltip {
+        display: block;
+    }
+
+    .checkbox-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        cursor: pointer;
+    }
+
+    body.dark-mode .checkbox-item {
+        border-color: #4b5563;
+    }
+
+    .checkbox-item input {
+        margin-right: 8px;
+        accent-color: var(--primary-color);
+    }
+
+    .checkbox-item input:checked+label {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+
+    /* Date input specific styles */
+    input[type="date"] {
+        cursor: pointer;
+        position: relative;
+    }
+
+    input[type="date"]:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+    }
+
+    input[type="date"]::-webkit-inner-spin-button,
+    input[type="date"]::-webkit-clear-button {
+        display: none;
+        -webkit-appearance: none;
+    }
+
+    .btn-disabled {
+        background: var(--border-color);
+        color: var(--text-light);
+        cursor: not-allowed;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+        gap: 12px;
+        padding: 16px;
+        background: var(--bg-color);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    body.dark-mode .form-actions {
+        background: var(--card-bg);
+    }
+
+    .form-actions .btn-group {
+        display: flex;
+        gap: 12px;
+    }
+
+    .declaration {
+        background: #f0fdf4;
+        padding: 16px;
+        border-radius: 6px;
+        margin-top: 16px;
+        font-size: 0.875rem;
+        border-left: 3px solid var(--success-color);
+    }
+
+    body.dark-mode .declaration {
+        background: #064e3b;
+    }
+
+    .signature-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+    }
+
+    .signature-input {
+        font-family: 'Dancing Script', cursive;
+        font-size: 1.5rem;
+        color: #1f2937;
+        background-color: #f9fafb;
+        border: none;
+        border-bottom: 2px solid #9ca3af;
+        border-radius: 0;
+        padding: 5px 0;
+    }
+
+    .signature-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .compact-doc-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .compact-doc-row {
+        display: grid;
+        grid-template-columns: 2fr 3fr 1fr;
+        /* Type, Upload, Action */
+        align-items: center;
+        gap: 15px;
+        padding: 10px 15px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode .compact-doc-row {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .compact-doc-row:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .doc-type-select {
+        font-weight: 500;
+    }
+
+    .doc-file-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .doc-file-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: #f3f4f6;
+        border: 1px dashed #d1d5db;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 0.85rem;
+        color: #4b5563;
+    }
+
+    .doc-file-label:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .doc-status-icon {
+        color: var(--success-color);
+        display: none;
+    }
+
+    .doc-status-icon.uploaded {
+        display: inline-block;
+    }
+
+    @media (max-width: 768px) {
+        .compact-doc-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+    }
+
+
+    .file-upload {
+        border: 2px dashed var(--border-color);
+        padding: 10px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--light-gray);
+        transition: all var(--transition-speed);
+    }
+
+    body.dark-mode .file-upload {
+        background: var(--secondary-color);
+    }
+
+    .file-upload:hover {
+        border-color: var(--primary-color);
+    }
+
+    .file-upload select,
+    .file-upload input[type="file"] {
+        display: none;
+    }
+
+    .file-upload label {
+        cursor: pointer;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+
+    .file-upload .file-name {
+        color: var(--text-light);
+        font-size: 0.8rem;
+        flex-grow: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .file-upload .remove-file {
+        color: var(--error-color);
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .same-address-checkbox {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .document-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .document-row select {
+        display: block;
+        width: 200px;
+    }
+
+    .document-row .file-upload {
+        flex-grow: 1;
+    }
+
+    .document-row .remove-row {
+        color: var(--error-color);
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .address-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        margin: 24px 0;
+    }
+
+    .address-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+    }
+
+    body.dark-mode .address-card {
+        background: #374151;
+        border-color: #4b5563;
+    }
+
+    .address-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .address-header i {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        width: 20px;
+        text-align: center;
+    }
+
+    .address-header h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .address-input {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 0.875rem;
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .same-address-toggle {
+        margin-bottom: 15px;
+    }
+
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .toggle-switch input[type="checkbox"] {
+        display: none;
+    }
+
+    .toggle-slider {
+        position: relative;
+        width: 50px;
+        height: 24px;
+        background: var(--border-color);
+        border-radius: 24px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .toggle-slider::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch input[type="checkbox"]:checked+.toggle-slider {
+        background: var(--primary-color);
+    }
+
+    .toggle-switch input[type="checkbox"]:checked+.toggle-slider::before {
+        transform: translateX(26px);
+    }
+
+    .toggle-label {
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.95rem;
+    }
+
+    .address-card.disabled {
+        opacity: 1;
+        /* No overlay or opacity change on the card itself */
+    }
+
+    /* Removed ::after overlay that caused white washout */
+
+    .address-card.disabled .address-input {
+        background-color: #f3f4f6;
+        /* Light gray for disabled state */
+        color: #4b5563;
+        /* Dark gray text */
+        cursor: not-allowed;
+        font-weight: 500;
+        border-color: #d1d5db;
+    }
+
+    body.dark-mode .address-card.disabled .address-input {
+        background-color: #374151;
+        /* Dark gray for disabled state in dark mode */
+        color: #9ca3af;
+        border-color: #4b5563;
+    }
+
+    .address-input[readonly] {
+        background: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+
+
+    .modal {
+        display: none !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.show {
+        display: flex !important;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: var(--card-shadow);
+    }
+
+    body.dark-mode .modal-content {
+        background: var(--secondary-color);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .modal-header h2 {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .modal-close {
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: var(--text-light);
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: flex-end;
+    }
+
+    .admission-details {
+        font-size: 0.9rem;
+    }
+
+    .admission-details p {
+        margin: 5px 0;
+    }
+
+    @media (max-width: 992px) {
+
+        .form-grid,
+        .address-section {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 15px;
+        }
+
+        .form-actions .btn-group {
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .form-actions .btn {
+            width: 100% !important;
+            justify-content: center;
+            height: 46px;
+            font-weight: 600;
+        }
+
+        .form-actions .btn-info {
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .document-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .document-row select {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .signature-fields {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .required::after {
+        content: '*';
+        color: var(--error-color);
+        margin-left: 4px;
+    }
+
+
+    /* Modern Date Picker Styling */
+    .flatpickr-calendar {
+        background: white !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+        border-radius: 16px !important;
+        border: none !important;
+        font-family: inherit !important;
+        overflow: hidden !important;
+        transform: scale(0.95) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .flatpickr-calendar.open {
+        transform: scale(1) !important;
+    }
+
+    .flatpickr-months {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
+        padding: 16px !important;
+        border-radius: 16px 16px 0 0 !important;
+    }
+
+    .flatpickr-month {
+        color: white !important;
+        font-weight: 600 !important;
+    }
+
+    .flatpickr-prev-month,
+    .flatpickr-next-month {
+        color: white !important;
+        padding: 8px !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .flatpickr-prev-month:hover,
+    .flatpickr-next-month:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .flatpickr-weekdays {
+        background: #f8fafc !important;
+        padding: 12px 0 !important;
+    }
+
+    .flatpickr-weekday {
+        color: var(--text-light) !important;
+        font-weight: 600 !important;
+        font-size: 0.8rem !important;
+    }
+
+    .flatpickr-days {
+        padding: 8px !important;
+    }
+
+    .flatpickr-day {
+        border-radius: 8px !important;
+        margin: 2px !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+        width: 32px !important;
+        height: 32px !important;
+        line-height: 32px !important;
+    }
+
+    .flatpickr-day:hover {
+        background: var(--primary-color) !important;
+        color: white !important;
+        transform: scale(1.1) !important;
+    }
+
+    .flatpickr-day.selected {
+        background: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        color: white !important;
+        font-weight: 600 !important;
+    }
+
+    .flatpickr-day.today {
+        border-color: var(--primary-color) !important;
+        color: var(--primary-color) !important;
+        font-weight: 600 !important;
+    }
+
+    body.dark-mode .flatpickr-calendar {
+        background: var(--secondary-color) !important;
+    }
+
+    body.dark-mode .flatpickr-weekdays {
+        background: var(--light-gray) !important;
+    }
+
+    .error {
+        border-color: var(--error-color);
+    }
+
+    .aadhaar-validation-msg {
+        margin-top: 5px;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Compact Fee Table */
+    .fee-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        background: white;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        font-size: 0.8rem;
+    }
+
+    body.dark-mode .fee-table {
+        background: #374151;
+    }
+
+    .fee-table thead {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .fee-table th {
+        padding: 6px 8px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .fee-table td {
+        padding: 5px 8px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    body.dark-mode .fee-table td {
+        border-bottom-color: #4b5563;
+    }
+
+    .fee-table tbody tr:hover {
+        background: rgba(79, 70, 229, 0.03);
+    }
+
+    .fee-name {
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .fee-amount {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .discount-input {
+        width: 45px;
+        padding: 2px 4px;
+        border: 1px solid var(--border-color);
+        border-radius: 3px;
+        text-align: center;
+        font-size: 0.75rem;
+    }
+
+    body.dark-mode .discount-input {
+        background: var(--secondary-color);
+        color: var(--text-color);
+        border-color: #4b5563;
+    }
+
+    .final-amount-cell {
+        font-weight: 700;
+        color: var(--success-color);
+    }
+
+    .fee-summary-row {
+        background: var(--light-gray);
+        font-weight: 700;
+    }
+
+    body.dark-mode .fee-summary-row {
+        background: var(--secondary-color);
+    }
+
+    .fee-summary-row td {
+        padding: 8px;
+        font-size: 0.85rem;
+        border-bottom: none;
+    }
+
+    .total-amount {
+        font-size: 1rem;
+        color: var(--primary-color);
+    }
+
+    .savings-text {
+        color: var(--success-color);
+        font-size: 0.75rem;
+    }
+
+    @media (max-width: 768px) {
+
+        .fee-table th,
+        .fee-table td {
+            padding: 4px 6px;
+            font-size: 0.7rem;
+        }
+
+        .discount-input {
+            width: 40px;
+        }
+    }
+
+    /* Ultra-Modern Document Upload Styles */
+    .document-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    body.dark-mode .document-card {
+        background: #374151;
+        border-color: #4b5563;
+    }
+
+    .mandatory-doc {
+        border-color: var(--error-color);
+        background: linear-gradient(145deg, rgba(254, 242, 242, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+    }
+
+    .mandatory-doc::before {
+        background: linear-gradient(90deg, #ef4444, #f97316, #eab308);
+    }
+
+    body.dark-mode .mandatory-doc {
+        background: linear-gradient(145deg, rgba(31, 31, 35, 0.9) 0%, rgba(17, 24, 39, 0.9) 100%);
+    }
+
+    .doc-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid rgba(79, 70, 229, 0.1);
+    }
+
+    .doc-header i {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .doc-header h4 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-color);
+        flex: 1;
+    }
+
+    .doc-header select {
+        flex: 1;
+        margin-left: 10px;
+    }
+
+    .remove-doc-btn {
+        background: linear-gradient(135deg, var(--error-color), #dc2626);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 16px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .remove-doc-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .doc-upload-area {
+        position: relative;
+    }
+
+    .doc-input {
+        display: none;
+    }
+
+    .upload-zone {
+        border: 2px dashed rgba(79, 70, 229, 0.3);
+        border-radius: 16px;
+        padding: 40px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(79, 70, 229, 0.02);
+        position: relative;
+        overflow: hidden;
+    }
+
+    body.dark-mode .upload-zone {
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .upload-zone::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.1), transparent);
+        transition: left 0.6s;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary-color);
+        background: rgba(79, 70, 229, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .upload-zone:hover::before {
+        left: 100%;
+    }
+
+    .upload-content i {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .upload-content p {
+        margin: 0 0 5px 0;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .upload-content small {
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+    .doc-preview {
+        background: linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+        border: 2px solid var(--success-color);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        backdrop-filter: blur(10px);
+    }
+
+    body.dark-mode .doc-preview {
+        background: linear-gradient(145deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+    }
+
+    .doc-preview img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 2px solid var(--border-color);
+    }
+
+    .preview-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .preview-content i {
+        font-size: 2rem;
+        color: var(--error-color);
+    }
+
+    .preview-content .file-name {
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .preview-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-remove {
+        background: linear-gradient(135deg, var(--error-color), #dc2626);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-remove:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Professional Document Grid */
+    .compact-doc-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .compact-doc-row {
+        display: grid;
+        grid-template-columns: 220px 1fr 60px 50px;
+        /* Label | File Area | Preview | Action */
+        align-items: center;
+        padding: 12px 16px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        gap: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .compact-doc-row:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background: #f8fafc;
+    }
+
+    .compact-doc-row.mandatory-row {
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .doc-type-label {
+        font-weight: 600;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .doc-file-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .doc-file-label {
+        background: #f1f5f9;
+        padding: 8px 16px;
+        border-radius: 6px;
+        color: var(--text-color);
+        cursor: pointer;
+        border: 1px dashed #cbd5e1;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 300px;
+    }
+
+    .doc-file-label.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+        background: #e5e7eb;
+    }
+
+    .doc-file-label:hover {
+        background: #e2e8f0;
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    /* Selected State */
+    .doc-file-label.file-selected {
+        background-color: #f0fdf4;
+        border-color: var(--success-color);
+        color: var(--text-color);
+    }
+
+    .preview-thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 6px;
+        object-fit: cover;
+        border: 1px solid var(--border-color);
+        background: #f3f4f6;
+        display: none;
+        /* Hidden by default */
+    }
+
+    .preview-thumb.visible {
+        display: block;
+    }
+
+    body.dark-mode .compact-doc-row {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    body.dark-mode .compact-doc-row:hover {
+        background: #374151;
+    }
+
+    body.dark-mode .doc-file-label {
+        background: #374151;
+        border-color: #4b5563;
+        color: #d1d5db;
+    }
+
+    body.dark-mode .doc-file-label:hover {
+        background: #4b5563;
+        color: #fff;
+    }
+
+    body.dark-mode .doc-file-label.file-selected {
+        background-color: rgba(16, 185, 129, 0.2);
+        /* Dark mode success tint */
+        border-color: var(--success-color);
+        color: #e5e7eb;
+    }
+
+    /* Specific adjustments for mobile */
+    /* Specific adjustments for mobile */
+    @media (max-width: 768px) {
+
+        /* 1. Global Layout */
+        .container {
+            padding: 15px 12px 20px 12px;
+            /* Added top padding */
+            max-width: 100%;
+            overflow-x: hidden;
+            /* Prevent scroll */
+        }
+
+        /* 2. Controls Header */
+        .controls-row {
+            flex-direction: column;
+            align-items: stretch;
+            /* Full width */
+            gap: 12px;
+            padding: 16px;
+            background: white;
+            /* Ensure background consistency */
+            border-radius: 12px;
+            margin-top: 10px;
+            /* Additional spacing */
+        }
+
+        body.dark-mode .controls-row {
+            background: #1f2937;
+        }
+
+        .controls-left h2 {
+            font-size: 1.25rem;
+            margin-bottom: 4px;
+            justify-content: center;
+            /* Center title on mobile */
+        }
+
+        .controls-right {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* Stack elements */
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .controls-right form {
+            width: 100% !important;
+            margin: 0;
+        }
+
+        .controls-right .form-control {
+            width: 100% !important;
+            height: 42px;
+            /* Standard height */
+            margin: 0;
+        }
+
+        .controls-right .btn {
+            width: 100% !important;
+            /* Full width */
+            padding: 10px 16px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            height: 42px;
+            /* Match selector height */
+        }
+
+        .controls-right .btn i {
+            margin-right: 8px;
+        }
+
+        .controls-right .btn span {
+            display: inline !important;
+            /* Show label when stacked */
+        }
+
+        /* 3. Form Sections */
+        .form-section {
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr !important;
+            /* Force single column */
+            gap: 20px;
+        }
+
+        /* 4. Document Section overrides */
+        .compact-doc-row {
+            grid-template-columns: 1fr;
+            gap: 12px;
+            padding: 16px 50px 16px 16px;
+            /* Extra right padding for delete button */
+            position: relative;
+        }
+
+        .doc-type-label {
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .doc-actions {
+            /* Position delete button at top right */
+            position: absolute !important;
+            top: 10px;
+            right: 10px;
+            width: auto !important;
+            margin: 0 !important;
+        }
+
+        .doc-actions .btn {
+            width: 32px !important;
+            height: 32px !important;
+            padding: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            min-width: 32px !important;
+        }
+
+        /* 5. Fee Table Mobile Fix */
+
+        /* 5. Fee Table Mobile Fix */
+        .fee-structure-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .signature-fields {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+    }
+
+    /* Enhanced Date Input Styles */
+    input[type="date"] {
+        position: relative;
+        padding-right: 35px !important;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        opacity: 1;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+    }
+
+    body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-container">
+
+    <!-- Standard Controls Row -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-user-plus" style="color: var(--primary-color);"></i>
+                New Student Admission
+            </h3>
+        </div>
+        <div class="controls-right">
+            {% if is_super_admin %}
+            <form method="POST" action="." style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="switch_school">
+                <select name="school_id" class="form-control" onchange="this.form.submit()"
+                    style="width: auto; min-width: 200px; margin-right: 10px; border-color: var(--border-color);">
+                    <option value="">-- Select School --</option>
+                    {% for school in school_options %}
+                    <option value="{{ school.SchoolID }}" {% if school.SchoolID == school_id %}selected{% endif %}>
+                        {{ school.DisplayName }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'view_applications' %}" class="btn btn-secondary" title="View Applications">
+                <i class="fas fa-list"></i> <span class="btn-label">View Applications</span>
+            </a>
+        </div>
+    </div>
+
+    <form id="admission-form" enctype="multipart/form-data" method="POST" autocomplete="off">
+        {% csrf_token %}
+        <div class="form-container">
+            <!-- Section A: Student Details -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h2 class="section-title">Student Details</h2>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fullName" class="required">Full Name of Student</label>
+                        <input type="text" id="fullName" name="fullName" class="form-control" required
+                            autocomplete="off" spellcheck="true" placeholder="Enter student's full name">
+                        <div class="helper-text">
+                            <i class="fas fa-info-circle"></i>
+                            Enter the full name as per official documents
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender" class="required">Gender</label>
+                        <select id="gender" name="gender" class="form-control" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="gender">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Gender</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-gender">
+                                <div class="custom-dropdown-option" data-value="">Select Gender</div>
+                                <div class="custom-dropdown-option" data-value="Male">Male</div>
+                                <div class="custom-dropdown-option" data-value="Female">Female</div>
+                                <div class="custom-dropdown-option" data-value="Other">Other</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dateOfBirth" class="required">Date of Birth</label>
+                        <div class="date-input-container" style="position: relative;">
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" required
+                                max="2024-12-31" onchange="calculateAge(this.value)">
+                            <i class="fas fa-calendar-alt date-icon" onclick="this.previousElementSibling.showPicker()"
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); cursor: pointer; pointer-events: auto;"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" class="form-control" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bloodGroup">Blood Group</label>
+                        <select id="bloodGroup" name="bloodGroup" class="form-control">
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="bloodGroup">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Blood Group</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-bloodGroup">
+                                <div class="custom-dropdown-option" data-value="">Select Blood Group</div>
+                                <div class="custom-dropdown-option" data-value="A+">A+</div>
+                                <div class="custom-dropdown-option" data-value="A-">A-</div>
+                                <div class="custom-dropdown-option" data-value="B+">B+</div>
+                                <div class="custom-dropdown-option" data-value="B-">B-</div>
+                                <div class="custom-dropdown-option" data-value="AB+">AB+</div>
+                                <div class="custom-dropdown-option" data-value="AB-">AB-</div>
+                                <div class="custom-dropdown-option" data-value="O+">O+</div>
+                                <div class="custom-dropdown-option" data-value="O-">O-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category" class="form-control">
+                            <option value="">Select Category</option>
+                            <option value="General">General</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                            <option value="OBC">OBC</option>
+                            <option value="EWS">EWS</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="category">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Category</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-category">
+                                <div class="custom-dropdown-option" data-value="">Select Category</div>
+                                <div class="custom-dropdown-option" data-value="General">General</div>
+                                <div class="custom-dropdown-option" data-value="SC">SC</div>
+                                <div class="custom-dropdown-option" data-value="ST">ST</div>
+                                <div class="custom-dropdown-option" data-value="OBC">OBC</div>
+                                <div class="custom-dropdown-option" data-value="EWS">EWS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="religion">Religion</label>
+                        <select id="religion" name="religion" class="form-control">
+                            <option value="">Select Religion</option>
+                            <option value="Hinduism">Hinduism</option>
+                            <option value="Islam">Islam</option>
+                            <option value="Christianity">Christianity</option>
+                            <option value="Sikhism">Sikhism</option>
+                            <option value="Jainism">Jainism</option>
+                            <option value="Buddhism">Buddhism</option>
+                            <option value="Others">Others</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="religion">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Religion</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-religion">
+                                <div class="custom-dropdown-option" data-value="">Select Religion</div>
+                                <div class="custom-dropdown-option" data-value="Hinduism">Hinduism</div>
+                                <div class="custom-dropdown-option" data-value="Islam">Islam</div>
+                                <div class="custom-dropdown-option" data-value="Christianity">Christianity</div>
+                                <div class="custom-dropdown-option" data-value="Sikhism">Sikhism</div>
+                                <div class="custom-dropdown-option" data-value="Jainism">Jainism</div>
+                                <div class="custom-dropdown-option" data-value="Buddhism">Buddhism</div>
+                                <div class="custom-dropdown-option" data-value="Others">Others</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nationality">Nationality</label>
+                        <select id="nationality" name="nationality" class="form-control">
+                            <option value="">Select Nationality</option>
+                            <option value="Indian">Indian</option>
+                            <option value="Nepali">Nepali</option>
+                            <option value="Bhutani">Bhutani</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="nationality">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Nationality</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-nationality">
+                                <div class="custom-dropdown-option" data-value="">Select Nationality</div>
+                                <div class="custom-dropdown-option" data-value="Indian">Indian</div>
+                                <div class="custom-dropdown-option" data-value="Nepali">Nepali</div>
+                                <div class="custom-dropdown-option" data-value="Bhutani">Bhutani</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="motherTongue">Mother Tongue</label>
+                        <select id="motherTongue" name="motherTongue" class="form-control">
+                            <option value="">Select Mother Tongue</option>
+                            <option value="Assamese">Assamese</option>
+                            <option value="Bengali">Bengali</option>
+                            <option value="Bhojpuri">Bhojpuri</option>
+                            <option value="Gujarati">Gujarati</option>
+                            <option value="Hindi">Hindi</option>
+                            <option value="Kannada">Kannada</option>
+                            <option value="Kashmiri">Kashmiri</option>
+                            <option value="Konkani">Konkani</option>
+                            <option value="Malayalam">Malayalam</option>
+                            <option value="Manipuri">Manipuri</option>
+                            <option value="Marathi">Marathi</option>
+                            <option value="Nepali">Nepali</option>
+                            <option value="Odia">Odia</option>
+                            <option value="Punjabi">Punjabi</option>
+                            <option value="Sanskrit">Sanskrit</option>
+                            <option value="Sindhi">Sindhi</option>
+                            <option value="Tamil">Tamil</option>
+                            <option value="Telugu">Telugu</option>
+                            <option value="Urdu">Urdu</option>
+                            <option value="Others">Others</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="motherTongue">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Mother Tongue</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-motherTongue">
+                                <div class="custom-dropdown-option" data-value="">Select Mother Tongue</div>
+                                <div class="custom-dropdown-option" data-value="Assamese">Assamese</div>
+                                <div class="custom-dropdown-option" data-value="Bengali">Bengali</div>
+                                <div class="custom-dropdown-option" data-value="Bhojpuri">Bhojpuri</div>
+                                <div class="custom-dropdown-option" data-value="Gujarati">Gujarati</div>
+                                <div class="custom-dropdown-option" data-value="Hindi">Hindi</div>
+                                <div class="custom-dropdown-option" data-value="Kannada">Kannada</div>
+                                <div class="custom-dropdown-option" data-value="Kashmiri">Kashmiri</div>
+                                <div class="custom-dropdown-option" data-value="Konkani">Konkani</div>
+                                <div class="custom-dropdown-option" data-value="Malayalam">Malayalam</div>
+                                <div class="custom-dropdown-option" data-value="Manipuri">Manipuri</div>
+                                <div class="custom-dropdown-option" data-value="Marathi">Marathi</div>
+                                <div class="custom-dropdown-option" data-value="Nepali">Nepali</div>
+                                <div class="custom-dropdown-option" data-value="Odia">Odia</div>
+                                <div class="custom-dropdown-option" data-value="Punjabi">Punjabi</div>
+                                <div class="custom-dropdown-option" data-value="Sanskrit">Sanskrit</div>
+                                <div class="custom-dropdown-option" data-value="Sindhi">Sindhi</div>
+                                <div class="custom-dropdown-option" data-value="Tamil">Tamil</div>
+                                <div class="custom-dropdown-option" data-value="Telugu">Telugu</div>
+                                <div class="custom-dropdown-option" data-value="Urdu">Urdu</div>
+                                <div class="custom-dropdown-option" data-value="Others">Others</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentAadhaarNumber" class="required">Student Aadhaar Number</label>
+                        <input type="text" id="studentAadhaarNumber" name="studentAadhaarNumber" class="form-control"
+                            maxlength="14" required placeholder="XXXX-XXXX-XXXX">
+                        <div class="helper-text">
+                            <i class="fas fa-shield-alt"></i>
+                            12-digit unique identification number
+                        </div>
+                    </div>
+
+                    <div class="form-group password-field">
+                        <label for="studentPassword" class="required">Student Password</label>
+                        <div class="password-input-wrapper">
+                            <div class="password-input-container">
+                                <input type="password" id="studentPassword" name="studentPassword" class="form-control"
+                                    required placeholder="Enter password or use suggestions">
+                                <span class="toggle-password" onclick="togglePassword('studentPassword')">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            </div>
+                            <button type="button" class="generate-password-btn" onclick="generatePassword()"
+                                title="Generate Strong Password">
+                                <i class="fas fa-magic"></i>
+                                <span>Generate Password</span>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar">
+                                <div class="strength-fill" id="strengthFill"></div>
+                            </div>
+                            <div class="strength-text" id="strengthText">
+                                Enter a password to see strength
+                            </div>
+                        </div>
+                        <div class="password-suggestions" id="passwordSuggestions" style="display: none;">
+                            <div class="suggestions-header">Suggested passwords:</div>
+                            <div class="suggestions-list" id="suggestionsList"></div>
+                        </div>
+                        <span class="tooltip">Password for future application access</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section B: Contact Information -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-address-book"></i>
+                    </div>
+                    <h2 class="section-title">Contact Information</h2>
+                </div>
+
+                <div class="address-section">
+                    <div class="address-card">
+                        <div class="address-header">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h4>Present Address</h4>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Address</label>
+                            <textarea id="presentAddress" name="presentAddress" class="form-control address-input"
+                                rows="2" required placeholder="Enter your current residential address"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="address-card">
+                        <div class="address-header">
+                            <i class="fas fa-home"></i>
+                            <h4>Permanent Address</h4>
+                        </div>
+                        <div class="same-address-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="sameAddress" name="sameAddress">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Same as Present Address</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="permanentAddress" name="permanentAddress" class="form-control address-input"
+                                rows="2" required placeholder="Enter your permanent residential address"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group" id="country-group">
+                        <label for="country" class="required">Country</label>
+                        <select id="country" name="country_id" class="form-control" required>
+                            <option value="">Select Country</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="country">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Country</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-country">
+                                <div class="custom-dropdown-option" data-value="">Select Country</div>
+                            </div>
+                        </div>
+                        <input type="text" id="country-text" name="country_text" class="form-control"
+                            style="display: none;" placeholder="Enter Country">
+                        <button type="button" class="btn btn-secondary" id="toggle-country-input"
+                            style="display: none; margin-top: 5px;">
+                            <i class="fas fa-edit"></i> Enter Manually
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="retry-country"
+                            style="display: none; margin-top: 5px;">
+                            <i class="fas fa-sync"></i> Retry
+                        </button>
+                    </div>
+
+                    <div class="form-group" id="state-group">
+                        <label for="state" class="required">State</label>
+                        <select id="state" name="state_id" class="form-control" disabled required>
+                            <option value="">Select State</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="state">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select State</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-state">
+                                <div class="custom-dropdown-option" data-value="">Select State</div>
+                            </div>
+                        </div>
+                        <input type="text" id="state-text" name="state_text" class="form-control" style="display: none;"
+                            placeholder="Enter State">
+                        <button type="button" class="btn btn-secondary" id="toggle-state-input"
+                            style="display: none; margin-top: 5px;">
+                            <i class="fas fa-edit"></i> Enter Manually
+                        </button>
+                    </div>
+
+                    <div class="form-group" id="district-group">
+                        <label for="district" class="required">District</label>
+                        <select id="district" name="district_id" class="form-control" disabled required>
+                            <option value="">Select District</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="district">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select District</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-district">
+                                <div class="custom-dropdown-option" data-value="">Select District</div>
+                            </div>
+                        </div>
+                        <input type="text" id="district-text" name="district_text" class="form-control"
+                            style="display: none;" placeholder="Enter District">
+                        <button type="button" class="btn btn-secondary" id="toggle-district-input"
+                            style="display: none; margin-top: 5px;">
+                            <i class="fas fa-edit"></i> Enter Manually
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parentMobile" class="required">Mobile Number (Parent/Guardian)</label>
+                        <input type="tel" id="parentMobile" name="parentMobile" class="form-control" maxlength="11"
+                            required placeholder="XXXXX-XXXXX">
+                        <div class="helper-text">
+                            <i class="fas fa-phone"></i>
+                            Primary contact number for communication
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="alternateNumber">Alternate Number</label>
+                        <input type="tel" id="alternateNumber" name="alternateNumber" class="form-control"
+                            maxlength="11" placeholder="XXXXX-XXXXX">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="required">Email ID</label>
+                        <input type="email" id="email" name="email" class="form-control" required
+                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" placeholder="example@email.com">
+                        <div class="helper-text">
+                            <i class="fas fa-envelope"></i>
+                            We'll send admission updates to this email
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section C: Parent / Guardian Information -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h2 class="section-title">Parent / Guardian Information</h2>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Father's Details</label>
+                        <input type="text" id="fatherName" name="fatherName" class="form-control" placeholder="Name">
+                        <select id="fatherOccupation" name="fatherOccupation" class="form-control"
+                            style="margin-top: 10px;">
+                            <option value="">Select Occupation</option>
+                            <option value="Government Employee">Government Employee</option>
+                            <option value="Private Sector Employee">Private Sector Employee</option>
+                            <option value="Business Owner">Business Owner</option>
+                            <option value="Farmer">Farmer</option>
+                            <option value="Self-Employed">Self-Employed</option>
+                            <option value="Professional (Doctor, Lawyer, etc.)">Professional (Doctor, Lawyer, etc.)
+                            </option>
+                            <option value="Teacher">Teacher</option>
+                            <option value="Homemaker">Homemaker</option>
+                            <option value="Retired">Retired</option>
+                            <option value="Unemployed">Unemployed</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="fatherOccupation" style="margin-top: 10px;">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Occupation</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">Select Occupation</div>
+                                <div class="custom-dropdown-option" data-value="Government Employee">Government Employee
+                                </div>
+                                <div class="custom-dropdown-option" data-value="Private Sector Employee">Private Sector
+                                    Employee</div>
+                                <div class="custom-dropdown-option" data-value="Business Owner">Business Owner</div>
+                                <div class="custom-dropdown-option" data-value="Farmer">Farmer</div>
+                                <div class="custom-dropdown-option" data-value="Self-Employed">Self-Employed</div>
+                                <div class="custom-dropdown-option" data-value="Professional (Doctor, Lawyer, etc.)">
+                                    Professional (Doctor, Lawyer, etc.)</div>
+                                <div class="custom-dropdown-option" data-value="Teacher">Teacher</div>
+                                <div class="custom-dropdown-option" data-value="Homemaker">Homemaker</div>
+                                <div class="custom-dropdown-option" data-value="Retired">Retired</div>
+                                <div class="custom-dropdown-option" data-value="Unemployed">Unemployed</div>
+                                <div class="custom-dropdown-option" data-value="Other">Other</div>
+                            </div>
+                        </div>
+                        <select id="fatherQualification" name="fatherQualification" class="form-control"
+                            style="margin-top: 10px;">
+                            <option value="">Select Qualification</option>
+                            <option value="Below 5th">Below 5th</option>
+                            <option value="5th Pass">5th Pass</option>
+                            <option value="8th Pass">8th Pass</option>
+                            <option value="10th Pass">10th Pass</option>
+                            <option value="12th Pass">12th Pass</option>
+                            <option value="Diploma">Diploma</option>
+                            <option value="Graduate">Graduate</option>
+                            <option value="Post Graduate">Post Graduate</option>
+                            <option value="Doctorate">Doctorate</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="fatherQualification" style="margin-top: 10px;">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Qualification</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">Select Qualification</div>
+                                <div class="custom-dropdown-option" data-value="Below 5th">Below 5th</div>
+                                <div class="custom-dropdown-option" data-value="5th Pass">5th Pass</div>
+                                <div class="custom-dropdown-option" data-value="8th Pass">8th Pass</div>
+                                <div class="custom-dropdown-option" data-value="10th Pass">10th Pass</div>
+                                <div class="custom-dropdown-option" data-value="12th Pass">12th Pass</div>
+                                <div class="custom-dropdown-option" data-value="Diploma">Diploma</div>
+                                <div class="custom-dropdown-option" data-value="Graduate">Graduate</div>
+                                <div class="custom-dropdown-option" data-value="Post Graduate">Post Graduate</div>
+                                <div class="custom-dropdown-option" data-value="Doctorate">Doctorate</div>
+                                <div class="custom-dropdown-option" data-value="Other">Other</div>
+                            </div>
+                        </div>
+                        <input type="text" id="fatherAadhaar" name="fatherAadhaar" class="form-control"
+                            placeholder="Aadhaar No. (XXXX-XXXX-XXXX)" style="margin-top: 10px;" maxlength="14">
+                        <input type="tel" id="fatherMobile" name="fatherMobile" class="form-control"
+                            placeholder="Mobile No. (XXXXX-XXXXX)" style="margin-top: 10px;" maxlength="11">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mother's Details</label>
+                        <input type="text" id="motherName" name="motherName" class="form-control" placeholder="Name">
+                        <select id="motherOccupation" name="motherOccupation" class="form-control"
+                            style="margin-top: 10px;">
+                            <option value="">Select Occupation</option>
+                            <option value="Government Employee">Government Employee</option>
+                            <option value="Private Sector Employee">Private Sector Employee</option>
+                            <option value="Business Owner">Business Owner</option>
+                            <option value="Farmer">Farmer</option>
+                            <option value="Self-Employed">Self-Employed</option>
+                            <option value="Professional (Doctor, Lawyer, etc.)">Professional (Doctor, Lawyer, etc.)
+                            </option>
+                            <option value="Teacher">Teacher</option>
+                            <option value="Homemaker">Homemaker</option>
+                            <option value="Retired">Retired</option>
+                            <option value="Unemployed">Unemployed</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="motherOccupation" style="margin-top: 10px;">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Occupation</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">Select Occupation</div>
+                                <div class="custom-dropdown-option" data-value="Government Employee">Government Employee
+                                </div>
+                                <div class="custom-dropdown-option" data-value="Private Sector Employee">Private Sector
+                                    Employee</div>
+                                <div class="custom-dropdown-option" data-value="Business Owner">Business Owner</div>
+                                <div class="custom-dropdown-option" data-value="Farmer">Farmer</div>
+                                <div class="custom-dropdown-option" data-value="Self-Employed">Self-Employed</div>
+                                <div class="custom-dropdown-option" data-value="Professional (Doctor, Lawyer, etc.)">
+                                    Professional (Doctor, Lawyer, etc.)</div>
+                                <div class="custom-dropdown-option" data-value="Teacher">Teacher</div>
+                                <div class="custom-dropdown-option" data-value="Homemaker">Homemaker</div>
+                                <div class="custom-dropdown-option" data-value="Retired">Retired</div>
+                                <div class="custom-dropdown-option" data-value="Unemployed">Unemployed</div>
+                                <div class="custom-dropdown-option" data-value="Other">Other</div>
+                            </div>
+                        </div>
+                        <select id="motherQualification" name="motherQualification" class="form-control"
+                            style="margin-top: 10px;">
+                            <option value="">Select Qualification</option>
+                            <option value="Below 5th">Below 5th</option>
+                            <option value="5th Pass">5th Pass</option>
+                            <option value="8th Pass">8th Pass</option>
+                            <option value="10th Pass">10th Pass</option>
+                            <option value="12th Pass">12th Pass</option>
+                            <option value="Diploma">Diploma</option>
+                            <option value="Graduate">Graduate</option>
+                            <option value="Post Graduate">Post Graduate</option>
+                            <option value="Doctorate">Doctorate</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="motherQualification" style="margin-top: 10px;">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Qualification</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">Select Qualification</div>
+                                <div class="custom-dropdown-option" data-value="Below 5th">Below 5th</div>
+                                <div class="custom-dropdown-option" data-value="5th Pass">5th Pass</div>
+                                <div class="custom-dropdown-option" data-value="8th Pass">8th Pass</div>
+                                <div class="custom-dropdown-option" data-value="10th Pass">10th Pass</div>
+                                <div class="custom-dropdown-option" data-value="12th Pass">12th Pass</div>
+                                <div class="custom-dropdown-option" data-value="Diploma">Diploma</div>
+                                <div class="custom-dropdown-option" data-value="Graduate">Graduate</div>
+                                <div class="custom-dropdown-option" data-value="Post Graduate">Post Graduate</div>
+                                <div class="custom-dropdown-option" data-value="Doctorate">Doctorate</div>
+                                <div class="custom-dropdown-option" data-value="Other">Other</div>
+                            </div>
+                        </div>
+                        <input type="text" id="motherAadhaar" name="motherAadhaar" class="form-control"
+                            placeholder="Aadhaar No. (XXXX-XXXX-XXXX)" style="margin-top: 10px;" maxlength="14">
+                        <input type="tel" id="motherMobile" name="motherMobile" class="form-control"
+                            placeholder="Mobile No. (XXXXX-XXXXX)" style="margin-top: 10px;" maxlength="11">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Guardian (if applicable)</label>
+                        <input type="text" id="guardianName" name="guardianName" class="form-control"
+                            placeholder="Name">
+                        <select id="guardianRelation" name="guardianRelation" class="form-control"
+                            style="margin-top: 10px;">
+                            <option value="">Select Relation</option>
+                            <option value="Father">Father</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Sister">Sister</option>
+                            <option value="Grandparent">Grandparent</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Aunt">Aunt</option>
+                            <option value="Uncle">Uncle</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="guardianRelation" style="margin-top: 10px;">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Relation</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-option" data-value="">Select Relation</div>
+                                <div class="custom-dropdown-option" data-value="Father">Father</div>
+                                <div class="custom-dropdown-option" data-value="Mother">Mother</div>
+                                <div class="custom-dropdown-option" data-value="Brother">Brother</div>
+                                <div class="custom-dropdown-option" data-value="Sister">Sister</div>
+                                <div class="custom-dropdown-option" data-value="Grandparent">Grandparent</div>
+                                <div class="custom-dropdown-option" data-value="Sibling">Sibling</div>
+                                <div class="custom-dropdown-option" data-value="Aunt">Aunt</div>
+                                <div class="custom-dropdown-option" data-value="Uncle">Uncle</div>
+                                <div class="custom-dropdown-option" data-value="Other">Other</div>
+                            </div>
+                        </div>
+                        <input type="tel" id="guardianMobile" name="guardianMobile" class="form-control"
+                            placeholder="Mobile No. (XXXXX-XXXXX)" style="margin-top: 10px;" maxlength="11">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section D: Previous School Details -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-school"></i>
+                    </div>
+                    <h2 class="section-title">Previous School Details</h2>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="lastSchool">Last School Attended</label>
+                        <input type="text" id="lastSchool" name="lastSchool" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastClass">Last Class Studied</label>
+                        <input type="text" id="lastClass" name="lastClass" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tcNumber">Transfer Certificate No.</label>
+                        <input type="text" id="tcNumber" name="tcNumber" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="medium">Medium of Instruction</label>
+                        <input type="text" id="medium" name="medium" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section E: Admission Information -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <h2 class="section-title">Admission Information</h2>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="academicYear" class="required">Academic Year</label>
+                        <select id="academicYear" name="academicYear" class="form-control" required>
+                            <option value="">Select Academic Year</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="academicYear">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Academic Year</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-academicYear">
+                                <div class="custom-dropdown-option" data-value="">Select Academic Year</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="admissionClass" class="required">Admission to Class</label>
+                        <select id="admissionClass" name="admissionClass" class="form-control">
+                            <option value="">Select Class</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="admissionClass">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Class</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-admissionClass">
+                                <div class="custom-dropdown-option" data-value="">Select Class</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="section" class="required">Section</label>
+                        <select id="section" name="section" class="form-control" disabled>
+                            <option value="">Select Section</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="section">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Section</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-section">
+                                <div class="custom-dropdown-option" data-value="">Select Section</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stream">Stream (XI/XII only)</label>
+                        <select id="stream" name="stream" class="form-control">
+                            <option value="">Select Stream</option>
+                            <option value="Arts">Arts</option>
+                            <option value="Science">Science</option>
+                            <option value="Commerce">Commerce</option>
+                            <option value="Vocational">Vocational</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="stream">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Stream</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-stream">
+                                <div class="custom-dropdown-option" data-value="">Select Stream</div>
+                                <div class="custom-dropdown-option" data-value="Arts">Arts</div>
+                                <div class="custom-dropdown-option" data-value="Science">Science</div>
+                                <div class="custom-dropdown-option" data-value="Commerce">Commerce</div>
+                                <div class="custom-dropdown-option" data-value="Vocational">Vocational</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mode">Mode of Admission</label>
+                        <select id="mode" name="mode" class="form-control">
+                            <option value="">Select Mode</option>
+                            <option value="New">New</option>
+                            <option value="Transfer">Transfer</option>
+                            <option value="RTE">RTE</option>
+                        </select>
+                        <div class="custom-dropdown" data-target="mode">
+                            <div class="custom-dropdown-toggle">
+                                <span class="custom-dropdown-text">Select Mode</span>
+                                <span class="custom-dropdown-arrow">&#9660;</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="custom-menu-mode">
+                                <div class="custom-dropdown-option" data-value="">Select Mode</div>
+                                <div class="custom-dropdown-option" data-value="New">New</div>
+                                <div class="custom-dropdown-option" data-value="Transfer">Transfer</div>
+                                <div class="custom-dropdown-option" data-value="RTE">RTE</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="admissionDate">Admission Date</label>
+                        <div class="date-input-container" style="position: relative;">
+                            <input type="date" id="admissionDate" name="admissionDate" class="form-control"
+                                min="2024-01-01">
+                            <i class="fas fa-calendar-alt date-icon" onclick="this.previousElementSibling.showPicker()"
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); cursor: pointer; pointer-events: auto;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section F: Fee Details -->
+            <div class="form-section" style="padding: 14px;">
+                <div class="section-header" style="margin-bottom: 10px; padding-bottom: 8px;">
+                    <div class="section-icon" style="width: 26px; height: 26px; font-size: 0.85rem;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h2 class="section-title" style="font-size: 0.95rem;">Fee Structure</h2>
+                </div>
+
+                <table class="fee-table">
+                    <thead>
+                        <tr>
+                            <th>Fee Type</th>
+                            <th style="text-align: right;">Amount</th>
+                            <th style="text-align: center;">Disc %</th>
+                            <th style="text-align: right;">Final</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fee-table-body">
+                        {% for fee_type in admission_fee_types %}
+                        <tr class="fee-row" data-fee-id="{{ fee_type.FeeTypeId }}"
+                            data-base="{{ fee_type.DefaultAmount }}">
+                            <td class="fee-name">{{ fee_type.FeeTypeName }}</td>
+                            <td class="fee-amount" style="text-align: right;">{{ fee_type.DefaultAmount }}</td>
+                            <td style="text-align: center;">
+                                <input type="number" name="discount_{{ fee_type.FeeTypeId }}" class="discount-input"
+                                    min="0" max="100" value="0" placeholder="0">
+                            </td>
+                            <td class="final-amount-cell" style="text-align: right;">{{ fee_type.DefaultAmount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="fee-summary-row">
+                            <td colspan="3" style="text-align: right;">Total:</td>
+                            <td class="total-amount" style="text-align: right;">₹<span id="total-amount">0</span></td>
+                        </tr>
+                        <tr class="fee-summary-row" id="savings-row" style="display: none;">
+                            <td colspan="3" style="text-align: right;">
+                                <span class="savings-text">Savings:</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <span class="savings-text">₹<span id="total-saved">0</span></span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div id="monthly-fees-placeholder"
+                    style="text-align: center; padding: 10px; color: var(--text-light); font-size: 0.8rem;">
+                    <i class="fas fa-info-circle" style="margin-right: 4px;"></i>
+                    Select a class to view additional fees
+                </div>
+            </div>
+
+
+            <!-- Section G: Documents Submitted -->
+            <!-- Section G: Documents Submitted (Compact Design) -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h2 class="section-title">Documents Submitted</h2>
+                </div>
+
+                <div class="compact-doc-list" id="document-list">
+                    <!-- Mandatory Photo Row -->
+                    <div class="compact-doc-row mandatory-row">
+                        <div class="doc-type-label">
+                            <strong>Student Passport Photo</strong> <span class="required">*</span>
+                            <input type="hidden" name="docType[]" value="Student Passport Photo">
+                        </div>
+                        <div class="doc-file-input-wrapper">
+                            <label for="studentPhoto" class="doc-file-label">
+                                <i class="fas fa-camera"></i> <span id="studentPhoto-name">Click to upload
+                                    photo...</span>
+                            </label>
+                            <input type="file" id="studentPhoto" name="docFile[]" accept=".jpg,.jpeg,.png" required
+                                style="display: none;"
+                                onchange="updateFileName(this, 'studentPhoto-name', 'studentPhoto-preview')">
+                            <i class="fas fa-check-circle doc-status-icon" id="studentPhoto-status"></i>
+                        </div>
+                        <div class="doc-preview-container">
+                            <img id="studentPhoto-preview" class="preview-thumb" alt="Preview">
+                        </div>
+                        <div class="doc-actions">
+                            <!-- No delete for mandatory -->
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Rows Container -->
+                    <div id="dynamic-docs-container"></div>
+                </div>
+
+                <button type="button" class="btn btn-secondary btn-sm" id="add-document-row" style="margin-top: 15px;">
+                    <i class="fas fa-plus"></i> Add Document
+                </button>
+                <small class="text-muted" style="margin-left: 10px;">Max 5MB per file (PDF, JPG, PNG)</small>
+            </div>
+
+            <!-- Section H: Declaration -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h2 class="section-title">Declaration</h2>
+                </div>
+
+                <div class="declaration">
+                    I/We hereby declare that the information provided is true and correct to the best of my
+                    knowledge. I understand that if any information is found incorrect, admission may be cancelled.
+                </div>
+
+                <div class="signature-fields">
+                    <div class="form-group">
+                        <label for="fatherSign">Sign of Father</label>
+                        <input type="text" id="fatherSign" name="fatherSign" class="form-control signature-input"
+                            placeholder="Auto-generated">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="motherSign">Sign of Mother</label>
+                        <input type="text" id="motherSign" name="motherSign" class="form-control signature-input"
+                            placeholder="Auto-generated">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guardianSign">Sign of Guardian (if any)</label>
+                        <input type="text" id="guardianSign" name="guardianSign" class="form-control signature-input"
+                            placeholder="Auto-generated">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentSign">Sign of Student (if Class VI+)</label>
+                        <input type="text" id="studentSign" name="studentSign" class="form-control signature-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="declarationDate">Date</label>
+                        <div class="date-input-container" style="position: relative;">
+                            <input type="date" id="declarationDate" name="declarationDate" class="form-control">
+                            <i class="fas fa-calendar-alt date-icon" onclick="this.previousElementSibling.showPicker()"
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); cursor: pointer; pointer-events: auto;"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="principalApproval">Principal's Approval</label>
+                        <input type="text" id="principalApproval" name="principalApproval" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="cancelButton">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <div class="btn-group">
+                    <a href="{% url 'view_applications' %}" class="btn btn-info">
+                        <i class="fas fa-list"></i> View Applications
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Application
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal for Admission Details -->
+    <div class="modal" id="admissionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Admission Details</h2>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="admission-details" id="admissionDetails"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn btn-primary" onclick="printAdmissionDetails()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<script>
+
+    // Block Back/Forward navigation to this page
+    try {
+        // Legacy API
+        if (window.performance && window.performance.navigation && window.performance.navigation.type === 2) {
+            window.location.replace('/dashboard/');
+        }
+        // Modern API
+        if (window.performance && window.performance.getEntriesByType) {
+            const navEntries = window.performance.getEntriesByType("navigation");
+            if (navEntries.length > 0 && navEntries[0].type === "back_forward") {
+                window.location.replace('/dashboard/');
+            }
+        }
+    } catch (e) { console.error("Navigation check failed", e); }
+
+    // Prevent back button resubmission
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Constants and reusable functions
+        const baseUrl = window.location.origin;
+        const form = document.getElementById('admission-form');
+
+        // Toggle dark mode
+
+        // Redirect functions
+        document.getElementById('cancelButton').addEventListener('click', () => {
+            window.location.href = '{% url "dashboard" %}';
+        });
+
+        // Password toggle functionality
+        window.togglePassword = function (id) {
+            const input = document.getElementById(id);
+            const icon = input.parentElement.querySelector('.toggle-password i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        };
+
+        // Password generation and strength checking
+        const generateRandomPassword = (length = 12) => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return password;
+        };
+
+        const generateReadablePassword = () => {
+            const adjectives = ['Quick', 'Bright', 'Smart', 'Cool', 'Fast', 'Strong', 'Happy', 'Lucky'];
+            const nouns = ['Tiger', 'Eagle', 'Lion', 'Star', 'Moon', 'Sun', 'Wave', 'Fire'];
+            const numbers = Math.floor(Math.random() * 999) + 100;
+            const symbols = ['!', '@', '#', '$', '%'];
+
+            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+
+            return `${adj}${noun}${numbers}${symbol}`;
+        };
+
+        const checkPasswordStrength = (password) => {
+            let score = 0;
+            let feedback = [];
+
+            if (password.length >= 8) score += 1;
+            else feedback.push('At least 8 characters');
+
+            if (/[a-z]/.test(password)) score += 1;
+            else feedback.push('Lowercase letter');
+
+            if (/[A-Z]/.test(password)) score += 1;
+            else feedback.push('Uppercase letter');
+
+            if (/\d/.test(password)) score += 1;
+            else feedback.push('Number');
+
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1;
+            else feedback.push('Special character');
+
+            // Cap score at 4 since arrays have 5 elements
+            const safeScore = Math.min(score, 4);
+            const strength = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'][safeScore];
+            const colors = ['#ef4444', '#f59e0b', '#eab308', '#22c55e', '#16a34a'];
+
+            return { score, strength, color: colors[safeScore], feedback };
+        };
+
+        window.generatePassword = function () {
+            const passwordInput = document.getElementById('studentPassword');
+            const newPassword = generateRandomPassword(12); // Strong 12-char password
+
+            passwordInput.value = newPassword;
+            passwordInput.type = 'text'; // Show it temporarily so user sees it
+
+            // Update UI
+            updatePasswordStrength(newPassword);
+
+            // Update icon to eye-slash since we are showing it
+            const icon = passwordInput.parentElement.querySelector('.toggle-password i');
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+
+            // Optional: Revert to password type after 5 seconds? keeping text for now as user likely wants to copy it.
+        };
+
+        const updatePasswordStrength = (password) => {
+            const strengthDiv = document.getElementById('passwordStrength');
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+
+            if (!password) {
+                strengthDiv.style.display = 'none';
+                return;
+            }
+
+            const result = checkPasswordStrength(password);
+            strengthDiv.style.display = 'block';
+            strengthFill.style.width = `${(result.score / 5) * 100}%`;
+            strengthFill.style.backgroundColor = result.color;
+            if (result.score > 0) {
+                strengthText.innerHTML = `<strong>${result.strength}</strong>${result.feedback.length ? ' • Missing: ' + result.feedback.join(', ') : ' • Secure'}`;
+            } else {
+                strengthText.textContent = 'Enter a password to see strength';
+            }
+        };
+
+        // Add password strength checking to student password field
+        const studentPasswordInput = document.getElementById('studentPassword');
+        if (studentPasswordInput) {
+            studentPasswordInput.addEventListener('input', function () {
+                updatePasswordStrength(this.value);
+            });
+
+            studentPasswordInput.addEventListener('focus', function () {
+                if (!this.value) {
+                    // Removed auto-generation on focus to allow manual typing
+                    // document.getElementById('passwordSuggestions').style.display = 'block';
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.password-field')) {
+                    document.getElementById('passwordSuggestions').style.display = 'none';
+                }
+            });
+        }
+
+        // Format input fields
+
+        // --- Auto-Populate Signatures ---
+        const updateSignature = (sourceId, targetId) => {
+            const source = document.getElementById(sourceId);
+            const target = document.getElementById(targetId);
+            if (source && target) {
+                // Tracking manual edits to prevent auto-overwrite
+                target.addEventListener('input', () => {
+                    target.dataset.manual = "true";
+                });
+
+                const update = () => {
+                    // Only update if user hasn't manually edited the signature field
+                    if (!target.dataset.manual) {
+                        target.value = source.value;
+                    }
+                };
+
+                // Initialize
+                if (!target.value) update(); // Only init if empty
+
+                // Add robust listeners
+                source.addEventListener('input', update);
+                source.addEventListener('change', update);
+                source.addEventListener('keyup', update);
+                source.addEventListener('blur', update);
+            } else {
+                console.warn(`Signature Source (${sourceId}) or Target (${targetId}) not found`);
+            }
+        };
+
+        updateSignature('fatherName', 'fatherSign');
+        updateSignature('motherName', 'motherSign');
+        updateSignature('guardianName', 'guardianSign');
+
+        // --- Compact Documents Logic ---
+        // --- Compact Documents Logic ---
+        window.updateFileName = function (input, labelId, previewId) {
+            const labelSpan = document.getElementById(labelId);
+            const statusIcon = input.nextElementSibling; // The check icon
+            const previewImg = document.getElementById(previewId);
+
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                labelSpan.textContent = file.name;
+
+                // Use class instead of inline style
+                labelSpan.parentElement.classList.add('file-selected');
+                // Remove inline styles if they exist from previous version
+                labelSpan.parentElement.style.borderColor = '';
+                labelSpan.parentElement.style.backgroundColor = '';
+
+                if (statusIcon) statusIcon.classList.add('uploaded');
+
+                // Image Preview Logic
+                if (file.type.startsWith('image/') && previewImg) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewImg.src = e.target.result;
+                        previewImg.classList.add('visible');
+                    };
+                    reader.readAsDataURL(file);
+                } else if (previewImg) {
+                    previewImg.classList.remove('visible');
+                    previewImg.src = '';
+                }
+
+            } else {
+                labelSpan.textContent = 'Click to upload...';
+
+                // Remove class
+                labelSpan.parentElement.classList.remove('file-selected');
+                labelSpan.parentElement.style.borderColor = '';
+                labelSpan.parentElement.style.backgroundColor = '';
+
+                if (statusIcon) statusIcon.classList.remove('uploaded');
+
+                if (previewImg) {
+                    previewImg.classList.remove('visible');
+                    previewImg.src = '';
+                }
+            }
+        };
+
+        // Prevent Duplicate Document Selection & Toggle Upload
+        window.validateDocSelection = function (select) {
+            const row = select.closest('.compact-doc-row');
+            const fileLabel = row.querySelector('.doc-file-label');
+            const allSelects = document.querySelectorAll('.doc-type-select');
+            const selectedValue = select.value;
+
+            // 1. Enable/Disable Upload based on selection
+            if (selectedValue) {
+                fileLabel.classList.remove('disabled');
+                fileLabel.title = "Click to upload";
+            } else {
+                fileLabel.classList.add('disabled');
+                fileLabel.title = "Please select a document type first";
+                return; // Exit if empty
+            }
+
+            // 2. Duplicate Check
+            let duplicateCount = 0;
+            allSelects.forEach(s => {
+                if (s.value === selectedValue) {
+                    duplicateCount++;
+                }
+            });
+
+            if (duplicateCount > 1) {
+                alert('This document type has already been selected. Please choose a different one.');
+                select.value = ""; // Reset
+                fileLabel.classList.add('disabled'); // Re-disable
+                return false;
+            }
+            return true;
+        };
+
+        const addDocumentRow = () => {
+            const container = document.getElementById('dynamic-docs-container');
+
+            // Validate existing rows before adding new one
+            const existingRows = container.querySelectorAll('.compact-doc-row');
+            let allValid = true;
+
+            existingRows.forEach(row => {
+                const select = row.querySelector('select');
+                const fileInput = row.querySelector('input[type="file"]');
+
+                if (!select.value || fileInput.files.length === 0) {
+                    allValid = false;
+                }
+            });
+
+            if (!allValid) {
+                alert("Please complete the existing document rows (Select Type & Upload File) before adding a new one.");
+                return;
+            }
+
+            const rowId = 'doc-' + Date.now();
+
+            const div = document.createElement('div');
+            div.className = 'compact-doc-row';
+            div.innerHTML = `
+                <select class="form-control doc-type-select" name="docType[]" id="select-${rowId}" onchange="validateDocSelection(this)" style="flex: 1;">
+                    <option value="">Select Document Type</option>
+                    <option value="Birth Certificate">Birth Certificate</option>
+                    <option value="Aadhaar (Student)">Aadhaar (Student)</option>
+                    <option value="Aadhaar (Parents)">Aadhaar (Parents)</option>
+                    <option value="Transfer Certificate">Transfer Certificate</option>
+                    <option value="Marksheet/Report Card">Marksheet/Report Card</option>
+                    <option value="Father Passport Photo">Father Passport Photo</option>
+                    <option value="Mother Passport Photo">Mother Passport Photo</option>
+                </select>
+                <div class="doc-file-input-wrapper">
+                    <label for="file-${rowId}" class="doc-file-label disabled" title="Select Document Type first">
+                        <i class="fas fa-file-upload"></i> <span id="name-${rowId}">Choose file...</span>
+                    </label>
+                    <input type="file" id="file-${rowId}" name="docFile[]" style="display:none;" onchange="updateFileName(this, 'name-${rowId}', 'preview-${rowId}')">
+                    <i class="fas fa-check-circle doc-status-icon"></i>
+                </div>
+                 <div class="doc-preview-container">
+                    <img id="preview-${rowId}" class="preview-thumb" alt="Preview">
+                </div>
+                <div class="doc-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="this.closest('.compact-doc-row').remove()" style="color: var(--error-color); border-color: var(--error-color);">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+
+            // Re-initialize custom dropdowns for the new row
+            if (typeof window.initCustomDropdowns === 'function') {
+                window.initCustomDropdowns();
+            }
+        };
+
+        // Initialize documents
+        const addDocBtn = document.getElementById('add-document-row');
+        if (addDocBtn) {
+            // Remove old listeners by cloning or just setting onclick
+            addDocBtn.onclick = addDocumentRow;
+            // Add one default row
+            addDocumentRow();
+        }
+        function formatInput(input, type) {
+            input.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                const maxLength = type === 'aadhaar' ? 12 : 10;
+
+                if (value.length > maxLength) value = value.slice(0, maxLength);
+
+                if (type === 'aadhaar') {
+                    if (value.length > 8) {
+                        e.target.value = `${value.slice(0, 4)}-${value.slice(4, 8)}-${value.slice(8)}`;
+                    } else if (value.length > 4) {
+                        e.target.value = `${value.slice(0, 4)}-${value.slice(4)}`;
+                    } else {
+                        e.target.value = value;
+                    }
+                } else {
+                    if (value.length > 5) {
+                        e.target.value = `${value.slice(0, 5)}-${value.slice(5)}`;
+                    } else {
+                        e.target.value = value;
+                    }
+                }
+            });
+
+            input.addEventListener('blur', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                const expectedLength = type === 'aadhaar' ? 12 : 10;
+
+                if (value.length !== expectedLength) {
+                    e.target.classList.add('error');
+                    alert(`${type === 'aadhaar' ? 'Aadhaar' : 'Mobile'} number must be exactly ${expectedLength} digits`);
+                } else {
+                    e.target.classList.remove('error');
+                }
+            });
+        }
+
+        // Apply formatting to all relevant fields
+        ['studentAadhaarNumber', 'fatherAadhaar', 'motherAadhaar'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) formatInput(element, 'aadhaar');
+        });
+
+        // Simplified Aadhaar validation on blur only
+        const studentAadhaarInput = document.getElementById('studentAadhaarNumber');
+        if (studentAadhaarInput) {
+            studentAadhaarInput.addEventListener('blur', function () {
+                const aadhaarNumber = this.value.replace(/\D/g, '');
+                if (aadhaarNumber.length === 12) {
+                    checkAadhaarDuplicate(aadhaarNumber, this);
+                }
+            });
+        }
+
+        // Function to check Aadhaar duplicate
+        const checkAadhaarDuplicate = async (aadhaarNumber, inputElement) => {
+            try {
+                const response = await fetch('{% url "check_aadhaar_duplicate" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ aadhaar: aadhaarNumber })
+                });
+
+                const data = await response.json();
+
+                // Remove existing validation message
+                const existingMsg = inputElement.parentElement.querySelector('.aadhaar-validation-msg');
+                if (existingMsg) existingMsg.remove();
+
+                // Create validation message element
+                const msgElement = document.createElement('div');
+                msgElement.className = 'aadhaar-validation-msg';
+                msgElement.style.cssText = `
+                    margin-top: 5px;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                `;
+
+                if (data.exists) {
+                    msgElement.textContent = data.message;
+                    msgElement.style.cssText += `
+                        background-color: #fee2e2;
+                        color: #dc2626;
+                        border: 1px solid #fecaca;
+                    `;
+                    inputElement.classList.add('error');
+
+                    // Disable form submission
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('btn-disabled');
+                    }
+                } else {
+                    msgElement.textContent = '✓ Aadhaar number is available';
+                    msgElement.style.cssText += `
+                        background-color: #dcfce7;
+                        color: #16a34a;
+                        border: 1px solid #bbf7d0;
+                    `;
+                    inputElement.classList.remove('error');
+
+                    // Enable form submission
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('btn-disabled');
+                    }
+                }
+
+                inputElement.parentElement.appendChild(msgElement);
+
+            } catch (error) {
+                console.error('Error checking Aadhaar duplicate:', error);
+            }
+        };
+
+        ['parentMobile', 'alternateNumber', 'fatherMobile', 'motherMobile', 'guardianMobile'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) formatInput(element, 'mobile');
+        });
+
+        // Email validation
+        const emailInput = document.getElementById('email');
+        if (emailInput) {
+            emailInput.addEventListener('input', function () {
+                const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+                this.classList.toggle('error', !emailPattern.test(this.value));
+            });
+        }
+
+        // Address functionality with modern UI
+        const sameAddressCheckbox = document.getElementById('sameAddress');
+        const presentAddress = document.getElementById('presentAddress');
+        const permanentAddress = document.getElementById('permanentAddress');
+        const permanentAddressCard = permanentAddress?.closest('.address-card');
+
+        if (sameAddressCheckbox && presentAddress && permanentAddress) {
+            // Function to copy address
+            const copyAddress = () => {
+                permanentAddress.value = presentAddress.value;
+                console.log('Address copied:', presentAddress.value, '->', permanentAddress.value);
+            };
+
+            sameAddressCheckbox.addEventListener('change', function () {
+                if (this.checked) {
+                    // Copy present address to permanent address immediately
+                    copyAddress();
+                    // Keep the field enabled but make it read-only for visual feedback
+                    permanentAddress.readOnly = true;
+                    // permanentAddress.removeAttribute('required'); // Keep required for form validation logic
+
+                    // Add visual feedback
+                    if (permanentAddressCard) {
+                        permanentAddressCard.classList.add('disabled');
+                    }
+                } else {
+                    // Enable permanent address field for editing
+                    permanentAddress.readOnly = false;
+                    permanentAddress.setAttribute('required', 'required');
+
+                    // Remove visual feedback
+                    if (permanentAddressCard) {
+                        permanentAddressCard.classList.remove('disabled');
+                    }
+                }
+            });
+
+            // Auto-sync when present address changes and checkbox is checked
+            presentAddress.addEventListener('input', function () {
+                if (sameAddressCheckbox.checked) {
+                    copyAddress();
+                }
+            });
+
+            // Also sync on keyup and paste events
+            presentAddress.addEventListener('keyup', function () {
+                if (sameAddressCheckbox.checked) {
+                    copyAddress();
+                }
+            });
+
+            presentAddress.addEventListener('paste', function () {
+                // Use setTimeout to ensure paste content is processed
+                setTimeout(() => {
+                    if (sameAddressCheckbox.checked) {
+                        copyAddress();
+                    }
+                }, 10);
+            });
+
+            // Add visual feedback on focus
+            presentAddress.addEventListener('focus', function () {
+                this.closest('.address-card').style.borderColor = 'var(--primary-color)';
+            });
+
+            presentAddress.addEventListener('blur', function () {
+                this.closest('.address-card').style.borderColor = 'var(--border-color)';
+            });
+
+            permanentAddress.addEventListener('focus', function () {
+                if (!this.disabled) {
+                    this.closest('.address-card').style.borderColor = 'var(--primary-color)';
+                }
+            });
+
+            permanentAddress.addEventListener('blur', function () {
+                this.closest('.address-card').style.borderColor = 'var(--border-color)';
+            });
+
+            // Ensure permanent address is synced before form submission
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function () {
+                    if (sameAddressCheckbox.checked) {
+                        copyAddress();
+                        console.log('Form submission: Permanent address synced to:', permanentAddress.value);
+                    }
+                });
+            }
+        }
+
+        // Location dropdown functionality with caching and optimization
+        const initializeLocationDropdowns = () => {
+            const countrySelect = document.getElementById('country');
+            const stateSelect = document.getElementById('state');
+            const districtSelect = document.getElementById('district');
+            const retryCountryButton = document.getElementById('retry-country');
+
+            if (!countrySelect) return;
+
+            // Cache for dropdown data
+            const cache = {
+                countries: null,
+                states: {},
+                districts: {}
+            };
+
+            const fetchData = async (url, errorMsg) => {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+                    return await response.json();
+                } catch (error) {
+                    console.error(errorMsg, error);
+                    throw error;
+                }
+            };
+
+            const populateSelect = (select, data, placeholder) => {
+                const fragment = document.createDocumentFragment();
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = placeholder;
+                fragment.appendChild(defaultOption);
+
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    fragment.appendChild(option);
+                });
+
+                select.innerHTML = '';
+                select.appendChild(fragment);
+                select.disabled = false;
+
+                // Update custom dropdown if it exists
+                const customDropdown = document.querySelector(`.custom-dropdown[data-target="${select.id}"]`);
+                if (customDropdown) {
+                    const menu = customDropdown.querySelector('.custom-dropdown-menu');
+                    if (menu) {
+                        menu.innerHTML = `<div class="custom-dropdown-option" data-value="">${placeholder}</div>`;
+                        data.forEach(item => {
+                            const opt = document.createElement('div');
+                            opt.className = 'custom-dropdown-option';
+                            opt.dataset.value = item.id;
+                            opt.textContent = item.name;
+                            menu.appendChild(opt);
+                        });
+                    }
+
+                    // Re-initialize this specific dropdown to attach listeners to new options
+                    if (window.refreshCustomDropdowns) {
+                        window.refreshCustomDropdowns();
+                    }
+                }
+            };
+
+            const fetchCountries = async (attempt = 1, maxAttempts = 2) => {
+                if (cache.countries) {
+                    populateSelect(countrySelect, cache.countries, 'Select Country');
+                    // Set India as default
+                    const indiaOption = Array.from(countrySelect.options).find(opt => opt.textContent === 'India');
+                    if (indiaOption && !countrySelect.value) {
+                        countrySelect.value = indiaOption.value;
+                        countrySelect.dispatchEvent(new Event('change'));
+                    }
+                    return;
+                }
+
+                try {
+                    countrySelect.classList.add('loading');
+                    retryCountryButton.style.display = 'none';
+
+                    const countries = await fetchData(`${baseUrl}/api/geo/countries/`, 'Error fetching countries:');
+                    cache.countries = countries;
+
+                    countrySelect.classList.remove('loading');
+                    populateSelect(countrySelect, countries, 'Select Country');
+
+                    // Set India as default
+                    const indiaOption = Array.from(countrySelect.options).find(opt => opt.textContent === 'India');
+                    if (indiaOption) {
+                        countrySelect.value = indiaOption.value;
+                        countrySelect.dispatchEvent(new Event('change'));
+                    }
+                } catch (error) {
+                    countrySelect.classList.remove('loading');
+                    if (attempt < maxAttempts) {
+                        setTimeout(() => fetchCountries(attempt + 1, maxAttempts), 500);
+                    } else {
+                        countrySelect.innerHTML = '<option value="">Failed to load</option>';
+                        if (stateSelect) stateSelect.disabled = true;
+                        if (districtSelect) districtSelect.disabled = true;
+                        if (retryCountryButton) retryCountryButton.style.display = 'block';
+                    }
+                }
+            };
+
+            // Initial country fetch
+            fetchCountries();
+
+            // Retry country fetch
+            if (retryCountryButton) {
+                retryCountryButton.addEventListener('click', () => {
+                    cache.countries = null;
+                    fetchCountries();
+                });
+            }
+
+            // Populate states when country is selected
+            if (countrySelect && stateSelect) {
+                countrySelect.addEventListener('change', async function () {
+                    stateSelect.innerHTML = '<option value="">Select State</option>';
+                    stateSelect.disabled = true;
+                    if (districtSelect) {
+                        districtSelect.innerHTML = '<option value="">Select District</option>';
+                        districtSelect.disabled = true;
+                    }
+
+                    const countryId = this.value;
+                    if (!countryId) return;
+
+                    if (cache.states[countryId]) {
+                        populateSelect(stateSelect, cache.states[countryId], 'Select State');
+                        stateSelect.disabled = false;
+                        return;
+                    }
+
+                    try {
+                        stateSelect.classList.add('loading');
+                        const states = await fetchData(`${baseUrl}/api/geo/states/?country_id=${countryId}`, 'Error fetching states:');
+                        cache.states[countryId] = states;
+
+                        stateSelect.classList.remove('loading');
+                        populateSelect(stateSelect, states, 'Select State');
+                        stateSelect.disabled = false;
+                    } catch (error) {
+                        stateSelect.classList.remove('loading');
+                        stateSelect.innerHTML = '<option value="">Failed to load</option>';
+                    }
+                });
+            }
+
+            // Populate districts when state is selected
+            if (stateSelect && districtSelect) {
+                stateSelect.addEventListener('change', async function () {
+                    districtSelect.innerHTML = '<option value="">Select District</option>';
+                    districtSelect.disabled = true;
+
+                    const stateId = this.value;
+                    if (!stateId) return;
+
+                    if (cache.districts[stateId]) {
+                        populateSelect(districtSelect, cache.districts[stateId], 'Select District');
+                        districtSelect.disabled = false;
+                        return;
+                    }
+
+                    try {
+                        districtSelect.classList.add('loading');
+                        const districts = await fetchData(`${baseUrl}/api/geo/districts/?state_id=${stateId}`, 'Error fetching districts:');
+                        cache.districts[stateId] = districts;
+
+                        districtSelect.classList.remove('loading');
+                        populateSelect(districtSelect, districts, 'Select District');
+                        districtSelect.disabled = false;
+                    } catch (error) {
+                        districtSelect.classList.remove('loading');
+                        districtSelect.innerHTML = '<option value="">Failed to load</option>';
+                    }
+                });
+            }
+        };
+
+        initializeLocationDropdowns();
+
+        // Helper to get school_id
+        const getSchoolIdQuery = (prefix = '?') => {
+            const sid = '{{ school_id }}';
+            return sid ? `${prefix}school_id=${sid}` : '';
+        };
+
+        // Initialize academic year dropdown
+        const initializeAcademicYearDropdown = () => {
+            const academicYearSelect = document.getElementById('academicYear');
+            if (!academicYearSelect) return;
+
+            const query = getSchoolIdQuery();
+            fetch(`${baseUrl}/api/academic-years/${query}`)
+                .then(response => response.json())
+                .then(years => {
+                    years.forEach(year => {
+                        const option = document.createElement('option');
+                        option.value = year.id;
+                        option.textContent = year.name + (year.is_current ? ' (Current)' : '');
+                        if (year.is_current) option.selected = true;
+                        academicYearSelect.appendChild(option);
+                    });
+                    
+                    // Refresh custom dropdown
+                    if (typeof window.refreshCustomDropdowns === 'function') {
+                        window.refreshCustomDropdowns();
+                    }
+                })
+                .catch(error => console.error('Error loading academic years:', error));
+        };
+
+        initializeAcademicYearDropdown();
+
+        // Initialize class and section dropdowns with caching
+        const initializeClassSectionDropdowns = () => {
+            const classSelect = document.getElementById('admissionClass');
+            const sectionSelect = document.getElementById('section');
+
+            if (!classSelect || !sectionSelect) return;
+
+            // Cache for class and section data
+            const classCache = {
+                classes: null,
+                sections: {},
+                fees: {}
+            };
+
+            const populateSelect = (select, data, placeholder, prefix = '') => {
+                const fragment = document.createDocumentFragment();
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = placeholder;
+                fragment.appendChild(defaultOption);
+
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = prefix + item.name;
+                    fragment.appendChild(option);
+                });
+
+                select.innerHTML = '';
+                select.appendChild(fragment);
+                select.disabled = false;
+                
+                // Refresh custom dropdown
+                if (typeof window.refreshCustomDropdowns === 'function') {
+                    window.refreshCustomDropdowns();
+                }
+            };
+
+            // Fetch classes on page load
+            const fetchClasses = async () => {
+                if (classCache.classes) {
+                    populateSelect(classSelect, classCache.classes, 'Select Class');
+                    return;
+                }
+
+                try {
+                    classSelect.classList.add('loading');
+                    const query = getSchoolIdQuery();
+                    const response = await fetch(`${baseUrl}/api/classes/${query}`);
+                    if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+
+                    const responseData = await response.json();
+                    const rawClasses = responseData.classes || responseData;
+                    const classes = rawClasses.map(c => ({
+                        id: c.ClassID || c.id,
+                        name: c.ClassName || c.name
+                    }));
+                    classCache.classes = classes;
+
+                    classSelect.classList.remove('loading');
+                    populateSelect(classSelect, classes, 'Select Class');
+                } catch (error) {
+                    classSelect.classList.remove('loading');
+                    console.error('Error fetching classes:', error);
+                    classSelect.innerHTML = '<option value="">Failed to load classes</option>';
+                }
+            };
+
+            // Debounce function for class change
+            let classChangeTimeout;
+
+            // Fetch sections when class is selected
+            classSelect.addEventListener('change', async function () {
+                clearTimeout(classChangeTimeout);
+
+                sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                sectionSelect.disabled = true;
+
+                const classId = this.value;
+                if (!classId) {
+                    clearMonthlyFees();
+                    return;
+                }
+
+                classChangeTimeout = setTimeout(async () => {
+                    // Check cache first
+                    if (classCache.sections[classId]) {
+                        populateSelect(sectionSelect, classCache.sections[classId], 'Select Section', 'Section ');
+                        sectionSelect.disabled = false;
+
+                        // Load cached fees if available
+                        if (classCache.fees[classId]) {
+                            renderMonthlyFees(classCache.fees[classId]);
+                        } else {
+                            loadMonthlyFees(classId);
+                        }
+                        return;
+                    }
+
+                    try {
+                        sectionSelect.classList.add('loading');
+                        const query = getSchoolIdQuery('&');
+                        const response = await fetch(`${baseUrl}/api/sections/?class_id=${classId}${query}`);
+                        if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+
+                        const responseData = await response.json();
+                        const rawSections = responseData.sections || responseData;
+                        const sections = rawSections.map(s => ({
+                            id: s.SectionID || s.id,
+                            name: s.SectionName || s.name
+                        }));
+                        classCache.sections[classId] = sections;
+
+                        sectionSelect.classList.remove('loading');
+                        populateSelect(sectionSelect, sections, 'Select Section', 'Section ');
+                        sectionSelect.disabled = false;
+
+                        // Load monthly fees for the selected class
+                        loadMonthlyFees(classId);
+                    } catch (error) {
+                        sectionSelect.classList.remove('loading');
+                        console.error('Error fetching sections:', error);
+                        sectionSelect.innerHTML = '<option value="">Failed to load sections</option>';
+                    }
+                }, 150);
+            });
+
+            // Initial load of classes
+            fetchClasses();
+        };
+
+        initializeClassSectionDropdowns();
+
+        // Monthly Fee Loading Functions with caching
+        const feeCache = {};
+
+        function renderMonthlyFees(fees) {
+            const tbody = document.getElementById('fee-table-body');
+            const placeholder = document.getElementById('monthly-fees-placeholder');
+
+            if (!tbody) return;
+
+            tbody.querySelectorAll('.monthly-fee-row').forEach(row => row.remove());
+
+            if (fees && fees.length > 0) {
+                fees.forEach(fee => {
+                    const row = createFeeRow(fee);
+                    tbody.appendChild(row);
+                });
+                if (placeholder) placeholder.style.display = 'none';
+            } else {
+                if (placeholder) {
+                    placeholder.innerHTML = '<i class="fas fa-info-circle" style="margin-right: 4px;"></i>No additional fees';
+                    placeholder.style.display = 'block';
+                }
+            }
+            updateTotalAmount();
+        }
+
+        async function loadMonthlyFees(classId) {
+            const placeholder = document.getElementById('monthly-fees-placeholder');
+
+            if (feeCache[classId]) {
+                renderMonthlyFees(feeCache[classId]);
+                return;
+            }
+
+            try {
+                if (placeholder) {
+                    placeholder.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 4px;"></i>Loading...';
+                    placeholder.style.display = 'block';
+                }
+
+                const response = await fetch(`${baseUrl}/admission/get-monthly-fees/?class_id=${classId}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+                const data = await response.json();
+
+                if (data.success && data.monthly_fees) {
+                    feeCache[classId] = data.monthly_fees;
+                    renderMonthlyFees(data.monthly_fees);
+                } else {
+                    feeCache[classId] = [];
+                    renderMonthlyFees([]);
+                }
+            } catch (error) {
+                console.error('Error loading monthly fees:', error);
+                if (placeholder) {
+                    placeholder.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right: 4px; color: var(--error-color);"></i>Failed to load';
+                    placeholder.style.display = 'block';
+                }
+            }
+        }
+
+        function clearMonthlyFees() {
+            const tbody = document.getElementById('fee-table-body');
+            const placeholder = document.getElementById('monthly-fees-placeholder');
+
+            if (tbody) {
+                tbody.querySelectorAll('.monthly-fee-row').forEach(row => row.remove());
+            }
+
+            if (placeholder) {
+                placeholder.innerHTML = '<i class="fas fa-info-circle" style="margin-right: 4px;"></i>Select a class to view additional fees';
+                placeholder.style.display = 'block';
+            }
+            updateTotalAmount();
+        }
+
+        function createFeeRow(fee) {
+            const row = document.createElement('tr');
+            row.className = 'fee-row monthly-fee-row';
+            row.dataset.feeId = fee.FeeTypeId;
+            row.dataset.base = fee.DefaultAmount;
+            row.innerHTML = `
+                <input type="hidden" name="monthly_fee_id[]" value="${fee.FeeTypeId}">
+                <input type="hidden" name="monthly_fee_name[]" value="${fee.FeeTypeName}">
+                <input type="hidden" name="monthly_fee_amount[]" value="${fee.DefaultAmount}">
+                <td class="fee-name">${fee.FeeTypeName}</td>
+                <td class="fee-amount" style="text-align: right;">${parseFloat(fee.DefaultAmount).toFixed(2)}</td>
+                <td style="text-align: center;">
+                    <input type="number" name="monthly_fee_discount[]" class="discount-input" 
+                           min="0" max="100" value="0" placeholder="0">
+                </td>
+                <td class="final-amount-cell" style="text-align: right;">${parseFloat(fee.DefaultAmount).toFixed(2)}</td>
+            `;
+
+            setupFeeRowEventListeners(row);
+            return row;
+        }
+
+        function setupFeeRowEventListeners(row) {
+            const discountInput = row.querySelector('.discount-input');
+
+            if (discountInput) {
+                discountInput.addEventListener('input', () => {
+                    updateFeeRowCalculation(row);
+                });
+                discountInput.addEventListener('change', () => {
+                    updateFeeRowCalculation(row);
+                });
+                discountInput.addEventListener('keydown', (e) => {
+                    if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                        e.preventDefault();
+                    }
+                });
+            }
+        }
+
+        // Compact Fee calculation functions
+        const updateFeeRowCalculation = (row) => {
+            const discountInput = row.querySelector('.discount-input');
+            const finalAmountCell = row.querySelector('.final-amount-cell');
+
+            if (!discountInput || !finalAmountCell) return;
+
+            const baseAmount = parseFloat(row.dataset.base) || 0;
+            let discount = parseFloat(discountInput.value) || 0;
+
+            if (discount < 0) discount = 0;
+            if (discount > 100) discount = 100;
+            discountInput.value = discount;
+
+            const discountAmount = baseAmount * (discount / 100);
+            const final = baseAmount - discountAmount;
+
+            finalAmountCell.textContent = final.toFixed(2);
+            updateTotalAmount();
+        };
+
+        const updateTotalAmount = () => {
+            let total = 0;
+            let totalSaved = 0;
+
+            document.querySelectorAll('.fee-row').forEach(row => {
+                const baseAmount = parseFloat(row.dataset.base) || 0;
+                const finalAmountCell = row.querySelector('.final-amount-cell');
+                const finalAmount = finalAmountCell ? parseFloat(finalAmountCell.textContent) || 0 : baseAmount;
+
+                total += finalAmount;
+                totalSaved += (baseAmount - finalAmount);
+            });
+
+            const totalElement = document.getElementById('total-amount');
+            const totalSavedElement = document.getElementById('total-saved');
+            const savingsRow = document.getElementById('savings-row');
+
+            if (totalElement) {
+                totalElement.textContent = total.toFixed(2);
+            }
+
+            if (savingsRow) {
+                if (totalSaved > 0) {
+                    if (totalSavedElement) {
+                        totalSavedElement.textContent = totalSaved.toFixed(2);
+                    }
+                    savingsRow.style.display = 'table-row';
+                } else {
+                    savingsRow.style.display = 'none';
+                }
+            }
+        };
+
+        // Initialize compact fee calculations
+        const initializeFeeCalculations = () => {
+            document.querySelectorAll('.fee-row').forEach(row => {
+                setupFeeRowEventListeners(row);
+            });
+            updateTotalAmount();
+        };
+
+        initializeFeeCalculations();
+
+
+
+
+
+        // Modal functions
+        window.closeModal = function () {
+            const modal = document.getElementById('admissionModal');
+            if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            }
+        };
+
+        window.openModal = function () {
+            const modal = document.getElementById('admissionModal');
+            if (modal) {
+                modal.classList.add('show');
+                modal.style.display = 'flex';
+            }
+        };
+
+        window.printAdmissionDetails = function () {
+            window.print();
+        };
+
+        // Form submission
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const requiredFields = form.querySelectorAll('[required]');
+                let isValid = true;
+
+                requiredFields.forEach(field => {
+                    if (!field.value) {
+                        isValid = false;
+                        field.classList.add('error');
+                    } else {
+                        field.classList.remove('error');
+                    }
+                });
+
+                // Validate email
+                if (emailInput && !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(emailInput.value)) {
+                    isValid = false;
+                    emailInput.classList.add('error');
+                    alert('Please enter a valid email address.');
+                }
+
+                // Validate mandatory student photo
+                const studentPhotoInput = document.getElementById('studentPhoto');
+                if (studentPhotoInput && !studentPhotoInput.files.length) {
+                    isValid = false;
+                    studentPhotoInput.classList.add('error');
+                    alert('Student passport photo is mandatory. Please upload a photo.');
+                } else if (studentPhotoInput) {
+                    studentPhotoInput.classList.remove('error');
+                }
+
+                // Validate optional document rows
+                const docRows = document.querySelectorAll('.compact-doc-row:not(.mandatory-row)');
+                docRows.forEach(row => {
+                    const select = row.querySelector('.doc-type-select');
+                    const fileInput = row.querySelector('input[name="docFile[]"]');
+
+                    if (select && select.value && fileInput && !fileInput.files.length) {
+                        isValid = false;
+                        select.classList.add('error');
+                        alert(`Please upload a file for ${select.value}`);
+                    } else if (fileInput && fileInput.files.length && select && !select.value) {
+                        isValid = false;
+                        select.classList.add('error');
+                        alert('Please select a document type for the uploaded file.');
+                    } else if (select) {
+                        select.classList.remove('error');
+                    }
+                });
+
+                if (isValid) {
+                    // Disable submit button to prevent double submission
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    }
+
+                    // Clean Aadhaar and mobile numbers before submission
+                    ['studentAadhaarNumber', 'fatherAadhaar', 'motherAadhaar'].forEach(id => {
+                        const input = document.getElementById(id);
+                        if (input && input.value) {
+                            input.value = input.value.replace(/\D/g, '');
+                        }
+                    });
+                    ['parentMobile', 'alternateNumber', 'fatherMobile', 'motherMobile', 'guardianMobile'].forEach(id => {
+                        const input = document.getElementById(id);
+                        if (input && input.value) {
+                            input.value = input.value.replace(/\D/g, '');
+                        }
+                    });
+
+                    // Submit form normally (not via AJAX)
+                    this.submit();
+                } else {
+                    alert('Please fill all required fields and ensure document types are selected.');
+                }
+            });
+        }
+
+        // Simple age calculation function
+        window.calculateAge = function (dateString) {
+            if (!dateString) return;
+
+            const dob = new Date(dateString);
+            const today = new Date();
+
+            if (isNaN(dob.getTime())) return;
+
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+
+            const ageField = document.getElementById('age');
+            if (ageField) {
+                ageField.value = age;
+                console.log('Age calculated:', age);
+            }
+        };
+
+        // Set default dates
+        const today = new Date().toISOString().split('T')[0];
+
+        // Set admission date to today
+        const admissionDateInput = document.getElementById('admissionDate');
+        if (admissionDateInput && !admissionDateInput.value) {
+            admissionDateInput.value = today;
+        }
+
+        // Set declaration date to today
+        const declarationDateInput = document.getElementById('declarationDate');
+        if (declarationDateInput && !declarationDateInput.value) {
+            declarationDateInput.value = today;
+        }
+
+        // Add event listeners for better user experience
+        const dateOfBirthInput = document.getElementById('dateOfBirth');
+        if (dateOfBirthInput) {
+            dateOfBirthInput.addEventListener('change', function () {
+                if (this.value) {
+                    calculateAge(this.value);
+                }
+            });
+        }
+
+        console.log('Date pickers initialized successfully with HTML5 date inputs');
+
+        // Initialize global custom dropdowns (makes styled custom-dropdown divs functional)
+        if (typeof window.initCustomDropdowns === 'function') {
+            window.initCustomDropdowns();
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student ID Card</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        .id-card {
+            width: 450px;
+            height: 280px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        .id-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .school-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .card-title {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .main-content {
+            display: flex;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .photo-container {
+            width: 100px;
+            height: 120px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid white;
+            background: white;
+        }
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        .info-section {
+            flex: 1;
+            color: white;
+        }
+        .student-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .student-id {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .info-item:last-child { border-bottom: none; }
+        .info-label { opacity: 0.8; }
+        .info-value { font-weight: 600; }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .id-card { box-shadow: none; }
+        }
+        @media (max-width: 500px) {
+            .id-card { 
+                width: 100%;
+                max-width: 450px;
+                height: auto;
+                min-height: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="id-card">
+        <div class="header">
+            <div class="school-name">{{ student.SchoolName|default:"N/A" }}</div>
+            <div class="card-title">STUDENT IDENTITY CARD</div>
+        </div>
+        <div class="main-content">
+            <div class="photo-container">
+                {% if student.PhotoBase64 %}
+                    <img src="data:image/jpeg;base64,{{ student.PhotoBase64 }}" alt="{{ student.FullName }}">
+                {% else %}
+                    <div class="photo-placeholder">{{ student.FullName|first|upper }}</div>
+                {% endif %}
+            </div>
+            <div class="info-section">
+                <div class="student-name">{{ student.FullName|default:"N/A" }}</div>
+                <div class="student-id">ID: {{ student.StudentCode|default:"N/A" }}</div>
+                <div class="info-item">
+                    <span class="info-label">Class:</span>
+                    <span class="info-value">{{ student.ClassName|default:"N/A" }} - {{ student.SectionName|default:"N/A" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Roll No:</span>
+                    <span class="info-value">{{ student.RollNumber|default:"N/A" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">DOB:</span>
+                    <span class="info-value">{{ student.DateOfBirth|date:"d M Y"|default:"N/A" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Contact:</span>
+                    <span class="info-value">{{ student.ParentMobile|default:"N/A" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

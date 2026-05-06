@@ -1,0 +1,333 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}View Timetables | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --border-color: #e5e7eb;
+        --header-height: 80px;
+        --controls-height: 70px;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --secondary-color: #1f2937;
+        --text-color: #f9fafb;
+        --text-light: #d1d5db;
+        --light-gray: #374151;
+        --border-color: #4b5563;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+        background-color: #e8eaf0;
+        padding-top: var(--header-height);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body.dark-mode {
+        background-color: var(--secondary-color);
+    }
+
+    .dashboard-container {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Unified Controls Row Pattern */
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        position: sticky;
+        top: var(--header-height);
+        z-index: 999;
+        height: var(--controls-height);
+    }
+
+    body.dark-mode .controls-row {
+        background: var(--secondary-color);
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .controls-left h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--primary-color);
+    }
+
+    .tab-bar {
+        display: flex;
+        background: var(--light-gray);
+        padding: 4px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+    }
+
+    .bar-tab {
+        padding: 8px 16px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-light);
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border: none;
+        background: none;
+    }
+
+    .bar-tab.active {
+        background: white;
+        color: var(--primary-color);
+        box-shadow: var(--card-shadow);
+    }
+
+    body.dark-mode .bar-tab.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .control-tabs {
+        display: flex;
+        gap: 10px;
+    }
+
+    .tab-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+        border: none;
+        font-size: 0.95rem;
+        background: var(--light-gray);
+        color: var(--text-color);
+    }
+
+    .tab-btn.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .tab-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .timetable-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+
+    body.dark-mode .timetable-table {
+        background: var(--secondary-color);
+    }
+
+    .table-header {
+        display: grid;
+        grid-template-columns: 2fr 1fr 2fr 2fr 120px;
+        gap: 16px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .table-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 2fr 2fr 120px;
+        gap: 16px;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border-color);
+        align-items: center;
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+
+    .table-row:hover {
+        background: var(--light-gray);
+    }
+
+    .table-row:last-child {
+        border-bottom: none;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+
+    .view-btn {
+        color: var(--primary-color);
+    }
+
+    .view-btn:hover {
+        background: var(--primary-light);
+    }
+
+    .delete-btn {
+        color: #ef4444;
+    }
+
+    .delete-btn:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-light);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    @media (max-width: 1024px) {
+        .dashboard-container {
+            padding: 12px;
+            padding-top: calc(var(--header-height) + 10px);
+        }
+
+        .controls-row {
+            flex-direction: column;
+            height: auto;
+            gap: 15px;
+            align-items: stretch;
+            padding: 15px;
+            position: static;
+        }
+
+        .controls-left {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .tab-bar {
+            width: 100%;
+        }
+
+        .bar-tab {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .table-header {
+            display: none;
+        }
+
+        .table-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            padding: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>Timetable Management</h3>
+            <div class="tab-bar">
+                <button class="bar-tab" onclick="window.location.href='/timetable/management/'">
+                    <i class="fas fa-clock"></i> Periods
+                </button>
+                <button class="bar-tab active">
+                    <i class="fas fa-list"></i> Rosters
+                </button>
+            </div>
+        </div>
+        <div class="controls-right">
+            <button class="btn-primary" style="padding: 10px 20px; border-radius: 8px; font-weight: 600;"
+                onclick="window.location.href='/timetable/management/?tab=create'">
+                <i class="fas fa-plus"></i> New Roster
+            </button>
+        </div>
+    </div>
+
+    <div id="timetablesList" class="timetable-table"></div>
+</div>
+
+<script>
+    function loadTimetables() {
+        fetch('/timetable/list/')
+            .then(r => r.json())
+            .then(data => {
+                const timetables = data.timetables;
+                let html = '';
+                if (timetables.length === 0) {
+                    html = '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No timetables found. Click "Period Setup" to create one.</p></div>';
+                } else {
+                    html = '<div class="table-header"><div>Class</div><div>Section</div><div>Academic Year</div><div>Effective From</div><div>Actions</div></div>';
+                    timetables.forEach(t => {
+                        html += `<div class="table-row">
+                        <div style="font-weight: 600; color: var(--text-color);">${t.ClassName}</div>
+                        <div>${t.SectionName || '-'}</div>
+                        <div>${t.AcademicYear}</div>
+                        <div>${new Date(t.EffectiveFrom).toLocaleDateString('en-GB')}</div>
+                        <div class="table-actions">
+                            <button class="action-btn view-btn" onclick="window.location.href='/timetable/view/${t.EncryptedID}/'" title="View & Edit"><i class="fas fa-eye"></i></button>
+                            <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteTimetable('${t.EncryptedID}')" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>`;
+                    });
+                }
+                document.getElementById('timetablesList').innerHTML = html;
+            });
+    }
+
+    function deleteTimetable(id) {
+        if (!confirm('Delete this timetable?')) return;
+        fetch('/timetable/delete/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ timetable_id: id })
+        }).then(r => r.json()).then(data => {
+            alert(data.message);
+            loadTimetables();
+        });
+    }
+
+    loadTimetables();
+</script>
+{% endblock %}

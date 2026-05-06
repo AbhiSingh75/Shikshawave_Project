@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exam Result - Classic Formal</title>
+    <style>
+        @media print { .no-print { display: none; } @page { size: A4; margin: 10mm; } * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }
+        body { font-family: 'Times New Roman', serif; margin: 10px; background: #fafafa; }
+        .btn-print { background: #1f2937; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+        .badge-pass { background: #d1fae5; color: #065f46; }
+        .badge-fail { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-print" style="background: #6b7280;" onclick="window.close()">Close</button>
+    </div>
+    <div style="background: white; padding: 35px; max-width: 800px; margin: 20px auto; border: 4px double #1f2937;">
+        <div style="text-align: center; border-bottom: 3px double #1f2937; padding-bottom: 20px; margin-bottom: 25px;">
+            {% if school_logo_src %}<img src = "{{ school_logo_src }}" style = "width: 75px; height: 75px; border: 3px solid #1f2937; margin-bottom: 12px; object-fit: cover;" />{% endif %}
+            <h2 style="margin: 0; color: #1f2937; font-size: 1.7rem; letter-spacing: 1px;">{{ school_name }}</h2>
+            <p style="margin: 8px 0 0 0; color: #4b5563; font-size: 0.95rem; font-style: italic;">Examination Report Card</p>
+        </div>
+        <div style="margin-bottom: 25px;">
+            <table style="width: 100%; font-size: 0.9rem; border: 2px solid #1f2937;">
+                <tr style="background: #f3f4f6;"><td style="padding: 8px; border: 1px solid #d1d5db; width: 30%; font-weight: 600;">Student Code</td><td style="padding: 8px; border: 1px solid #d1d5db;">{{ StudentCode }}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #d1d5db; font-weight: 600;">Student Name</td><td style="padding: 8px; border: 1px solid #d1d5db;">{{ StudentName }}</td></tr>
+                <tr style="background: #f3f4f6;"><td style="padding: 8px; border: 1px solid #d1d5db; font-weight: 600;">Class & Section</td><td style="padding: 8px; border: 1px solid #d1d5db;">{{ ClassName }} - {{ SectionName }}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #d1d5db; font-weight: 600;">Examination</td><td style="padding: 8px; border: 1px solid #d1d5db;">{{ ExamName }} ({{ ExamType }})</td></tr>
+                <tr style="background: #f3f4f6;"><td style="padding: 8px; border: 1px solid #d1d5db; font-weight: 600;">Examination Period</td><td style="padding: 8px; border: 1px solid #d1d5db;">{{ StartDate }} to {{ EndDate }}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #d1d5db; font-weight: 600;">Class Rank</td><td style="padding: 8px; border: 1px solid #d1d5db;">{{ Ranks }}</td></tr>
+            </table>
+        </div>
+        <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: #f9fafb; border: 2px solid #1f2937;">
+            <div style="display: inline-block; margin: 0 20px;">
+                <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 5px;">Total Marks Obtained</div>
+                <div style="font-size: 1.6rem; font-weight: 700; color: #1f2937;">{{ total_obtained }} / {{ total_max }}</div>
+            </div>
+            <div style="display: inline-block; margin: 0 20px;">
+                <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 5px;">Percentage</div>
+                <div style="font-size: 1.6rem; font-weight: 700; color: #1f2937;">{{ percentage }}%</div>
+            </div>
+            <div style="display: inline-block; margin: 0 20px;">
+                <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 5px;">Result</div>
+                <div style="font-size: 1.6rem; font-weight: 700; color: {{ color }};">{{ status }}</div>
+            </div>
+        </div>
+        <h3 style="color: #1f2937; font-size: 1.1rem; margin-bottom: 12px; text-align: center; text-decoration: underline;">Subject-wise Marks</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; border: 2px solid #1f2937;">
+            <thead>
+                <tr style="background: #1f2937; color: white;">
+                    <th style="padding: 10px; text-align: left; border: 1px solid #374151;">Subject Name</th>
+                    <th style="padding: 10px; text-align: center; border: 1px solid #374151;">Theory Marks</th>
+                    <th style="padding: 10px; text-align: center; border: 1px solid #374151;">Practical Marks</th>
+                    <th style="padding: 10px; text-align: center; border: 1px solid #374151;">Viva Marks</th>
+                    <th style="padding: 10px; text-align: center; border: 1px solid #374151;">Total Marks</th>
+                    <th style="padding: 10px; text-align: center; border: 1px solid #374151;">Grade</th>
+                    <th style="padding: 10px; text-align: center; border: 1px solid #374151;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr style="background: {% cycle '#ffffff' '#f9fafb' %};">
+                    <td style="padding: 10px; border: 1px solid #d1d5db; font-weight: 600;">{{ subject.SubjectName }}</td>
+                    <td style="padding: 10px; text-align: center; border: 1px solid #d1d5db;">{% if subject.MaxTheoryMarks %}{{ subject.TheoryMarksObtained|floatformat:0 }} / {{ subject.MaxTheoryMarks|floatformat:0 }}{% else %}-{% endif %}</td>
+                    <td style="padding: 10px; text-align: center; border: 1px solid #d1d5db;">{% if subject.MaxPracticalMarks %}{{ subject.PracticalMarksObtained|floatformat:0 }} / {{ subject.MaxPracticalMarks|floatformat:0 }}{% else %}-{% endif %}</td>
+                    <td style="padding: 10px; text-align: center; border: 1px solid #d1d5db;">{% if subject.MaxVivaMarks %}{{ subject.VivaMarksObtained|floatformat:0 }} / {{ subject.MaxVivaMarks|floatformat:0 }}{% else %}-{% endif %}</td>
+                    <td style="padding: 10px; text-align: center; font-weight: 700; border: 1px solid #d1d5db;">{{ subject.TotalMarksObtained|floatformat:0 }} / {{ subject.TotalMaxMarks|floatformat:0 }}</td>
+                    <td style="padding: 10px; text-align: center; font-weight: 700; font-size: 1rem; border: 1px solid #d1d5db;">{{ subject.Grade|default:"-" }}</td>
+                    <td style="padding: 10px; text-align: center; border: 1px solid #d1d5db;"><span class="badge badge-{{ subject.ResultStatus|lower }}">{{ subject.ResultStatus|default:"Pending" }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+            <div style="text-align: center;"><div style="border-top: 2px solid #1f2937; padding-top: 5px; margin-top: 40px; width: 160px; font-weight: 600;">Class Teacher</div></div>
+            <div style="text-align: center;"><div style="border-top: 2px solid #1f2937; padding-top: 5px; margin-top: 40px; width: 160px; font-weight: 600;">Principal</div></div>
+        </div>
+    </div>
+</body>
+</html>

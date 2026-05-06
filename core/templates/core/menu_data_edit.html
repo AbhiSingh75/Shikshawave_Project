@@ -1,0 +1,533 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Edit Menu Data | ShikshaWave ERP{% endblock %}
+
+{% block extra_head %}
+    <meta name="cache-buster" content="v1.0">
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        :root {
+            --primary-color: {{ primary_color|default:"#004aad" }};
+            --primary-hover: {{ primary_hover|default:"#003a8c" }};
+            --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+            --secondary-color: #f9fafb;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --light-gray: #f3f4f6;
+            --border-color: #e5e7eb;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --transition-speed: 0.3s;
+        }
+
+        body.dark-mode {
+            --primary-color: {{ primary_color|default:"#6366f1" }};
+            --primary-hover: {{ primary_hover|default:"#818cf8" }};
+            --secondary-color: #1f2937;
+            --text-color: #f9fafb;
+            --text-light: #d1d5db;
+            --light-gray: #374151;
+            --border-color: #4b5563;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            --input-bg: #2d3748;
+        }
+
+        /* Use project's existing CSS variables for consistency */
+        .menu-data-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* Responsive margins */
+        @media (max-width: 1200px) {
+            .menu-data-container {
+                padding: 0 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .menu-data-container {
+                padding: 0 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-data-container {
+                padding: 0 15px;
+            }
+        }
+
+        .page-header {
+            background: var(--secondary-color);
+            border-radius: 12px;
+            padding: 32px;
+            margin: 24px 0;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Dark mode specific overrides */
+        body.dark-mode .page-header {
+            background: var(--secondary-color);
+            border-color: var(--border-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        .form-container {
+            background: var(--secondary-color);
+            border-radius: 12px;
+            padding: 40px;
+            margin: 24px 0;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Dark mode specific overrides */
+        body.dark-mode .form-container {
+            background: var(--secondary-color);
+            border-color: var(--border-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group label.required::after {
+            content: " *";
+            color: var(--error-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--secondary-color);
+            color: var(--text-color);
+            transition: all var(--transition-speed) ease;
+        }
+
+        /* Dark mode form controls */
+        body.dark-mode .form-control {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-control.error {
+            border-color: var(--error-color);
+        }
+
+        .form-control.success {
+            border-color: var(--success-color);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .form-actions-left {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-actions-right {
+            display: flex;
+            gap: 16px;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: var(--text-light);
+        }
+
+        .icon-preview {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: var(--light-gray);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .icon-preview i {
+            font-size: 16px;
+        }
+
+        .menu-info {
+            background: var(--light-gray);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .menu-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .menu-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .menu-info-label {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .menu-info-value {
+            color: var(--text-light);
+        }
+
+        /* Dark mode specific adjustments */
+        body.dark-mode .error-message {
+            background: var(--error-light, #7f1d1d);
+            border-color: var(--error-color);
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions-left,
+            .form-actions-right {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="menu-data-container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span>›</span>
+        <span>Master Data</span>
+        <span>›</span>
+        <a href="{% url 'menu_data_list' %}">Menu Data</a>
+        <span>›</span>
+        <span>Edit Menu Data</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Edit Menu Data</h1>
+        <p>Update menu data item details and settings</p>
+    </div>
+
+    <!-- Form Container -->
+    <div class="form-container">
+        {% if errors %}
+            <div class="error-message">
+                <strong>Please correct the following errors:</strong>
+                <ul style="margin-top: 8px; margin-left: 20px;">
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Menu Information -->
+        <div class="menu-info">
+            <div class="menu-info-item">
+                <span class="menu-info-label">Menu ID:</span>
+                <span class="menu-info-value">{{ menu.id }}</span>
+            </div>
+            <div class="menu-info-item">
+                <span class="menu-info-label">Created:</span>
+                <span class="menu-info-value">
+                    {% if menu.created_at %}
+                        {{ menu.created_at|date:"M d, Y H:i" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            <div class="menu-info-item">
+                <span class="menu-info-label">Last Updated:</span>
+                <span class="menu-info-value">
+                    {% if menu.updated_at %}
+                        {{ menu.updated_at|date:"M d, Y H:i" }}
+                    {% else %}
+                        Never
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <form method="POST" id="menuDataForm">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="menu_name" class="required">Menu Name</label>
+                    <input type="text" id="menu_name" name="menu_name" class="form-control" 
+                           placeholder="Enter menu name" 
+                           value="{% if form_data.menu_name %}{{ form_data.menu_name }}{% else %}{{ menu.name }}{% endif %}" required>
+                    <div class="form-help">The display name for the menu item</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="display_order" class="required">Display Order</label>
+                    <input type="number" id="display_order" name="display_order" class="form-control" 
+                           placeholder="Enter display order" 
+                           value="{% if form_data.display_order %}{{ form_data.display_order }}{% else %}{{ menu.display_order }}{% endif %}" required>
+                    <div class="form-help">Order in which menu appears (lower numbers first)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="menu_url">Menu URL</label>
+                <input type="text" id="menu_url" name="menu_url" class="form-control" 
+                       placeholder="Enter menu URL (e.g., /dashboard, /users/list)" 
+                       value="{% if form_data.menu_url %}{{ form_data.menu_url }}{% else %}{{ menu.url }}{% endif %}">
+                <div class="form-help">URL path for the menu item (optional for parent menus)</div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="icon">Icon Class</label>
+                    <input type="text" id="icon" name="icon" class="form-control" 
+                           placeholder="Enter icon class (e.g., fas fa-home)" 
+                           value="{% if form_data.icon %}{{ form_data.icon }}{% else %}{{ menu.icon }}{% endif %}">
+                    <div class="form-help">FontAwesome icon class (e.g., fas fa-home, fas fa-users)</div>
+                    <div id="iconPreview" class="icon-preview" style="display: none;">
+                        <i id="previewIcon"></i>
+                        <span id="previewText">Icon Preview</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="parent_menu_id">Parent Menu</label>
+                    <select id="parent_menu_id" name="parent_menu_id" class="form-control">
+                        <option value="">No Parent (Root Menu)</option>
+                        {% for parent in parent_menus %}
+                            <option value="{{ parent.id }}" 
+                                    {% if form_data.parent_menu_id == parent.id|stringformat:"s" or menu.parent_id == parent.id %}selected{% endif %}>
+                                {{ parent.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-help">Select parent menu for sub-menu creation</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="is_active">Status</label>
+                <select id="is_active" name="is_active" class="form-control">
+                    <option value="1" {% if form_data.is_active == "1" or menu.is_active %}selected{% endif %}>Active</option>
+                    <option value="0" {% if form_data.is_active == "0" and not menu.is_active %}selected{% endif %}>Inactive</option>
+                </select>
+                <div class="form-help">Menu visibility status</div>
+            </div>
+
+            <div class="form-actions">
+                <div class="form-actions-left">
+                    <a href="{% url 'menu_data_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+                <div class="form-actions-right">
+                    <a href="{% url 'menu_data_delete' menu.id %}" class="btn btn-danger"
+                       onclick="return confirm('Are you sure you want to delete this menu data? This action cannot be undone.')">
+                        <i class="fas fa-trash"></i> Delete Menu Data
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Menu Data
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const iconInput = document.getElementById('icon');
+        const iconPreview = document.getElementById('iconPreview');
+        const previewIcon = document.getElementById('previewIcon');
+        const previewText = document.getElementById('previewText');
+
+        // Icon preview functionality
+        function updateIconPreview() {
+            const iconClass = iconInput.value.trim();
+            if (iconClass) {
+                previewIcon.className = iconClass;
+                previewText.textContent = iconClass;
+                iconPreview.style.display = 'flex';
+            } else {
+                iconPreview.style.display = 'none';
+            }
+        }
+
+        iconInput.addEventListener('input', updateIconPreview);
+        
+        // Initialize icon preview on page load
+        updateIconPreview();
+
+        // Form validation
+        const form = document.getElementById('menuDataForm');
+        form.addEventListener('submit', function(e) {
+            const menuName = document.getElementById('menu_name').value.trim();
+            const displayOrder = document.getElementById('display_order').value.trim();
+
+            if (!menuName) {
+                e.preventDefault();
+                alert('Menu name is required');
+                document.getElementById('menu_name').focus();
+                return;
+            }
+
+            if (!displayOrder || isNaN(displayOrder)) {
+                e.preventDefault();
+                alert('Display order must be a valid number');
+                document.getElementById('display_order').focus();
+                return;
+            }
+        });
+
+        // Auto-focus first input
+        document.getElementById('menu_name').focus();
+    });
+</script>
+{% endblock %}

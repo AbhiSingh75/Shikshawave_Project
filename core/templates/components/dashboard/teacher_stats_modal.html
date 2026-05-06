@@ -1,0 +1,173 @@
+<!-- Teacher Details Modal -->
+{% if user.profile_id == 2 %}
+<div id="teacherModal" class="stats-modal">
+    <div class="stats-modal-container sw-elite-modal-container">
+        <!-- Modal Header -->
+        <div class="stats-modal-header">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="header-text">
+                    <h2>Teacher Statistics</h2>
+                    <p>View and analyze teacher data</p>
+                </div>
+            </div>
+            <button onclick="closeTeacherModal()" class="modal-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="stats-modal-content">
+            <!-- Filters Card -->
+            <div class="stats-card">
+                <div class="sw-elite-filter-row">
+                    <div class="sw-elite-filter-group">
+                        <label>From Date (DOJ)</label>
+                        <input type="date" id="teacherFromDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>To Date (DOJ)</label>
+                        <input type="date" id="teacherToDate" class="filter-input">
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Profile Type</label>
+                        <select id="teacherDepartment" class="filter-input">
+                            <option value="">All Types</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Gender</label>
+                        <select id="teacherGender" class="filter-input">
+                            <option value="">All</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-filter-group">
+                        <label>Employment Type</label>
+                        <select id="teacherType" class="filter-input">
+                            <option value="">All Types</option>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Guest">Guest</option>
+                        </select>
+                    </div>
+                    <div class="sw-elite-action-group">
+                        <button onclick="applyTeacherFilters()" class="btn-apply" style="flex: 1; height: 100%;">
+                            <i class="fas fa-search"></i> Apply
+                        </button>
+                        <button onclick="resetTeacherFilters()" class="btn-reset" style="flex: 1; height: 100%;">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Pulse (Actionable Insights) -->
+            <div class="sw-elite-pulse-row">
+                <div class="sw-pulse-spotlight pulse-attendance-compliance">
+                    <span class="pulse-label">Workforce Stability</span>
+                    <div class="pulse-value" id="pulseTeacherStability">0%</div>
+                    <div class="pulse-trend trend-up">
+                        <i class="fas fa-user-shield"></i> Permanent Staff
+                    </div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-admission-velocity">
+                    <span class="pulse-label">Global M/F Ratio</span>
+                    <div class="pulse-value" id="pulseTeacherGender">1:1</div>
+                    <div class="pulse-trend trend-neutral">Staff Diversity</div>
+                </div>
+                <div class="sw-pulse-spotlight pulse-risk-alert">
+                    <span class="pulse-label">New Hirings</span>
+                    <div class="pulse-value" id="pulseTeacherHiring">0</div>
+                    <div class="pulse-trend trend-up">Selected Period</div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="stats-card">
+                <h3>Employee Statistics</h3>
+                <div class="sw-elite-stats-grid">
+                    <div class="sw-elite-stat-card compact stat-primary">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Total Staff</p>
+                                <h2 class="stat-value" id="teacherTotal">{{ employee_stats.total_employees }}</h2>
+                            </div>
+                            <i class="fas fa-users-cog stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-male">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Male</p>
+                                <h2 class="stat-value" id="teacherMale">0</h2>
+                            </div>
+                            <i class="fas fa-male stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-female">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Female</p>
+                                <h2 class="stat-value" id="teacherFemale">0</h2>
+                            </div>
+                            <i class="fas fa-female stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-permanent">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Permanent</p>
+                                <h2 class="stat-value" id="teacherPermanent">0</h2>
+                            </div>
+                            <i class="fas fa-user-check stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-contract">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Contract</p>
+                                <h2 class="stat-value" id="teacherContract">0</h2>
+                            </div>
+                            <i class="fas fa-file-contract stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="sw-elite-stat-card compact stat-guest">
+                        <div class="stat-content">
+                            <div class="stat-info">
+                                <p class="stat-label">Guest</p>
+                                <h2 class="stat-value" id="teacherGuest">0</h2>
+                            </div>
+                            <i class="fas fa-user-clock stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Hiring Trend & Profile Grid -->
+            <div class="sw-elite-modal-grid-2-col">
+                <!-- Hiring Trend Card -->
+                <div class="stats-card">
+                    <div class="chart-header">
+                        <h3>Staff Hiring Trend</h3>
+                    </div>
+                    <div class="chart-container" style="min-height: 250px;">
+                        <canvas id="staffHiringChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Profile Distribution Card -->
+                <div class="stats-card">
+                    <div class="chart-header">
+                        <h3>Staff Distribution by Profile</h3>
+                    </div>
+                    <div id="profileDistributionGrid" class="sw-elite-class-grid">
+                        <!-- Dynamic tiles will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

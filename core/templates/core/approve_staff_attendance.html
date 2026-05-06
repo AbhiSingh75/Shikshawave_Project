@@ -1,0 +1,922 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Approve Staff Attendance{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}?v=2.5">
+<style>
+    /* =====================================================
+       PAGE-SPECIFIC OVERRIDES
+       ===================================================== */
+    :root {
+        --primary-color: {{ primary_color|default:"#004aad" }};
+        --primary-hover: {{ primary_hover|default:"#003a8c" }};
+        --primary-light: {{ primary_light|default:"rgba(0, 74, 173, 0.1)" }};
+        --secondary-color: #f9fafb;
+        --text-color: #1f2937;
+        --text-light: #64748b;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        --success-color: #10b981;
+        --success-light: rgba(16, 185, 129, 0.1);
+        --warning-color: #f59e0b;
+        --warning-light: rgba(245, 158, 11, 0.1);
+        --error-color: #ef4444;
+        --error-light: rgba(239, 68, 68, 0.1);
+        --bg-hover: #f8fafc;
+    }
+
+    body.dark-mode {
+        --primary-color: {{ primary_color|default:"#6366f1" }};
+        --primary-hover: {{ primary_hover|default:"#818cf8" }};
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --secondary-color: #111827;
+        --text-color: #f9fafb;
+        --text-light: #9ca3af;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+        --bg-hover: #374151;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .dashboard-container {
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* ---- Stats Cards ---- */
+    .approve-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
+    .approve-stat-card {
+        background: var(--card-bg, white);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 16px 18px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: transform 0.2s ease;
+    }
+
+    .approve-stat-card:hover { transform: translateY(-2px); }
+
+    .approve-stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .approve-stat-icon.pending  { background: var(--warning-color); }
+    .approve-stat-icon.approved { background: var(--success-color); }
+    .approve-stat-icon.rejected { background: var(--error-color); }
+
+    .approve-stat-info h4 {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 2px;
+    }
+
+    .approve-stat-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-color);
+        line-height: 1;
+    }
+
+    body.dark-mode .approve-stat-card { background: var(--card-bg); border-color: var(--border-color); }
+    body.dark-mode .approve-stat-value { color: var(--text-main); }
+
+    /* ---- Content Area (table) ---- */
+    .content-area {
+        flex: 1;
+        background: var(--card-bg);
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        margin-top: 2px;
+    }
+
+    body.dark-mode .content-area { background: var(--secondary-color); }
+
+    .table-header {
+        padding: 12px 18px;
+        background: var(--light-gray, #f8fafc);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    body.dark-mode .table-header { background: rgba(255,255,255,0.02); }
+
+    .table-header-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .table-header-title i { color: var(--primary-color); }
+
+    .table-container { flex: 1; overflow: auto; }
+
+    /* Table styles */
+    .approve-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .approve-table th {
+        background: var(--primary-color) !important;
+        color: white !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 12px 16px;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .approve-table td {
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+        color: var(--text-main);
+        font-size: 0.875rem;
+    }
+
+    body.dark-mode .approve-table th,
+    body.dark-mode .approve-table td {
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    }
+
+    .approve-table tbody tr {
+        transition: background 0.15s;
+    }
+
+    .approve-table tbody tr:hover {
+        background: var(--primary-light, rgba(0,74,173,0.04));
+    }
+
+    /* Employee cell */
+    .employee-cell .emp-name  { font-weight: 600; font-size: 0.9rem; }
+    .employee-cell .emp-code  { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+
+    /* Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 11px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+    }
+
+    .badge-present  { background: var(--success-light); color: var(--success-color); border: 1px solid var(--success-light); }
+    .badge-absent   { background: var(--error-light);   color: var(--error-color);   border: 1px solid var(--error-light);   }
+    .badge-late     { background: var(--warning-light); color: var(--warning-color); border: 1px solid var(--warning-light); }
+    .badge-leave    { background: var(--primary-light); color: var(--primary-color); border: 1px solid var(--primary-light); }
+    .badge-info     { background: var(--primary-light); color: var(--primary-color); border: 1px solid var(--primary-light); }
+
+    /* Role badge */
+    .role-badge {
+        background: rgba(var(--primary-rgb,0,74,173),0.1);
+        color: var(--primary-color);
+        border: 1px solid rgba(var(--primary-rgb,0,74,173),0.2);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Action buttons */
+    .action-group {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .btn-approve, .btn-reject {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        border-radius: 7px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-approve {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .btn-approve:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(5,150,105,0.25);
+    }
+
+    .btn-reject {
+        background: transparent;
+        color: var(--error-color);
+        border: 1px solid var(--error-color);
+    }
+
+    .btn-reject:hover {
+        background: rgba(239,68,68,0.08);
+        transform: translateY(-1px);
+    }
+
+    .btn-approve:disabled, .btn-reject:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .bulk-bar.visible { display: flex; }
+
+    .bulk-bar span {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(16,185,129,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .empty-state-icon i {
+        font-size: 1.8rem;
+        color: var(--success-color);
+    }
+
+    .empty-state h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 6px;
+    }
+
+    .empty-state p { font-size: 0.875rem; }
+
+    /* Remarks column */
+    .remarks-cell {
+        max-width: 160px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+    }
+
+    /* Marked-by cell */
+    .marked-by-cell .mb-name  { font-size: 0.85rem; font-weight: 600; }
+    .marked-by-cell .mb-date  { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* Counter badge in header */
+    .count-badge {
+        background: var(--warning-color);
+        color: white;
+        border-radius: 20px;
+        padding: 2px 9px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    /* Fade-out animation for approved/rejected rows */
+    @keyframes rowFadeOut {
+        0%   { opacity: 1; background: transparent; }
+        30%  { background: rgba(16,185,129,0.08); }
+        100% { opacity: 0; transform: translateX(20px); }
+    }
+
+    @keyframes rowFadeOutRed {
+        0%   { opacity: 1; background: transparent; }
+        30%  { background: rgba(239,68,68,0.08); }
+        100% { opacity: 0; transform: translateX(20px); }
+    }
+
+    .row-removing-approve { animation: rowFadeOut 0.5s ease forwards; }
+    .row-removing-reject  { animation: rowFadeOutRed 0.5s ease forwards; }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .approve-stats-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+        .approve-stats-grid { grid-template-columns: 1fr 1fr; }
+        .school-select-wrapper select { min-width: 160px; }
+        .btn-approve .btn-text, .btn-reject .btn-text { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- ===== CONTROLS ROW ===== -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3>
+                <i class="fas fa-user-check" style="color: var(--warning-color);"></i>
+                Approve Staff Attendance
+            </h3>
+        </div>
+        <div class="controls-right">
+            {% if schools_list %}
+            <div style="position:relative; min-width:260px;">
+                <!-- hidden native select as source of truth -->
+                <select id="school-select" style="display:none;">
+                    <option value="">-- Select School --</option>
+                    {% for school in schools_list %}
+                    <option value="{{ school.EncryptedSchoolID }}"
+                        {% if selected_school_id == school.SchoolID or selected_school_id|stringformat:'s' == school.EncryptedSchoolID %}selected{% endif %}>
+                        [{{ school.SchoolCode }}] {{ school.SchoolName }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <!-- Global custom dropdown -->
+                <div class="custom-dropdown" data-target="school-select" id="school-custom-dropdown">
+                    <div class="custom-dropdown-toggle">
+                        <span class="custom-dropdown-text">
+                            {% for school in schools_list %}{% if selected_school_id == school.SchoolID or selected_school_id|stringformat:'s' == school.EncryptedSchoolID %}[{{ school.SchoolCode }}] {{ school.SchoolName }}{% endif %}{% endfor %}
+                            {% if not selected_school_id %}-- Select School --{% endif %}
+                        </span>
+                        <span class="custom-dropdown-arrow">▼</span>
+                    </div>
+                    <div class="custom-dropdown-menu" style="min-width:260px; right:0; left:auto;">
+                        <div class="custom-dropdown-option" data-value="">-- Select School --</div>
+                        {% for school in schools_list %}
+                        <div class="custom-dropdown-option" data-value="{{ school.EncryptedSchoolID }}">
+                            [{{ school.SchoolCode }}] {{ school.SchoolName }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===== STATS CARDS ===== -->
+    <div class="approve-stats-grid" id="stats-grid">
+        <div class="approve-stat-card">
+            <div class="approve-stat-icon pending">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="approve-stat-info">
+                <h4>Pending</h4>
+                <div class="approve-stat-value" id="stat-pending">{{ pending_records|length }}</div>
+            </div>
+        </div>
+        <div class="approve-stat-card">
+            <div class="approve-stat-icon approved">
+                <i class="fas fa-check-double"></i>
+            </div>
+            <div class="approve-stat-info">
+                <h4>Approved Today</h4>
+                <div class="approve-stat-value" id="stat-approved">0</div>
+            </div>
+        </div>
+        <div class="approve-stat-card">
+            <div class="approve-stat-icon rejected">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="approve-stat-info">
+                <h4>Rejected Today</h4>
+                <div class="approve-stat-value" id="stat-rejected">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTENT AREA ===== -->
+    <div class="content-area" id="main-content-area">
+
+        <!-- Table Header with bulk actions -->
+        <div class="table-header">
+            <div class="table-header-title">
+                <i class="fas fa-list-check"></i>
+                Pending Approvals
+                <span class="count-badge" id="pending-count-badge">{{ pending_records|length }}</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                {% if pending_records %}
+                <button class="btn btn-success" id="bulk-approve-btn" onclick="bulkAction('approve')" style="display:none;">
+                    <i class="fas fa-check-double"></i>
+                    <span class="btn-label">Approve Selected</span>
+                </button>
+                <button class="btn btn-danger" id="bulk-reject-btn" onclick="bulkAction('reject')" style="display:none;">
+                    <i class="fas fa-times"></i>
+                    <span class="btn-label">Reject Selected</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bulk selection bar -->
+        <div class="bulk-bar" id="bulk-bar">
+            <input type="checkbox" id="select-all-check" onchange="toggleSelectAll(this)">
+            <span id="selected-count-label">0 selected</span>
+            <button class="btn btn-success" style="padding:5px 12px; font-size:0.8rem;" onclick="bulkAction('approve')">
+                <i class="fas fa-check"></i> Approve Selected
+            </button>
+            <button class="btn btn-danger" style="padding:5px 12px; font-size:0.8rem;" onclick="bulkAction('reject')">
+                <i class="fas fa-times"></i> Reject Selected
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            {% if pending_records %}
+            <table class="approve-table" id="pending-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px; text-align:center;">
+                            <input type="checkbox" id="select-all-header" onchange="toggleSelectAll(this)" title="Select All">
+                        </th>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                        <th>Marked By</th>
+                        <th style="text-align:center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-tbody">
+                    {% for record in pending_records %}
+                    <tr id="row-{{ record.AttendanceID }}" data-id="{{ record.AttendanceID }}">
+                        <td style="text-align:center;">
+                            <input type="checkbox" class="row-check" value="{{ record.AttendanceID }}" onchange="updateBulkBar()">
+                        </td>
+                        <td style="color:var(--text-muted); font-size:0.8rem;">{{ forloop.counter }}</td>
+                        <td style="font-weight:600; white-space:nowrap;">{{ record.AttendanceDate|date:"d-M-Y" }}</td>
+                        <td>
+                            <div class="employee-cell">
+                                <div class="emp-name">{{ record.EmployeeName }}</div>
+                                <div class="emp-code">{{ record.EmployeeCode }}</div>
+                            </div>
+                        </td>
+                        <td><span class="role-badge">{{ record.Role }}</span></td>
+                        <td>
+                            {% if record.Status == 'present' %}
+                            <span class="badge badge-present"><i class="fas fa-circle" style="font-size:0.4rem;"></i> Present</span>
+                            {% elif record.Status == 'absent' %}
+                            <span class="badge badge-absent"><i class="fas fa-circle" style="font-size:0.4rem;"></i> Absent</span>
+                            {% elif record.Status == 'late' %}
+                            <span class="badge badge-late"><i class="fas fa-circle" style="font-size:0.4rem;"></i> Late</span>
+                            {% elif record.Status == 'leave' %}
+                            <span class="badge badge-leave"><i class="fas fa-circle" style="font-size:0.4rem;"></i> Leave</span>
+                            {% else %}
+                            <span class="badge badge-info">{{ record.Status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="remarks-cell" title="{{ record.Remarks|default:'' }}">{{ record.Remarks|default:"—" }}</td>
+                        <td>
+                            <div class="marked-by-cell">
+                                <div class="mb-name">{{ record.CreatedByName }}</div>
+                                <div class="mb-date">{{ record.CreatedAt|date:"d-M-Y H:i" }}</div>
+                            </div>
+                        </td>
+                        <td style="text-align:center;">
+                            <div class="action-group">
+                                <button class="btn-approve" onclick="handleAction('{{ record.AttendanceID }}', 'approve')" id="approve-btn-{{ record.AttendanceID }}">
+                                    <i class="fas fa-check"></i>
+                                    <span class="btn-text">Approve</span>
+                                </button>
+                                <button class="btn-reject" onclick="handleAction('{{ record.AttendanceID }}', 'reject')" id="reject-btn-{{ record.AttendanceID }}">
+                                    <i class="fas fa-times"></i>
+                                    <span class="btn-text">Reject</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% else %}
+            <!-- Empty state -->
+            <div class="empty-state" id="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>No Pending Approvals</h3>
+                <p>All attendance records have been processed.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== REMARKS MODAL ===== -->
+<div class="sw-modal-container" id="remarks-modal">
+    <div class="sw-modal sw-modal-compact">
+        <div class="sw-modal-header">
+            <div class="sw-modal-title">
+                <i class="fas fa-comment-alt"></i>
+                <h2 id="modal-title">Add Remarks</h2>
+            </div>
+            <button class="sw-modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sw-modal-body">
+            <div style="margin-bottom: 16px;">
+                <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:var(--text-muted);">
+                    Remarks <span style="font-weight:400;">(optional)</span>
+                </label>
+                <textarea id="modal-remarks" rows="4" placeholder="Enter remarks..."
+                    style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color);
+                           background:var(--card-bg); color:var(--text-main); font-size:0.875rem;
+                           resize:vertical; outline:none; font-family:inherit; transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='var(--primary-color)'"
+                    onblur="this.style.borderColor='var(--border-color)'"></textarea>
+            </div>
+            <p id="modal-employee-info" style="font-size:0.82rem; color:var(--text-muted);"></p>
+        </div>
+        <div class="sw-modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn" id="modal-confirm-btn" onclick="submitAction()">Confirm</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shikshawave-list.js' %}"></script>
+<script>
+(function() {
+    // ---- State ----
+    let currentAction = null;   // 'approve' | 'reject'
+    let currentIds    = [];     // list of attendance IDs
+    let approvedCount = 0;
+    let rejectedCount = 0;
+
+    // Expose for inline handlers
+    window.handleAction  = handleAction;
+    window.bulkAction    = bulkAction;
+    window.submitAction  = submitAction;
+    window.closeModal    = closeModal;
+    window.toggleSelectAll = toggleSelectAll;
+    window.updateBulkBar = updateBulkBar;
+
+    // ---- Single record action ----
+    function handleAction(attendanceId, action) {
+        currentIds    = [attendanceId];
+        currentAction = action;
+
+        const rowEl    = document.getElementById('row-' + attendanceId);
+        const empName  = rowEl ? rowEl.querySelector('.emp-name')?.textContent || '' : '';
+        const empCode  = rowEl ? rowEl.querySelector('.emp-code')?.textContent || '' : '';
+
+        const modal = document.getElementById('remarks-modal');
+        document.getElementById('modal-title').textContent =
+            action === 'approve' ? 'Approve Attendance' : 'Reject Attendance';
+
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        confirmBtn.className = 'btn ' + (action === 'approve' ? 'btn-success' : 'btn-danger');
+        confirmBtn.innerHTML = action === 'approve'
+            ? '<i class="fas fa-check"></i> Approve'
+            : '<i class="fas fa-times"></i> Reject';
+
+        document.getElementById('modal-employee-info').textContent =
+            empName ? `Employee: ${empName}  (${empCode})` : '';
+        document.getElementById('modal-remarks').value = '';
+
+        modal.classList.add('show');
+        setTimeout(() => document.getElementById('modal-remarks').focus(), 200);
+    }
+
+    // ---- Bulk action ----
+    function bulkAction(action) {
+        const checks = document.querySelectorAll('.row-check:checked');
+        if (!checks.length) {
+            showToast('Please select at least one record.', 'warning');
+            return;
+        }
+        currentIds    = Array.from(checks).map(c => c.value);
+        currentAction = action;
+
+        const modal = document.getElementById('remarks-modal');
+        document.getElementById('modal-title').textContent =
+            action === 'approve'
+                ? `Approve ${currentIds.length} Record(s)`
+                : `Reject ${currentIds.length} Record(s)`;
+
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        confirmBtn.className = 'btn ' + (action === 'approve' ? 'btn-success' : 'btn-danger');
+        confirmBtn.innerHTML = action === 'approve'
+            ? '<i class="fas fa-check-double"></i> Approve All'
+            : '<i class="fas fa-times"></i> Reject All';
+
+        document.getElementById('modal-employee-info').textContent =
+            `${currentIds.length} attendance record(s) will be ${action}d.`;
+        document.getElementById('modal-remarks').value = '';
+
+        modal.classList.add('show');
+        setTimeout(() => document.getElementById('modal-remarks').focus(), 200);
+    }
+
+    // ---- Submit ----
+    function submitAction() {
+        if (!currentIds.length || !currentAction) return;
+
+        const remarks    = document.getElementById('modal-remarks').value.trim();
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        // Process sequentially for bulk
+        processIds([...currentIds], currentAction, remarks, 0);
+    }
+
+    function processIds(ids, action, remarks, idx) {
+        if (idx >= ids.length) {
+            closeModal();
+            updateCountBadge();
+            return;
+        }
+
+        const id = ids[idx];
+        processOne(id, action, remarks)
+            .then(() => processIds(ids, action, remarks, idx + 1))
+            .catch(() => processIds(ids, action, remarks, idx + 1));
+    }
+
+    function processOne(attendanceId, action, remarks) {
+        return new Promise((resolve, reject) => {
+            const formData = new FormData();
+            formData.append('attendance_id', attendanceId);
+            formData.append('action', action);
+            formData.append('remarks', remarks);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            fetch('{% url "approve_attendance_ajax" %}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    removeRow(attendanceId, action);
+                    if (action === 'approve') approvedCount++;
+                    else rejectedCount++;
+
+                    document.getElementById('stat-approved').textContent = approvedCount;
+                    document.getElementById('stat-rejected').textContent = rejectedCount;
+                    resolve();
+                } else {
+                    showToast(data.message || 'Error processing record', 'danger');
+                    reject();
+                }
+            })
+            .catch(() => {
+                showToast('Network error. Please try again.', 'danger');
+                reject();
+            });
+        });
+    }
+
+    function removeRow(attendanceId, action) {
+        const row = document.getElementById('row-' + attendanceId);
+        if (!row) return;
+
+        row.classList.add(action === 'approve' ? 'row-removing-approve' : 'row-removing-reject');
+
+        setTimeout(() => {
+            row.remove();
+            // Renumber rows
+            const tbody = document.getElementById('pending-tbody');
+            if (tbody) {
+                Array.from(tbody.querySelectorAll('tr')).forEach((tr, i) => {
+                    const cells = tr.querySelectorAll('td');
+                    if (cells[1]) cells[1].textContent = i + 1;
+                });
+            }
+            checkEmptyState();
+        }, 500);
+    }
+
+    function checkEmptyState() {
+        const tbody = document.getElementById('pending-tbody');
+        if (tbody && tbody.querySelectorAll('tr').length === 0) {
+            const contentArea = document.getElementById('main-content-area');
+            contentArea.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>No Pending Approvals</h3>
+                    <p>All attendance records have been processed.</p>
+                </div>`;
+        }
+        updateBulkBar();
+    }
+
+    function updateCountBadge() {
+        const tbody = document.getElementById('pending-tbody');
+        const count = tbody ? tbody.querySelectorAll('tr').length : 0;
+        const badge = document.getElementById('pending-count-badge');
+        const stat  = document.getElementById('stat-pending');
+        if (badge) badge.textContent = count;
+        if (stat)  stat.textContent  = count;
+
+        // Re-enable confirm button
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        if (confirmBtn) confirmBtn.disabled = false;
+    }
+
+    // ---- Modal ----
+    function closeModal() {
+        document.getElementById('remarks-modal').classList.remove('show');
+        currentIds    = [];
+        currentAction = null;
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        if (confirmBtn) confirmBtn.disabled = false;
+    }
+
+    // Close on backdrop click
+    document.getElementById('remarks-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    // ---- Checkbox / Bulk bar ----
+    function toggleSelectAll(source) {
+        const allChecks = document.querySelectorAll('.row-check');
+        allChecks.forEach(c => c.checked = source.checked);
+
+        // Sync both checkboxes
+        const h = document.getElementById('select-all-header');
+        const b = document.getElementById('select-all-check');
+        if (h) h.checked = source.checked;
+        if (b) b.checked = source.checked;
+
+        updateBulkBar();
+    }
+
+    function updateBulkBar() {
+        const checks  = document.querySelectorAll('.row-check:checked');
+        const allC    = document.querySelectorAll('.row-check');
+        const bar     = document.getElementById('bulk-bar');
+        const label   = document.getElementById('selected-count-label');
+        const hCheck  = document.getElementById('select-all-header');
+
+        if (bar) {
+            if (checks.length > 0) {
+                bar.classList.add('visible');
+            } else {
+                bar.classList.remove('visible');
+            }
+        }
+        if (label) label.textContent = `${checks.length} selected`;
+        if (hCheck) hCheck.indeterminate = checks.length > 0 && checks.length < allC.length;
+        if (hCheck && checks.length === allC.length && allC.length > 0) hCheck.checked = true;
+        if (hCheck && checks.length === 0) hCheck.checked = false;
+    }
+
+    // ---- Toast notification ----
+    function showToast(message, type) {
+        const colors = {
+            success: '#10b981',
+            danger:  '#ef4444',
+            warning: '#f59e0b',
+            info:    '#3b82f6'
+        };
+        const icons = {
+            success: 'fa-check-circle',
+            danger:  'fa-times-circle',
+            warning: 'fa-exclamation-triangle',
+            info:    'fa-info-circle'
+        };
+
+        // Remove any existing toast
+        const existing = document.getElementById('sw-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'sw-toast';
+        toast.style.cssText = `
+            position: fixed; bottom: 24px; right: 24px; z-index: 999999;
+            background: var(--card-bg, white); border: 1px solid var(--border-color);
+            border-left: 4px solid ${colors[type] || colors.info};
+            border-radius: 10px; padding: 14px 18px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            font-size: 0.875rem; font-weight: 600; color: var(--text-main);
+            max-width: 340px; animation: toastIn 0.3s ease;
+        `;
+        toast.innerHTML = `
+            <i class="fas ${icons[type] || icons.info}" style="color:${colors[type]};font-size:1.1rem;"></i>
+            <span>${message}</span>
+        `;
+
+        // Add animation style if not present
+        if (!document.getElementById('toast-style')) {
+            const style = document.createElement('style');
+            style.id = 'toast-style';
+            style.textContent = `
+                @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+                @keyframes toastOut { to { opacity:0; transform:translateY(10px); } }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'toastOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+})();
+
+// ---- School custom-dropdown: navigate on selection ----
+document.addEventListener('DOMContentLoaded', function () {
+    const schoolDropdown = document.getElementById('school-custom-dropdown');
+    if (!schoolDropdown) return;
+
+    // Mark currently selected option
+    const nativeSel = document.getElementById('school-select');
+    const currentVal = nativeSel ? nativeSel.value : '';
+    schoolDropdown.querySelectorAll('.custom-dropdown-option').forEach(function (opt) {
+        if (opt.dataset.value === currentVal) opt.classList.add('selected');
+    });
+
+    // Intercept option clicks before shikshawave-list.js handles them,
+    // so we can redirect rather than just updating a form field.
+    schoolDropdown.addEventListener('click', function (e) {
+        const opt = e.target.closest('.custom-dropdown-option');
+        if (!opt) return;
+        e.stopPropagation();   // still let the toggle work for visual feedback
+        const val = opt.dataset.value;
+        if (val !== undefined) {
+            window.location.replace('?school_id=' + encodeURIComponent(val));
+        }
+    }, true);   // capture phase so we fire before shikshawave-list.js bubbles
+});
+</script>
+{% endblock %}

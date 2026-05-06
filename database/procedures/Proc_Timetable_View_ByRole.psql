@@ -1,0 +1,99 @@
+-- PostgreSQL version of Proc_Timetable_View_ByRole
+-- Drop the function if it already exists to avoid conflicts
+-- Note: PostgreSQL functions use positional or named parameters and return SETOF or TABLE.
+
+CREATE OR REPLACE FUNCTION "Proc_Timetable_View_ByRole"(
+    p_SchoolID INT,
+    p_UserID INT,
+    p_ProfileID INT,
+    p_ClassID INT DEFAULT NULL,
+    p_TeacherID INT DEFAULT NULL
+)
+RETURNS TABLE (
+    "TimetableID" INT,
+    "ClassID" INT,
+    "ClassName" VARCHAR,
+    "SectionID" INT,
+    "SectionName" VARCHAR,
+    "AcademicYear" VARCHAR,
+    "EffectiveFrom" DATE,
+    "EffectiveTo" DATE,
+    "PeriodID" INT,
+    "PeriodName" VARCHAR,
+    "PeriodType" VARCHAR,
+    "StartTime" TIME,
+    "EndTime" TIME,
+    "DisplayOrder" INT,
+    "SlotID" INT,
+    "DayOfWeek" INT,
+    "SubjectID" INT,
+    "SubjectName" VARCHAR,
+    "TeacherID" INT,
+    "TeacherName" VARCHAR,
+    "RoomNumber" VARCHAR,
+    "Notes" TEXT
+) AS $$
+DECLARE
+    v_profileName VARCHAR(100);
+    v_userCode VARCHAR(20);
+    v_studentid INT;
+    v_employeeId INT;
+    v_Student_classId INT;
+BEGIN
+    -- Get user details
+    SELECT u."UserCode", p."ProfileName" INTO v_userCode, v_profileName 
+    FROM "UserMaster" AS u
+    INNER JOIN "ProfileMaster" AS p ON u."ProfileID" = p."ProfileID"
+    WHERE u."UserID" = p_UserID;
+
+    -- Get student/employee IDs associated with user
+    SELECT "StudentID" INTO v_studentid FROM "Student" WHERE "StudentCode" = v_userCode;
+    SELECT "ClassID" INTO v_Student_classId FROM "StudentAcademicTrack" WHERE "StudentID" = v_studentid AND "IsCurrent" = true;
+    SELECT "EmployeeID" INTO v_employeeId FROM "EmployeeMaster" WHERE "EmployeeCode" = v_userCode;
+
+    RETURN QUERY
+    SELECT 
+        tm."TimetableID",
+        tm."ClassID",
+        cm."ClassName",
+        tm."SectionID",
+        sm."SectionName",
+        tm."AcademicYear",
+        tm."EffectiveFrom",
+        tm."EffectiveTo",
+        pm."PeriodID",
+        pm."PeriodName",
+        pm."PeriodType",
+        pm."StartTime",
+        pm."EndTime",
+        pm."DisplayOrder",
+        ts."SlotID",
+        ts."DayOfWeek",
+        ts."SubjectID",
+        sub."SubjectName",
+        ts."TeacherID",
+        em."EmployeeName" AS "TeacherName",
+        ts."RoomNumber",
+        ts."Notes"::TEXT
+    FROM "TimetableSlot" AS ts
+    INNER JOIN "TimetableMaster" AS tm ON ts."TimetableID" = tm."TimetableID"
+    INNER JOIN "PeriodMaster" AS pm ON pm."PeriodID" = ts."PeriodID"
+    LEFT JOIN "ClassMaster" AS cm ON cm."ClassID" = tm."ClassID"
+    LEFT JOIN "SectionMaster" AS sm ON sm."SectionID" = tm."SectionID"
+    LEFT JOIN "SubjectMaster" AS sub ON sub."SubjectID" = ts."SubjectID"
+    LEFT JOIN "EmployeeMaster" AS em ON em."EmployeeID" = ts."TeacherID"
+    WHERE tm."SchoolID" = p_SchoolID 
+      AND tm."IsDeleted" = false 
+      AND ts."IsDeleted" = false
+      AND (
+          -- Filter logic based on role and provided IDs
+          (v_profileName = 'School Admin' AND (
+              (p_ClassID IS NOT NULL AND tm."ClassID" = p_ClassID) OR
+              (p_TeacherID IS NOT NULL AND ts."TeacherID" = p_TeacherID)
+          )) OR
+          (v_profileName = 'Teacher' AND ts."TeacherID" = v_employeeId) OR
+          (v_profileName = 'Student' AND tm."ClassID" = v_Student_classId)
+      )
+    ORDER BY tm."TimetableID", ts."DayOfWeek", pm."DisplayOrder";
+END;
+$$ LANGUAGE plpgsql;

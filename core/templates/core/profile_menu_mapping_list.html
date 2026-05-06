@@ -1,0 +1,505 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Profile Menu Mapping | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/shikshawave-list.css' %}">
+    <style>
+        /* Force Global Layout Parity */
+        .dashboard-container { width: 100% !important; padding: 12px 20px 30px 20px !important; display: flex; flex-direction: column; gap: 20px; }
+        .controls-row { margin-bottom: 5px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        /* Compact Premium Table Design (Theme Aware) */
+        .table-responsive {
+            background: var(--card-bg, white); border-radius: 12px; border: 1px solid var(--border-color);
+            overflow-x: auto !important; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .shikshawave-table { width: 100%; border-collapse: collapse; table-layout: auto; min-width: 0 !important; }
+        .shikshawave-table thead th {
+            background: var(--primary-color) !important;
+            color: white !important;
+            padding: 10px 15px; font-weight: 700; font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 0.5px; text-align: center;
+            white-space: nowrap; border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .shikshawave-table thead th:nth-child(2),
+        .shikshawave-table thead th:nth-child(3) { text-align: left; }
+
+        /* Standard Text Color & Compact Padding (Theme Aware) */
+        .shikshawave-table tbody td {
+            padding: 8px 12px; border-bottom: 1px solid var(--border-color);
+            font-size: 0.85rem; color: var(--text-color, #1e293b) !important;
+            vertical-align: middle; background: var(--card-bg, white);
+            border-right: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        .shikshawave-table tbody tr:hover td { background: var(--bg-hover, #f8fafc) !important; }
+
+        /* Colorful Compact Menu Icons */
+        .menu-info { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text-color, #334155); }
+        .menu-info i { color: #f59e0b; font-size: 1rem; filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.15)); }
+        
+        /* Compact Permission Boxes */
+        .perm-box-sw {
+            display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center;
+            border-radius: 4px; font-size: 0.75rem;
+        }
+        .perm-box-sw.yes { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .perm-box-sw.no { background: rgba(239, 68, 68, 0.05); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.1); opacity: 0.4; }
+
+        /* High Visibility Actions */
+        .action-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .sw-btn-action {
+            width: 28px; height: 28px; border-radius: 6px; border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; font-size: 0.75rem;
+        }
+        .btn-edit { background: #f59e0b; color: white; }
+        .btn-edit:hover { background: #d97706; transform: scale(1.05); }
+        .btn-del { background: #ef4444; color: white; }
+        .btn-del:hover { background: #dc2626; transform: scale(1.05); }
+        .btn-res { background: #10b981; color: white; }
+        .btn-res:hover { background: #059669; transform: scale(1.05); }
+        
+        /* Global Standard Dropdown Alignment */
+        .custom-dropdown-toggle { 
+            min-width: 220px; height: 48px; border: 1px solid var(--border-color); 
+            border-radius: 12px; font-size: 0.95rem; background: var(--card-bg, white); 
+            color: var(--text-color); white-space: nowrap; transition: var(--transition);
+        }
+        .custom-dropdown-toggle:hover { border-color: var(--primary-color); background: var(--bg-hover); }
+        
+        .custom-dropdown-menu {
+            position: absolute; top: 100%; left: 0; width: 100%; min-width: 280px; 
+            background: var(--card-bg, white); border: 1px solid var(--border-color); 
+            border-radius: 12px; margin-top: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: none; z-index: 1000; overflow: hidden;
+        }
+        .custom-dropdown.active .custom-dropdown-menu { display: block; animation: slideDown 0.2s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dropdown-search { padding: 12px; border-bottom: 1px solid var(--border-color); background: var(--bg-hover); display: flex; align-items: center; gap: 10px; }
+        .dropdown-search input { border: none; background: transparent; color: var(--text-color); width: 100%; outline: none; font-size: 0.9rem; }
+        .dropdown-options { max-height: 250px; overflow-y: auto; padding: 6px; }
+        .dropdown-option { 
+            padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; gap: 10px; 
+            cursor: pointer; color: var(--text-color); font-size: 0.9rem; transition: all 0.2s;
+        }
+        .dropdown-option:hover { background: var(--bg-hover); color: var(--primary-color); padding-left: 18px; }
+        .dropdown-option.selected { background: var(--primary-light); color: var(--primary-color); font-weight: 700; }
+        
+        /* Global Mobile Standard Overrides */
+        @media (max-width: 768px) {
+            .dashboard-container { padding: 10px !important; gap: 15px !important; }
+            .controls-row { 
+                flex-direction: column !important; height: auto !important; padding: 15px !important; 
+                gap: 15px !important; position: relative !important; top: 0 !important; margin-top: 0 !important;
+            }
+            .controls-right { width: 100%; flex-direction: row; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; }
+            .vertical-divider { display: none !important; }
+            .custom-dropdown, .controls-right .btn { 
+                flex: 1; width: 100% !important; height: 48px !important; 
+                display: flex !important; align-items: center; justify-content: center !important; 
+                font-size: 0.85rem !important;
+            }
+            .controls-right .btn { padding: 0 10px !important; font-weight: 600; }
+            .custom-dropdown-toggle { height: 48px !important; width: 100% !important; }
+            .summary-box { width: 100%; justify-content: center; }
+            .table-responsive { border: none; box-shadow: none; overflow-x: auto !important; }
+            .shikshawave-table { table-layout: auto !important; min-width: 800px !important; } /* Allow content to breathe on mobile */
+        }
+
+        /* Premium Status Badges */
+        .status-badge {
+            padding: 5px 14px; border-radius: 50px; font-size: 0.75rem; 
+            font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
+            text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.2s;
+        }
+        .status-badge.status-active { 
+            background: var(--primary-light, #ecfdf5); color: var(--text-color, #1e293b) !important; border: 1px solid #10b98140; 
+        }
+        .status-badge.status-active i { color: #10b981; }
+        
+        .status-badge.status-inactive { 
+            background: rgba(239, 68, 68, 0.05); color: var(--text-color, #1e293b) !important; border: 1px solid #ef444440; 
+        }
+        .status-badge.status-inactive i { color: #ef4444; }
+
+        .status-badge:hover { transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+
+        /* Global Modal Design System */
+        .sw-modal-container { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.75); display: none; z-index: 99999; 
+            align-items: center; justify-content: center; backdrop-filter: blur(8px);
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .sw-modal-container.show { display: flex; opacity: 1; }
+        .sw-modal { 
+            background: var(--card-bg, white); width: 100%; max-width: 550px; border-radius: 16px; 
+            overflow: hidden; border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.5); 
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .sw-modal-container.show .sw-modal { transform: scale(1); }
+        
+        .sw-modal-header { 
+            padding: 14px 20px; background: var(--primary-color); color: white; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+        .sw-modal-body { padding: 16px 20px; }
+        .sw-modal-footer { 
+            padding: 12px 20px; border-top: 1px solid var(--border-color); 
+            display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-hover, #f8fafc);
+        }
+        .sw-btn { 
+            padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.2s; border: 1px solid var(--border-color);
+            background: var(--card-bg, white); color: var(--text-color);
+        }
+        .sw-btn-primary { 
+            background: var(--primary-color); color: white; border: none; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .sw-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .modal-grid-box {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 15px; 
+            background: var(--bg-hover, #f1f5f9); border-radius: 10px; border: 1px solid var(--border-color);
+        }
+        .modal-grid-box label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: var(--text-color); font-size: 0.85rem; }
+        .modal-grid-box input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
+
+        .sw-form-control {
+            background: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            outline: none;
+            transition: all 0.2s;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1.25em 1.25em;
+            appearance: none;
+            font-size: 0.9rem;
+        }
+        .sw-form-control:focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+        body.dark-mode .sw-form-control {
+            border: 1px solid #4a5568 !important; /* solid slate-600 border */
+            background-color: rgba(0, 0, 0, 0.2) !important; /* slightly darker background for depth */
+            color-scheme: dark !important; /* Forces browser to render native menu in dark mode */
+        }
+        body.dark-mode .sw-form-control option {
+            background: #1e293b !important;
+            color: #f1f5f9 !important;
+        }
+        body.dark-mode .sw-btn:not(.sw-btn-primary) {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            color: white;
+        }
+        body.dark-mode .sw-btn:not(.sw-btn-primary):hover {
+            background: #4a5568;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Global Control Row (Standardized) -->
+    <div class="controls-row">
+        <div class="controls-left">
+            <h3 class="page-title">
+                <i class="fas fa-shield-halved"></i> 
+                <span>{{ page_title }}</span>
+            </h3>
+            <div class="summary-box">
+                <i class="fas fa-list-ul"></i>
+                <span id="activeCount"><strong>{{ total_count|default:"0" }}</strong> Mappings</span>
+            </div>
+        </div>
+        
+        <div class="controls-right">
+            <!-- Search Enabled Custom Dropdown -->
+            <div class="custom-dropdown" data-id="profileFilter">
+                <div class="custom-dropdown-toggle">
+                    <i class="fas fa-user-gear"></i>
+                    <span class="selected-value">{% if selected_profile_id %}{% for p in profiles %}{% if p.ProfileID == selected_profile_id %}{{ p.ProfileName }}{% endif %}{% endfor %}{% else %}All Profiles{% endif %}</span>
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </div>
+                <div class="custom-dropdown-menu">
+                    <div class="dropdown-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search profiles..." onkeyup="filterDropdown(this)">
+                    </div>
+                    <div class="dropdown-options">
+                        <div class="dropdown-option {% if not selected_profile_id %}selected{% endif %}" data-value="" onclick="handleProfileFilter('')">
+                            <i class="fas fa-users-cog"></i> All Profiles
+                        </div>
+                        {% for profile in profiles %}
+                            <div class="dropdown-option {% if selected_profile_id == profile.ProfileID %}selected{% endif %}" data-value="{{ profile.ProfileID }}" onclick="handleProfileFilter('{{ profile.ProfileID }}')">
+                                <i class="fas fa-user"></i> {{ profile.ProfileName }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="vertical-divider" style="height: 30px; width: 1px; background: var(--border-color); margin: 0 5px;"></div>
+
+            <button type="button" class="btn btn-primary" onclick="openModal('addMappingModal')">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add Mapping</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main List Container (Fixed Width & Visibility) -->
+    <div class="table-responsive">
+        {% if mappings %}
+            <table class="shikshawave-table">
+                <thead>
+                    <tr>
+                        <th style="width: 1%;">SN</th>
+                        <th style="width: 1%;">Actions</th>
+                        <th style="width: 1%;">Profile</th>
+                        <th style="text-align: left;">Menu Module</th>
+                        <th style="width: 1%;">View</th>
+                        <th style="width: 1%;">Add</th>
+                        <th style="width: 1%;">Edit</th>
+                        <th style="width: 1%;">Delete</th>
+                        <th style="width: 1%;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mapping in mappings %}
+                    <tr class="{% if mapping.IsDeleted %}row-disabled{% endif %}">
+                        <td style="text-align: center; font-weight: 800; color: #0f172a; font-size: 0.85rem;">{{ forloop.counter }}</td>
+                        <td style="text-align: center;">
+                            <div class="action-row">
+                                <button class="sw-btn-action btn-edit" title="Edit Mapping"
+                                        onclick="prepareEditModal(this)"
+                                        data-id="{{ mapping.MappingID }}"
+                                        data-profile-id="{{ mapping.ProfileID }}"
+                                        data-menu-id="{{ mapping.MenuID }}"
+                                        data-view="{{ mapping.CanView }}"
+                                        data-add="{{ mapping.CanAdd }}"
+                                        data-edit="{{ mapping.CanEdit }}"
+                                        data-delete="{{ mapping.CanDelete }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                
+                                {% if mapping.IsDeleted %}
+                                    <button class="sw-btn-action btn-res" title="Restore" onclick="confirmAction('/master-data/profile-menu-mapping/{{ mapping.MappingID }}/restore/', 'Restore this mapping?')">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="sw-btn-action btn-del" title="Delete" onclick="confirmAction('/master-data/profile-menu-mapping/{{ mapping.MappingID }}/delete/', 'Delete this mapping?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="profile-info" style="display: flex; align-items: center; gap: 10px; font-weight: 700;">
+                                <i class="fas fa-user-shield" style="color: var(--primary-color);"></i>
+                                <span>{{ mapping.ProfileName }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="menu-info">
+                                <i class="fas fa-folder-tree"></i>
+                                <span>{{ mapping.MenuName }}</span>
+                            </div>
+                        </td>
+                        
+                        <!-- Permissions -->
+                        <td style="text-align: center;">
+                            <div class="perm-box-sw {% if mapping.CanView %}yes{% else %}no{% endif %}">
+                                <i class="fas {% if mapping.CanView %}fa-check{% else %}fa-times{% endif %}"></i>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="perm-box-sw {% if mapping.CanAdd %}yes{% else %}no{% endif %}">
+                                <i class="fas {% if mapping.CanAdd %}fa-check{% else %}fa-times{% endif %}"></i>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="perm-box-sw {% if mapping.CanEdit %}yes{% else %}no{% endif %}">
+                                <i class="fas {% if mapping.CanEdit %}fa-check{% else %}fa-times{% endif %}"></i>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="perm-box-sw {% if mapping.CanDelete %}yes{% else %}no{% endif %}">
+                                <i class="fas {% if mapping.CanDelete %}fa-check{% else %}fa-times{% endif %}"></i>
+                            </div>
+                        </td>
+                        
+                        <td>
+                            {% if not mapping.IsDeleted %}
+                                <span class="status-badge status-active"><i class="fas fa-check-circle"></i> Active</span>
+                            {% else %}
+                                <span class="status-badge status-inactive"><i class="fas fa-history"></i> Deleted</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state" style="padding: 100px 20px; text-align: center;">
+                <i class="fas fa-shield-halved fa-4x mb-3" style="opacity: 0.1; color: var(--primary-color);"></i>
+                <h3 style="color: var(--text-light); font-weight: 600;">No Mappings Found</h3>
+                <button class="btn-primary mt-3" onclick="openModal('addMappingModal')">
+                    <i class="fas fa-plus"></i> Create Mapping
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+        
+<div id="addMappingModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <h2 style="font-size: 1.1rem; margin: 0;"><i class="fas fa-plus-circle me-2"></i>New Menu Mapping</h2>
+            <button onclick="closeModal('addMappingModal')" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="{% url 'profile_menu_mapping_add' %}" method="POST">
+            {% csrf_token %}
+            <div class="sw-modal-body">
+                <div style="margin-bottom: 12px;">
+                    <label class="font-bold mb-1" style="display:block; color: var(--text-color); font-size: 0.85rem;">Target Profile</label>
+                    <select name="profile_id" class="sw-form-control" required style="width:100%; height:38px; padding:0 12px; border-radius:8px;">
+                        <option value="">Select Profile</option>
+                        {% for profile in profiles %}
+                            <option value="{{ profile.ProfileID }}">{{ profile.ProfileName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label class="font-bold mb-1" style="display:block; color: var(--text-color); font-size: 0.85rem;">Menu Module</label>
+                    <select name="menu_id" class="sw-form-control" required style="width:100%; height:38px; padding:0 12px; border-radius:8px;">
+                        <option value="">Select Menu</option>
+                        {% for menu in menu_list %}
+                            <option value="{{ menu.MenuID }}">{{ menu.MenuName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <label class="font-bold mb-1" style="display:block; color: var(--text-color); font-size: 0.85rem;">Permissions Access</label>
+                <div class="modal-grid-box">
+                    <label><input type="checkbox" name="can_view" checked><span>Can View</span></label>
+                    <label><input type="checkbox" name="can_add"><span>Can Add</span></label>
+                    <label><input type="checkbox" name="can_edit"><span>Can Edit</span></label>
+                    <label><input type="checkbox" name="can_delete"><span>Can Delete</span></label>
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" class="sw-btn" onclick="closeModal('addMappingModal')">Cancel</button>
+                <button type="submit" class="sw-btn sw-btn-primary">Create Mapping</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editMappingModal" class="sw-modal-container">
+    <div class="sw-modal">
+        <div class="sw-modal-header">
+            <h2 style="font-size: 1.1rem; margin: 0;"><i class="fas fa-edit me-2"></i>Update Mapping</h2>
+            <button onclick="closeModal('editMappingModal')" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="editMappingForm" method="POST">
+            {% csrf_token %}
+            <div class="sw-modal-body">
+                <div style="margin-bottom:10px; opacity: 0.8;">
+                    <label class="font-bold" style="color: var(--text-color); font-size: 0.8rem;">Profile (Locked)</label>
+                    <input type="text" id="edit_profile_name" readonly class="sw-form-control" style="width:100%; height:36px; border-radius:8px; padding:0 12px; font-weight:700; opacity: 0.7;">
+                    <input type="hidden" name="profile_id" id="edit_profile_id_hidden">
+                </div>
+                <div style="margin-bottom:10px; opacity: 0.8;">
+                    <label class="font-bold" style="color: var(--text-color); font-size: 0.8rem;">Menu Module (Locked)</label>
+                    <input type="text" id="edit_menu_name" readonly class="sw-form-control" style="width:100%; height:36px; border-radius:8px; padding:0 12px; font-weight:700; opacity: 0.7;">
+                    <input type="hidden" name="menu_id" id="edit_menu_id_hidden">
+                </div>
+                <label class="font-bold mb-1" style="display:block; color: var(--text-color); font-size: 0.85rem;">Updated Permissions</label>
+                <div class="modal-grid-box">
+                    <label><input type="checkbox" name="can_view" id="edit_can_view"><span>Can View</span></label>
+                    <label><input type="checkbox" name="can_add" id="edit_can_add"><span>Can Add</span></label>
+                    <label><input type="checkbox" name="can_edit" id="edit_can_edit"><span>Can Edit</span></label>
+                    <label><input type="checkbox" name="can_delete" id="edit_can_delete"><span>Can Delete</span></label>
+                </div>
+            </div>
+            <div class="sw-modal-footer">
+                <button type="button" class="sw-btn" onclick="closeModal('editMappingModal')">Cancel</button>
+                <button type="submit" class="sw-btn sw-btn-primary">Update Access</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function handleProfileFilter(val) {
+        const url = new URL(window.location.href);
+        if (val) url.searchParams.set('profile_filter', val);
+        else url.searchParams.delete('profile_filter');
+        window.location.href = url.toString();
+    }
+
+    function prepareEditModal(btn) {
+        const id = btn.dataset.id;
+        const row = btn.closest('tr');
+        document.getElementById('editMappingForm').action = `/master-data/profile-menu-mapping/${id}/edit/`;
+        document.getElementById('edit_profile_name').value = row.querySelector('.profile-info span').innerText;
+        document.getElementById('edit_menu_name').value = row.querySelector('.menu-info span').innerText;
+        document.getElementById('edit_profile_id_hidden').value = btn.dataset.profileId;
+        document.getElementById('edit_menu_id_hidden').value = btn.dataset.menuId;
+        document.getElementById('edit_can_view').checked = btn.dataset.view === 'True';
+        document.getElementById('edit_can_add').checked = btn.dataset.add === 'True';
+        document.getElementById('edit_can_edit').checked = btn.dataset.edit === 'True';
+        document.getElementById('edit_can_delete').checked = btn.dataset.delete === 'True';
+        openModal('editMappingModal');
+    }
+
+    function confirmAction(url, msg) { if(confirm(msg)) window.location.href = url; }
+    function openModal(id) { 
+        const m = document.getElementById(id);
+        m.style.display = 'flex';
+        setTimeout(() => m.classList.add('show'), 10);
+        document.body.style.overflow = 'hidden'; 
+    }
+    function closeModal(id) { 
+        const m = document.getElementById(id);
+        m.classList.remove('show');
+        setTimeout(() => { if (!m.classList.contains('show')) m.style.display = 'none'; }, 300);
+        document.body.style.overflow = ''; 
+    }
+
+    function filterDropdown(input) {
+        const filter = input.value.toLowerCase();
+        const options = input.closest('.custom-dropdown-menu').querySelectorAll('.dropdown-option');
+        options.forEach(opt => {
+            const text = opt.textContent.toLowerCase();
+            opt.style.display = text.includes(filter) ? 'flex' : 'none';
+        });
+    }
+
+    window.onclick = function(e) {
+        if (e.target.classList.contains('sw-modal-container')) closeModal(e.target.id);
+        if (!e.target.closest('.custom-dropdown')) {
+            document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('active'));
+        }
+    }
+
+    document.querySelectorAll('.custom-dropdown-toggle').forEach(t => {
+        t.onclick = function() {
+            const parent = t.closest('.custom-dropdown');
+            document.querySelectorAll('.custom-dropdown').forEach(d => { if(d !== parent) d.classList.remove('active'); });
+            parent.classList.toggle('active');
+        }
+    });
+</script>
+{% endblock %}

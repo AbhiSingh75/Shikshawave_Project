@@ -1,0 +1,510 @@
+{% extends 'core/base_with_header.html' %}
+{% load static %}
+
+{% block title %}Secure Payment | ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Reset main content padding for this specific page to allow bleed if needed, but maintain container spacing */
+    .sw-main-content {
+        padding: 0 !important;
+    }
+
+    .payment-wrapper {
+        min-height: calc(100vh - 70px);
+        background: var(--bg-hover);
+        padding: 12px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+    }
+
+    body.dark-mode .payment-wrapper {
+        background: #0f172a;
+    }
+
+    .payment-container {
+        width: 100%;
+        max-width: 1000px;
+    }
+
+    .payment-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.dark-mode .payment-card {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .payment-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .payment-header h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .payment-header .secure-badge {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 5px 12px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        backdrop-filter: blur(4px);
+    }
+
+    .payment-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        min-height: 500px;
+    }
+
+    /* Left Panel: Summary */
+    .payment-left-panel {
+        padding: 20px 24px;
+        background: var(--bg-color);
+        border-right: 1px solid var(--border-color);
+    }
+
+    /* Right Panel: Form */
+    .payment-right-panel {
+        padding: 20px 24px;
+        background: var(--card-bg);
+    }
+
+    .summary-section-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-bottom: 12px;
+        position: relative;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .info-row:last-child { margin-bottom: 0; }
+
+    .info-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: var(--text-main);
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .receipt-box {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .receipt-header-row {
+        background: var(--bg-hover);
+        padding: 6px 16px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .receipt-body {
+        padding: 2px 16px;
+    }
+
+    .receipt-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px dashed var(--border-color);
+        font-size: 0.82rem;
+    }
+
+    .receipt-item:last-child { border-bottom: none; }
+
+    .receipt-item-name {
+        color: var(--text-main);
+        font-weight: 500;
+    }
+
+    .receipt-item-amount {
+        font-weight: 700;
+    }
+
+    .discount-pill {
+        color: var(--success);
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin-left: 8px;
+    }
+
+    .total-container {
+        padding: 10px 16px;
+        background: var(--primary-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 2px solid var(--primary-color);
+    }
+
+    .total-label-text {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    .total-amount-large {
+        font-size: 1.35rem;
+        font-weight: 900;
+        color: var(--primary-color);
+    }
+
+    /* Form Components */
+    .payment-form-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .method-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+    .method-card {
+        background: var(--bg-color);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .method-card:hover {
+        border-color: var(--primary-color);
+        background: var(--card-bg);
+        transform: translateY(-2px);
+    }
+
+    .method-card.active {
+        border-color: var(--primary-color);
+        background: var(--primary-light);
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .method-card i {
+        font-size: 1.4rem;
+        color: var(--primary-color);
+    }
+
+    .method-name {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .sw-input-group {
+        margin-bottom: 15px;
+    }
+
+    .sw-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .payment-input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        background: var(--bg-color);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+
+    .payment-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: var(--card-bg);
+        box-shadow: 0 0 0 4px var(--primary-light);
+    }
+
+    .btn-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .sw-btn {
+        padding: 11px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.3);
+    }
+
+    .btn-pay:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(var(--primary-rgb), 0.4);
+        filter: brightness(1.1);
+    }
+
+    .btn-cancel {
+        background: var(--bg-hover);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-cancel:hover {
+        background: var(--border-color);
+    }
+
+    @media (max-width: 992px) {
+        .payment-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-left-panel {
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 25px;
+        }
+
+        .payment-right-panel {
+            padding: 25px;
+        }
+
+        .payment-wrapper {
+            padding: 10px;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .method-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-wrapper">
+    <div class="payment-container">
+        <div class="payment-card">
+            <div class="payment-header">
+                <h2><i class="fas fa-credit-card"></i> Pay Now</h2>
+                <div class="secure-badge">
+                    <i class="fas fa-lock"></i> SSL Secured
+                </div>
+            </div>
+
+            <div class="payment-grid">
+                <!-- PANEL: Summary -->
+                <div class="payment-left-panel">
+                    <h3 class="summary-section-title"><i class="fas fa-file-invoice"></i> Payment Summary</h3>
+                    
+                    <div class="info-card">
+                        <div class="info-row">
+                            <span class="info-label">Student Name</span>
+                            <span class="info-value">{{ admission_data.student_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Student ID</span>
+                            <span class="info-value">{{ admission_data.student_code }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">School</span>
+                            <span class="info-value">{{ school_name|default:"Test Public School" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="receipt-box">
+                        <div class="receipt-header-row">
+                            <span>Particulars</span>
+                            <span style="float: right;">Amount</span>
+                        </div>
+                        <div class="receipt-body">
+                            {% for fee in fee_breakdown %}
+                            <div class="receipt-item">
+                                <span class="receipt-item-name">{{ fee.fee_name }}</span>
+                                <span class="receipt-item-amount">
+                                    {% if fee.default_amount and fee.discount_percentage > 0 %}
+                                        <span class="discount-pill">-{{ fee.discount_percentage }}%</span>
+                                        ₹{{ fee.amount }}
+                                    {% else %}
+                                        ₹{{ fee.amount }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% endfor %}
+                            <div class="receipt-item" style="border: none; padding-top: 15px;">
+                                <span style="font-weight: 800; color: var(--text-main);">Sub Total</span>
+                                <span style="font-weight: 800; color: var(--text-main); font-size: 1.1rem;">₹{{ total_fees }}</span>
+                            </div>
+                        </div>
+                        <div class="total-container">
+                            <span class="total-label-text">Total Payable</span>
+                            <span class="total-amount-large">₹{{ total_fees }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL: Action Form -->
+                <div class="payment-right-panel">
+                    <form method="POST" id="paymentForm">
+                        {% csrf_token %}
+                        
+                        <h3 class="payment-form-title"><i class="fas fa-wallet"></i> Payment Method</h3>
+                        <div class="method-grid">
+                            <div class="method-card active" onclick="selectMode('Cash', this)">
+                                <input type="radio" name="payment_mode" value="Cash" required checked style="display:none">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span class="method-name">Cash</span>
+                            </div>
+                            <div class="method-card" onclick="selectMode('Card', this)">
+                                <input type="radio" name="payment_mode" value="Card" style="display:none">
+                                <i class="fas fa-credit-card"></i>
+                                <span class="method-name">Card</span>
+                            </div>
+                            <div class="method-card" onclick="selectMode('UPI', this)">
+                                <input type="radio" name="payment_mode" value="UPI" style="display:none">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span class="method-name">UPI</span>
+                            </div>
+                            <div class="method-card" onclick="selectMode('Bank Transfer', this)">
+                                <input type="radio" name="payment_mode" value="Bank Transfer" style="display:none">
+                                <i class="fas fa-university"></i>
+                                <span class="method-name">Bank</span>
+                            </div>
+                        </div>
+
+                        <div class="sw-input-group">
+                            <label class="sw-label">Payable Amount</label>
+                            <input type="number" id="paid_amount" name="paid_amount" 
+                                   value="{{ total_fees }}" step="0.01" min="0" 
+                                   max="{{ total_fees }}" required class="payment-input">
+                        </div>
+
+                        <div class="sw-input-group" id="ref_container" style="display: none;">
+                            <label class="sw-label">Transaction Reference</label>
+                            <input type="text" id="transaction_ref" name="transaction_ref" 
+                                   class="payment-input" placeholder="Enter Ref ID">
+                        </div>
+
+                        <div class="btn-container">
+                            <button type="button" class="sw-btn btn-cancel" onclick="window.history.back()">
+                                <i class="fas fa-times"></i> Back
+                            </button>
+                            <button type="submit" class="sw-btn btn-pay">
+                                <i class="fas fa-shield-check"></i> Complete Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectMode(value, element) {
+        document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+        element.classList.add('active');
+        
+        const radio = element.querySelector('input');
+        radio.checked = true;
+
+        const refContainer = document.getElementById('ref_container');
+        const refInput = document.getElementById('transaction_ref');
+
+        if (value !== 'Cash') {
+            refContainer.style.display = 'block';
+            refInput.required = true;
+        } else {
+            refContainer.style.display = 'none';
+            refInput.required = false;
+        }
+    }
+
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        const btn = this.querySelector('.btn-pay');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        btn.disabled = true;
+    });
+</script>
+{% endblock %}
+block %}

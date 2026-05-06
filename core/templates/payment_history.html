@@ -1,0 +1,198 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Payment History - ShikshaWave{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-filters {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .payment-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .table th {
+        background: #f8f9fa;
+        border: none;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .badge-completed { background: #28a745; }
+    .badge-pending { background: #ffc107; color: #212529; }
+    .badge-failed { background: #dc3545; }
+    
+    .amount-cell {
+        font-weight: 600;
+        color: #28a745;
+    }
+    
+    .receipt-number {
+        font-family: monospace;
+        font-weight: 600;
+        color: #007bff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-history"></i> Payment History</h2>
+                <a href="{% url 'fee_summary' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-chart-bar"></i> Fee Summary
+                </a>
+            </div>
+            
+            <!-- Filters -->
+            <div class="payment-filters">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Payment Mode</label>
+                        <select name="payment_mode" class="form-select">
+                            <option value="">All Modes</option>
+                            <option value="Cash" {% if payment_mode_filter == 'Cash' %}selected{% endif %}>Cash</option>
+                            <option value="Online" {% if payment_mode_filter == 'Online' %}selected{% endif %}>Online</option>
+                            <option value="Card" {% if payment_mode_filter == 'Card' %}selected{% endif %}>Card</option>
+                            <option value="UPI" {% if payment_mode_filter == 'UPI' %}selected{% endif %}>UPI</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">From Date</label>
+                        <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">To Date</label>
+                        <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <a href="{% url 'payment_history' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Payment Table -->
+            <div class="payment-table">
+                {% if payments %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Receipt #</th>
+                                <th>Student</th>
+                                <th>Amount</th>
+                                <th>Mode</th>
+                                <th>Date</th>
+                                <th>Transaction Ref</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>
+                                    <span class="receipt-number">{{ payment.receipt_number }}</span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ payment.student_name }}</strong><br>
+                                        <small class="text-muted">{{ payment.student_code }}</small>
+                                    </div>
+                                </td>
+                                <td class="amount-cell">₹{{ payment.paid_amount|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ payment.payment_mode }}</span>
+                                </td>
+                                <td>{{ payment.payment_date|date:"d M Y H:i" }}</td>
+                                <td>
+                                    {% if payment.transaction_ref %}
+                                        <code>{{ payment.transaction_ref }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ payment.status|lower }}">
+                                        {{ payment.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            onclick="viewPaymentDetails({{ payment.payment_id }})"
+                                            title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No payments found</h5>
+                    <p class="text-muted">No payment records match your criteria.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Details Modal -->
+<div class="modal fade" id="paymentDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="paymentDetailsContent">
+                <!-- Payment details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function viewPaymentDetails(paymentId) {
+    // This would fetch and display detailed payment information
+    $('#paymentDetailsModal').modal('show');
+    $('#paymentDetailsContent').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+    
+    // You can implement AJAX call to fetch payment details
+    setTimeout(() => {
+        $('#paymentDetailsContent').html(`
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                Payment details for ID: ${paymentId} would be displayed here.
+                This can include fee breakdown, payment timeline, etc.
+            </div>
+        `);
+    }, 500);
+}
+</script>
+{% endblock %}

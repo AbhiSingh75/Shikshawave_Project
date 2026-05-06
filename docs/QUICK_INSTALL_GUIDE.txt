@@ -1,0 +1,116 @@
+================================================================================
+SALARY COMPONENT MASTER - QUICK INSTALLATION GUIDE
+================================================================================
+
+STEP 1: Run Database Migration
+-------------------------------
+python manage.py migrate
+
+This will create the stored procedure: Proc_SalaryComponentMaster_Manage
+
+
+STEP 2: Add Menu Item (Choose ONE option)
+------------------------------------------
+
+OPTION A - Django Command (EASIEST - RECOMMENDED)
+--------------------------------------------------
+python manage.py add_salary_component_menu
+
+✓ Automatically adds menu under "Master Data"
+✓ Automatically adds permissions for Super Admin and School Admin
+✓ Shows success/error messages
+
+
+OPTION B - SQL Script
+---------------------
+Run this file in SQL Server Management Studio:
+database/add_salary_component_menu.sql
+
+✓ Adds menu under "Master Data"
+✓ Adds permissions for Super Admin and School Admin
+✓ Shows results
+
+
+OPTION C - Manual SQL (If above options don't work)
+----------------------------------------------------
+Run this SQL in your database:
+
+DECLARE @MasterDataMenuID INT;
+SELECT @MasterDataMenuID = MenuID FROM MenuMaster WHERE MenuName = 'Master Data';
+
+INSERT INTO MenuMaster (MenuName, MenuURL, MenuIcon, ParentMenuID, DisplayOrder, IsActive, CreatedAt, IsDeleted)
+VALUES ('Salary Components', '/master-data/salary-component/', 'fas fa-money-check-alt', @MasterDataMenuID, 50, 1, GETDATE(), 0);
+
+DECLARE @NewMenuID INT = SCOPE_IDENTITY();
+
+INSERT INTO ProfileMenuMapping (ProfileID, MenuID, CanView, CanAdd, CanEdit, CanDelete, CreatedAt, IsDeleted)
+VALUES (1, @NewMenuID, 1, 1, 1, 1, GETDATE(), 0);
+
+INSERT INTO ProfileMenuMapping (ProfileID, MenuID, CanView, CanAdd, CanEdit, CanDelete, CreatedAt, IsDeleted)
+VALUES (2, @NewMenuID, 1, 1, 1, 1, GETDATE(), 0);
+
+
+STEP 3: Verify Installation
+----------------------------
+1. Login to the application
+2. Navigate to Master Data menu
+3. You should see "Salary Components" menu item
+4. Click it to access: /master-data/salary-component/
+
+
+STEP 4: Test Functionality
+---------------------------
+□ List page loads correctly
+□ Click "Add Component" button
+□ Create a new component (e.g., "Basic Salary" - Earning)
+□ Edit the component
+□ Delete the component
+□ Restore the component
+
+
+TROUBLESHOOTING
+---------------
+
+Issue: Menu not showing
+Solution: 
+- Clear browser cache
+- Logout and login again
+- Check ProfileMenuMapping table for your profile
+
+Issue: Permission denied
+Solution:
+- Run Option A or B again to add permissions
+- Or manually add permissions in ProfileMenuMapping table
+
+Issue: Stored procedure not found
+Solution:
+- Run: python manage.py migrate
+- Check if procedure exists: 
+  SELECT * FROM sys.objects WHERE name = 'Proc_SalaryComponentMaster_Manage'
+
+
+MENU LOCATION
+-------------
+Master Data → Salary Components
+
+
+ACCESS URLS
+-----------
+List:    /master-data/salary-component/
+Add:     /master-data/salary-component/add/
+Edit:    /master-data/salary-component/<id>/edit/
+Delete:  /master-data/salary-component/<id>/delete/
+Restore: /master-data/salary-component/<id>/restore/
+
+
+PERMISSIONS
+-----------
+Super Admin (ProfileID = 1): Full access to all schools
+School Admin (ProfileID = 2): Access to their school only
+
+
+DONE!
+-----
+Your Salary Component Master Data Management is now ready to use.
+
+================================================================================

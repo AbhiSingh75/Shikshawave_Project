@@ -1,0 +1,184 @@
+<!-- Student Grid Entry Modal - Excel-like interface -->
+<div id="studentGridEntryModal" class="modal">
+    <div class="modal-content" style="max-width: 98%; width: 1400px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-table"></i> Student Data Entry Grid</h3>
+            <button class="close-btn" onclick="closeStudentGridModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body" style="padding: 15px;">
+            <div class="grid-instructions">
+                <i class="fas fa-info-circle"></i>
+                <strong>Instructions:</strong> Enter student data directly in the grid below (like Excel). 
+                Fields marked with * are required. Press Enter to move to next cell.
+            </div>
+            
+            <div id="studentGridContainer"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.grid-instructions {
+    background: rgba(79, 70, 229, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.grid-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: var(--light-gray);
+    border-radius: 6px;
+}
+
+.grid-info {
+    margin-left: auto;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.grid-wrapper {
+    overflow: auto;
+    max-height: 60vh;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.data-grid {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.85rem;
+}
+
+body.dark-mode .data-grid {
+    background: var(--secondary-color);
+}
+
+.data-grid thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--primary-color);
+}
+
+.data-grid th {
+    padding: 10px 8px;
+    color: white;
+    font-weight: 600;
+    text-align: left;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    white-space: nowrap;
+}
+
+.data-grid td {
+    padding: 2px;
+    border: 1px solid var(--border-color);
+}
+
+.data-grid .row-number {
+    background: var(--light-gray);
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-light);
+    padding: 8px 4px;
+    position: relative;
+}
+
+.delete-row-btn {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    margin-left: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.data-grid tbody tr:hover .delete-row-btn {
+    opacity: 1;
+}
+
+.delete-row-btn:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+.grid-input {
+    width: 100%;
+    border: none;
+    padding: 8px 6px;
+    font-size: 0.85rem;
+    background: transparent;
+    color: var(--text-color);
+    outline: none;
+}
+
+.grid-input:focus {
+    background: rgba(79, 70, 229, 0.05);
+    border: 2px solid var(--primary-color);
+}
+
+.grid-input[type="date"] {
+    padding: 6px 4px;
+}
+
+select.grid-input {
+    cursor: pointer;
+}
+
+.data-grid tbody tr:hover {
+    background: rgba(79, 70, 229, 0.03);
+}
+
+body.dark-mode .grid-input {
+    background: var(--secondary-color);
+}
+
+body.dark-mode .grid-input:focus {
+    background: rgba(99, 102, 241, 0.1);
+}
+</style>
+
+<script>
+function openStudentGridModal() {
+    document.getElementById('studentGridEntryModal').classList.add('show');
+    
+    const schoolId = {% if show_school_dropdown %}
+        document.getElementById('schoolSelect')?.value || null
+    {% else %}
+        {{ request.session.SchoolID }}
+    {% endif %};
+    
+    if (!schoolId) {
+        alert('Please select a school first');
+        closeStudentGridModal();
+        return;
+    }
+    
+    if (!studentGrid) {
+        studentGrid = new StudentGridEntry();
+    }
+    studentGrid.init('studentGridContainer', schoolId);
+}
+
+function closeStudentGridModal() {
+    document.getElementById('studentGridEntryModal').classList.remove('show');
+}
+</script>
